@@ -3,14 +3,19 @@ import SwiftUI
 import Combine
 
 public struct ComposeToastView : ComposeModalPresentable {
-    
     @Environment(\.composeToastViewStyle) private var style
     @EnvironmentObject private var manager : ComposeModalManager
     @State private var timerCancellable : AnyCancellable? = nil
 
     public let title : String
     public let message : String
-    public var event : ComposeToastViewEvent = .normal
+    public let event : ComposeToastViewEvent
+    
+    public init(title: String, message: String, event: ComposeToastViewEvent = .normal) {
+        self.title = title
+        self.message = message
+        self.event = event
+    }
     
     public var background: some View {
         EmptyView()
