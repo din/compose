@@ -1,11 +1,11 @@
 import Foundation
 import SwiftUI
 
-struct ComposeModalContainerView : View {
+public struct ComposeModalContainerView : View {
     
     @EnvironmentObject var manager : ComposeModalManager
     
-    var body: some View {
+    public var body: some View {
         ZStack(alignment: .top) {
             Color.clear
             

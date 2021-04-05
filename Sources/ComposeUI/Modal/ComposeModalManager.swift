@@ -8,8 +8,8 @@ final public class ComposeModalManager : ObservableObject {
     @Published var sheet : AnyView? = nil
     
     fileprivate var window : ComposeModalWindow? = nil
-    
-    public init() {
+
+    public init(_ wrapper : ((ComposeModalContainerView) -> AnyView) = { view in AnyView(view) }) {
         guard let windowScene = UIApplication.shared
                 .connectedScenes
                 .filter({ $0.activationState == .foregroundActive })
@@ -17,17 +17,22 @@ final public class ComposeModalManager : ObservableObject {
             return
         }
         
+        let rootView = wrapper(ComposeModalContainerView())
+            .environmentObject(self)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(ComposeModalWindow.PassthroughView())
+            .transformEnvironment(\.composeAlertViewStyle) { value in
+                value = .init()
+            }
+        
         let window = ComposeModalWindow(windowScene: windowScene)
         window.windowLevel = .alert
-        window.rootViewController = UIHostingController(rootView: ComposeModalContainerView()
-                                                            .environmentObject(self)
-                                                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                                            .background(ComposeModalWindow.PassthroughView()))
+        window.rootViewController = UIHostingController(rootView: rootView)
         window.makeKeyAndVisible()
         window.isUserInteractionEnabled = false
         window.backgroundColor = UIColor.clear
         window.rootViewController?.view.backgroundColor = .clear
-
+            
         self.window = window
     }
     
@@ -59,3 +64,4 @@ final public class ComposeModalManager : ObservableObject {
     }
     
 }
+

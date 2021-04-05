@@ -46,7 +46,7 @@ public struct ComposeTabBar<Contents : View> : View {
                     .frame(width: style.padding)
                 
                 ForEach(0..<items.count) { index in
-                    items[index].opacity(items[index].path == route.path ? 1.0 : 0.5)
+                    items[index].opacity(items[index].path == route.path ? 1.0 : 0.4)
                         .foregroundColor(style.foregroundColor)
                         .frame(maxHeight: .infinity)
                         .padding(paddingForItem(at: index))
