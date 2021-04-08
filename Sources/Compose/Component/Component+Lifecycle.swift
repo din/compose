@@ -3,20 +3,20 @@ import SwiftUI
 
 extension Component {
     
-    public var componentCreatedEmitter : SignalEmitter {
-        Storage.storage(for: self.id).value(at: \Self.componentCreatedEmitter) {
+    public var componentCreated : SignalEmitter {
+        Storage.storage(for: self.id).value(at: \Self.componentCreated) {
             SignalEmitter()
         }
     }
     
-    public var componentViewAppearedEmitter : SignalEmitter {
-        Storage.storage(for: self.id).value(at: \Self.componentViewAppearedEmitter) {
+    public var componentViewAppeared : SignalEmitter {
+        Storage.storage(for: self.id).value(at: \Self.componentViewAppeared) {
             SignalEmitter()
         }
     }
     
-    public var componentViewDisappearedEmitter : SignalEmitter {
-        Storage.storage(for: self.id).value(at: \Self.componentViewDisappearedEmitter) {
+    public var componentViewDisappeared : SignalEmitter {
+        Storage.storage(for: self.id).value(at: \Self.componentViewDisappeared) {
             SignalEmitter()
         }
     }
@@ -26,15 +26,14 @@ extension Component {
 extension Component {
     
     func lifecycle<Body : View>(_ view : Body) -> some View {
-        componentCreatedEmitter.send()
+        componentCreated.send()
         
         return view
             .onAppear {
-                componentViewAppearedEmitter.send()
+                componentViewAppeared.send()
             }
             .onDisappear {
-                componentViewDisappearedEmitter.send()
-                Storage.removeStorage(for: self.id)
+                componentViewDisappeared.send()
             }
     }
     

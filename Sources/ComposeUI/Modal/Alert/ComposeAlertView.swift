@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-public struct ComposeAlertView : ComposeModalPresentable {
+public struct ComposeAlertView : ComposeModal {
     
     @EnvironmentObject private var manager : ComposeModalManager
     @Environment(\.composeAlertViewStyle) private var style
@@ -17,7 +17,7 @@ public struct ComposeAlertView : ComposeModalPresentable {
         self.actions = actions()
     }
     
-    public var background: some View {
+    public var backgroundBody: some View {
         style.overlayColor
             .transition(.opacity)
     }

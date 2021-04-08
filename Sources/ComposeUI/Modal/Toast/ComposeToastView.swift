@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 import Combine
 
-public struct ComposeToastView : ComposeModalPresentable {
+public struct ComposeToastView : ComposeModal {
     @Environment(\.composeToastViewStyle) private var style
     @EnvironmentObject private var manager : ComposeModalManager
     @State private var timerCancellable : AnyCancellable? = nil
@@ -17,7 +17,7 @@ public struct ComposeToastView : ComposeModalPresentable {
         self.event = event
     }
     
-    public var background: some View {
+    public var backgroundBody: some View {
         EmptyView()
     }
     

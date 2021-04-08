@@ -4,7 +4,7 @@ import Compose
 
 final public class ComposeModalManager : ObservableObject {
     
-    @Published var presenters = [ComposeModalPresenter]()
+    @Published var presenters = [AnyComposeModal]()
     @Published var sheet : AnyView? = nil
     
     fileprivate var window : ComposeModalWindow? = nil
@@ -36,12 +36,10 @@ final public class ComposeModalManager : ObservableObject {
         self.window = window
     }
     
-    public func present<Presentable : ComposeModalPresentable>(_ presentable : @autoclosure () -> Presentable) {
-        let presentable = presentable()
-        
+    public func present(_ modal : AnyComposeModal) {
+ 
         withAnimation {
-            presenters.append(ComposeModalPresenter(view: AnyView(presentable),
-                                                    background: AnyView(presentable.background)))
+            presenters.append(modal)
         }
         
         window?.isUserInteractionEnabled = true

@@ -7,9 +7,9 @@ public struct LazyComponent<T : Component> : Component {
     let storage = ComponentStorage<T>()
     let allocator : () -> T
     
-    public let createdEmitter = SignalEmitter()
-    public let viewAppearedEmitter = SignalEmitter()
-    public let viewDisappearedEmitter = SignalEmitter()
+    public let created = SignalEmitter()
+    public let viewAppeared = SignalEmitter()
+    public let viewDisappeared = SignalEmitter()
     
     public init(_ allocator : @autoclosure @escaping () -> T) {
         self.allocator = allocator
@@ -34,16 +34,16 @@ extension LazyComponent : View {
     public var body: some View {
         if storage.component == nil {
             storage.component = allocator().bind()
-            createdEmitter.send()
+            created.send()
         }
         
         return storage.component?.view
             .onAppear {
-                self.viewAppearedEmitter.send()
+                self.viewAppeared.send()
             }
             .onDisappear {
                 self.storage.component = nil
-                self.viewDisappearedEmitter.send()
+                self.viewDisappeared.send()
             }
     }
     

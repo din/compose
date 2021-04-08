@@ -10,11 +10,11 @@ public struct ComposeModalContainerView : View {
             Color.clear
             
             ForEach(manager.presenters.indices, id: \.self) { index in
-                manager.presenters[index].background
+                manager.presenters[index].backgroundView
                     .edgesIgnoringSafeArea(.all)
                     .zIndex(Double(index))
 
-                manager.presenters[index].view
+                manager.presenters[index].modalView
                     .zIndex(100.0 + Double(index))
             }
         }
