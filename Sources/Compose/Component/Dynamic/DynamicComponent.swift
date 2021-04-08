@@ -8,8 +8,8 @@ public struct DynamicComponent<T : Component> : Component {
     
     public let destroyOnDisappearance : Bool
     
-    public let created = SignalEmitter()
-    public let destroyed = SignalEmitter()
+    public let didCreate = SignalEmitter()
+    public let didDestroy = SignalEmitter()
     
     public init(destroyOnDisappearance : Bool) {
         self.destroyOnDisappearance = destroyOnDisappearance
@@ -28,7 +28,7 @@ extension DynamicComponent {
         let component = allocator().bind()
         storage.component = component
         
-        created.send()
+        didCreate.send()
         
         return component
     }
@@ -36,7 +36,7 @@ extension DynamicComponent {
     public func destroy() {
         storage.component = nil
         
-        destroyed.send()
+        didDestroy.send()
     }
     
     public subscript<V>(dynamicMember keyPath : KeyPath<T, V>) -> V {

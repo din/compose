@@ -16,9 +16,9 @@ public class Store<State : AnyState,
     
     @Published public var validation = Validation()
     
-    public let emitter : Emitter<State>
+    public let didChange : Emitter<State>
 
-    public let statusEmitter : Emitter<Status>
+    public let didStatusChange : Emitter<Status>
     
     var cancellables = Set<AnyCancellable>()
     
@@ -26,14 +26,14 @@ public class Store<State : AnyState,
     
     public init(_ initialState : State = .init(), storage : AnyPersistentStorage = EmptyPersistentStorage()) {
         self.state = initialState
-        self.emitter = Emitter(initialState)
-        self.statusEmitter = Emitter(.idle)
+        self.didChange = Emitter(initialState)
+        self.didStatusChange = Emitter(.idle)
         self.storage = storage
         
         $state
             .removeDuplicates()
             .sink { state in
-            self.emitter.send(state)
+            self.didChange.send(state)
         }.store(in: &cancellables)
         
         $state
@@ -46,7 +46,7 @@ public class Store<State : AnyState,
         
         $status
             .sink { status in
-            self.statusEmitter.send(status)
+            self.didStatusChange.send(status)
         }.store(in: &cancellables)
     }
     

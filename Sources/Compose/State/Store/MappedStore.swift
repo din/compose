@@ -20,11 +20,11 @@ public class MappedStore<Target, TargetStore : AnyStore> : ObservableObject, Bin
         
         let store = component[keyPath: keyPath]
         
-        store.emitter ++= { state in
+        store.didChange ++= { state in
             self.state = state
         }
         
-        store.statusEmitter ++= { status in
+        store.didStatusChange ++= { status in
             self.status = status
         }
     }
