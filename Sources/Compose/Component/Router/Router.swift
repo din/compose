@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-public class Router : ObservableObject {
+public final class Router : ObservableObject {
     
     public var path : AnyKeyPath? {
         return paths.last
@@ -74,6 +74,8 @@ extension Router : Bindable {
     
     public func bind<C : Component>(to component: C) {
         self.target = component
+        
+        Storage.storage(for: \Router.self).setValue(self, at: \C.self)
     }
     
 }

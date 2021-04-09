@@ -2,6 +2,7 @@ import Foundation
 import Combine
 import SwiftUI
 
+infix operator !+=
 infix operator ++=
 infix operator ~+=
 
@@ -54,6 +55,29 @@ public class Emitter<Value> {
             }.store(in: &sinks)
         }
     }
+    
+    public func observeOnce(handler : @escaping (Value) -> Void) {
+        let observer = EmitterObserver(handler: handler)
+        
+        var cancellable : AnyCancellable? = nil
+        
+        cancellable = publisher.dropFirst().sink { [weak self] value in
+            guard let value = value else {
+                return
+            }
+            
+            observer.handler?(value)
+
+            if let cancellable = cancellable {
+                self?.sinks.remove(cancellable)
+                cancellable.cancel()
+            }
+        }
+        
+        if let cancellable = cancellable {
+            sinks.insert(cancellable)
+        }
+    }
 
     public func observeChange(handler : @escaping (Value, Value) -> Void) {
         let observer = EmitterObserver(changeHandler: handler)
@@ -86,6 +110,10 @@ extension Emitter {
     
     public static func ++=(lhs : Emitter, rhs : @escaping (Value) -> Void) {
         lhs.observe(handler: rhs, emitRightAway : true)
+    }
+    
+    public static func !+=(lhs : Emitter, rhs : @escaping (Value) -> Void) {
+        lhs.observeOnce(handler: rhs)
     }
     
     public static func ~+=(lhs : Emitter, rhs : @escaping (Value, Value) -> Void) {

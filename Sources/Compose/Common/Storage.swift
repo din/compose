@@ -42,4 +42,8 @@ final class Storage {
         values[key] = value
     }
     
+    func hasValue(at key : AnyHashable) -> Bool {
+        return values[key] != nil
+    }
+    
 }
