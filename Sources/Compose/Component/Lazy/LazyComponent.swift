@@ -11,6 +11,10 @@ public struct LazyComponent<T : Component> : Component {
     public let didAppear = SignalEmitter()
     public let didDisappear = SignalEmitter()
     
+    public var component : T? {
+        storage.component
+    }
+    
     public init(_ allocator : @autoclosure @escaping () -> T) {
         self.allocator = allocator
     }

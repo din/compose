@@ -11,6 +11,10 @@ public struct DynamicComponent<T : Component> : Component {
     public let didCreate = SignalEmitter()
     public let didDestroy = SignalEmitter()
     
+    public var component : T? {
+        storage.component
+    }
+    
     public init(destroyOnDisappearance : Bool) {
         self.destroyOnDisappearance = destroyOnDisappearance
     }
