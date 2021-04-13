@@ -11,6 +11,10 @@ public struct LazyComponent<T : Component> : Component {
     public let didAppear = SignalEmitter()
     public let didDisappear = SignalEmitter()
     
+    public var observers: Void {
+        None
+    }
+    
     public var component : T? {
         storage.component
     }

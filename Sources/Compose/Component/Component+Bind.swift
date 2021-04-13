@@ -31,9 +31,7 @@ extension Component {
             
         }
         
-        if let component = self as? Observing {
-            _ = component.observers
-        }
+        _ = self.observers
 
         return self
     }

@@ -3,6 +3,8 @@ import SwiftUI
 
 public protocol Component {
     
+    var observers : Void { get }
+    
     var view : AnyView { get }
     
 }

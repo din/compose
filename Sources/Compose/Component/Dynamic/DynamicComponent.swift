@@ -11,6 +11,10 @@ public struct DynamicComponent<T : Component> : Component {
     public let didCreate = SignalEmitter()
     public let didDestroy = SignalEmitter()
     
+    public var observers: Void {
+        None
+    }
+    
     public var component : T? {
         storage.component
     }
