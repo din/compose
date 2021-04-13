@@ -2,13 +2,12 @@
 
 Compose is an opinionated architecture framework intended to build applications for iOS and macOS. Compose is built on top of Combine and SwiftUI.
 
-- Component tree
-- SwiftUI views presentation
-- Event-driven communication between components
-- Routing
-- Reactive store
-- Predicable file structure
-- UI elements to implement navigation from scratch
+- 🌴 Component tree
+- 🚦 Event-driven communication between components
+- 🚏 Easy to use routing
+- 🧨 Reactive store
+- 🏛 Predicable file structure
+- 👨🏽‍💻 UI elements to implement navigation from scratch
 
 _Compose is still a work in progress. The framework is still alpha—feature set may change, variable and method names may change too._
 
@@ -88,7 +87,7 @@ There are two semantic types of emitters: signal emitters and value emitters.
 
 Signal emitters carry only the fact of being called and their value is `Void`:
 
-```
+```swift
 // Define an emitter that doesn't carry any value.
 let printHello = SignalEmitter()
 
@@ -103,7 +102,7 @@ printHello.send()
 
 Value emitters, as the name implies, carry value with them:
 
-```
+```swift
 // Define an emitter that carries a certain value.
 let printMessage = Emitter<String>()
 
@@ -145,7 +144,7 @@ A basic building block for presenting content. A component is usually a single s
 Each component must be a `struct` and must conform to the `Component` protocol. Usually component body contains emitters, stores, and subcomponents.
 
 
-```
+```swift
 // Auth.swift
 struct AuthComponent : Component {
 
@@ -156,7 +155,7 @@ struct AuthComponent : Component {
 
 `Component` requires us to have a presentation layer. It is usually defined in the appropriate `+View.swift` file:
 
-```
+```swift
 // Auth+View.swift
 extension AuthComponent : View {
 
@@ -175,7 +174,7 @@ extension AuthComponent : View {
 
 `Component` also requires us to define the list of observers or `None` if it doesn't have any. You can add as many observers as you want inside the `observers` computed property:
 
-```
+```swift
 // Auth+Observers.swift
 extension AuthComponent {
 
@@ -190,7 +189,7 @@ extension AuthComponent {
 
 You can also split it into several computed properties, possibly defined in separate files, if your `+Observers.swift` file grows big.
 
-```
+```swift
 // Auth+Observers.swift
 extension AuthComponent {
 
@@ -214,7 +213,7 @@ extension AuthComponent {
 }
 ```
 
-> ❗️ Note that you should never read `observers` property manually anywhere in your code: Compose automatically sets this up for you.
+> ❗️ You should never read `observers` property manually anywhere in your code: Compose automatically sets this up for you.
 
 This component can now be presented in the tree of components using `Router` or via direct presentation within a view.
 
@@ -226,7 +225,7 @@ This component can now be presented in the tree of components using `Router` or 
 
 Consider having the following components defined:
 
-```
+```swift
 // LogIn.swift
 struct LogInComponent : Component {
 
@@ -244,7 +243,7 @@ extension LogInComponent {
 }
 ```
 
-```
+```swift
 // SignUp.swift
 struct SignUpComponent : Component {
 
@@ -264,7 +263,7 @@ extension SignUpComponent {
 
 Then, we need to have a router component that would switch between our two components when a particular signal is received:
 
-```
+```swift
 // Auth.swift
 struct AuthComponent : RouterComponent {
 
@@ -291,13 +290,13 @@ extension AuthComponent {
 }
 ```
 
-> ❗️ Note that  `RouterComponent provides default implementation for SwiftUI view, so you don't have to provide your own body, if you have some simple cases.
+> ❗️ `RouterComponent provides default implementation for SwiftUI view, so you don't have to provide your own body, if you have some simple cases.
 
 Now, pushing any button in the appropriate component triggers the signal emitter, which, in turn, is observed by the `AuthComponent` and the currently presented component is replaced.
 
 There could be an occasion where routing is placed outside of the routing view. For example, tab bar controllers would have navigation links defined outside of the routed component itself. For this case, you can override default view of the router component. Let's rewrite our previous example by factoring emitters out of the children components:
 
-```
+```swift
 // LogIn.swift
 struct LogInComponent : Component {
 
@@ -322,7 +321,7 @@ extension LogInComponent {
 }
 ```
 
-```
+```swift
 // SignUp.swift
 struct SignUpComponent : Component {
 
@@ -349,7 +348,7 @@ extension SignUpComponent {
 
 We should put the emitters onto the parent component instead:
 
-```
+```swift
 // Auth.swift
 struct AuthComponent : RouterComponent {
 
@@ -408,7 +407,7 @@ This case of centralised navigation ensures that `RouterView` is accompanied by 
 
 Your `struct` conforming to `RouterComponent` must always define exactly one `Router` object that manages the routing. All routes are specified as key paths to the components in the very same routing component:
 
-```
+```swift
 // Auth.swift
 struct AuthComponent : RouterComponent {
 
@@ -438,7 +437,7 @@ The starting route must always be specified as a key path to the component which
 
 Whenever any of the aforementioned routing methods are executed, the router componet's view is immediately updated with the contents of the component under the routed key path.
 
-```
+```swift
 // Auth+Observers.swift 
 extension AuthComponent {
 
@@ -453,7 +452,7 @@ extension AuthComponent {
 
 It's also quite easy to perform the transition when animating to or from a particular view:
 
-```
+```swift
 // Auth+Observers.swift 
 extension AuthComponent {
 
@@ -472,7 +471,7 @@ extension AuthComponent {
 
 It is also possible to observe `router.path` property to access the currently navigated key path. This can be used to alter the presentation of your view:
 
-```
+```swift
 // Auth+View.swift
 extension AuthComponent : View {
 
