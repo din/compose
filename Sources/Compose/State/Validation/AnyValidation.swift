@@ -18,7 +18,7 @@ extension AnyValidation {
         let mirror = Mirror(reflecting: self)
         
         for (_, value) in mirror.children {
-            if let value = value as? Validation {
+            if let value = value as? Validator {
                 value.validate(object: object)
             }
         }

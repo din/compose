@@ -1,6 +1,6 @@
 # Compose
 
-Compose is an opinionated architecture framework intended to build applications for iOS and macOS. Compose is built on top of Combine and SwiftUI.
+Compose is an opinionated architecture framework intended to create applications for iOS and macOS. Compose is built on top of Combine and SwiftUI.
 
 - 🌴 Component tree
 - 🚦 Event-driven communication between components
@@ -10,6 +10,39 @@ Compose is an opinionated architecture framework intended to build applications 
 - 👨🏽‍💻 UI elements to implement navigation from scratch
 
 _Compose is still a work in progress. The framework is still alpha—feature set may change, variable and method names may change too._
+
+## Table of Contents
+
+* [Supported Platforms](#supported-platforms)
+* [Installation](#installation)
+* [Getting Started](#getting-started)
+* [Emitters](#emitters)
+  * [Emitters Operators](#emitters-operators)
+* [Components](#components)
+  * [`Component`](#component)
+    * [Preinstalled Lifecycle Emitters](#preinstalled-lifecycle-emitters)
+  * [`RouterComponent`](#routercomponent)
+    * [`Router`](#router)
+    * [`RouterView`](#routerview)
+    * [`RoutableView`](#routableview)
+  * [`StartupComponent`](#startupcomponent)
+  * [`LazyComponent`](#lazycomponent)
+    * [Lifecycle Emitters](#lifecycle-emitters)
+  * [`DynamicComponent`](#dynamiccomponent)
+    * [Lifecycle Emitters](#lifecycle-emitters-1)
+* [Services](#services)
+* [Stores](#stores)
+  * [State via `AnyState`](#anystate)
+  * [Validations via  `AnyValidation`](#validations-via--anyvalidation)
+    * [`Validator`](#validator)
+      * [`Validator` operators](#validator-operators)
+    * [`ValidatorField`](#validatorfield)
+    * [`ValidatorRule`](#validatorrule)
+  * [Statuses via `AnyStatus`](#statuses-via--anystatus)
+    * [`AnyStatus` operators](#anystatus-operators)
+  * [Persistence via `AnyPersistentStorage`](#persistence-via--anypersistentstorage)
+    * [Choosing Persisted Values](#choosing-persisted-values)
+  * [Data Management](#data-management)
 
 ## Supported Platforms
 
@@ -38,7 +71,7 @@ import Compose
 
 ## Getting Started
 
-The following project structure is the most optimal to use Compose:
+The following _opinionated_ project structure is the most optimal to use Compose:
 
 ```
 + Resources/ <-- Project-wide resources
@@ -64,7 +97,7 @@ The following project structure is the most optimal to use Compose:
     + Auth/
         - Auth.swift <-- contains the component definition
         - Auth+Observers.swift <-- contains observers as computed properties
-        - Auth+State.swift <-- contains supplementary structures, State and Validations definitions 
+        - Auth+State.swift <-- contains State and Validation definitions 
         - Auth+View.swift <-- contains SwiftUI view
     + Home/
         + Posts/
@@ -145,6 +178,7 @@ Each component must be a `struct` and must conform to the `Component` protocol. 
 
 ```swift
 // Auth.swift
+
 struct AuthComponent : Component {
 
     let logIn = SignalEmitter()
@@ -156,6 +190,7 @@ struct AuthComponent : Component {
 
 ```swift
 // Auth+View.swift
+
 extension AuthComponent : View {
 
     var body : some View {
@@ -175,6 +210,7 @@ extension AuthComponent : View {
 
 ```swift
 // Auth+Observers.swift
+
 extension AuthComponent {
 
     var observers : Void {
@@ -190,6 +226,7 @@ You can also split it into several computed properties, possibly defined in sepa
 
 ```swift
 // Auth+Observers.swift
+
 extension AuthComponent {
 
     var observers : Void {
@@ -216,8 +253,6 @@ extension AuthComponent {
 
 This component can now be presented in the tree of components using `Router` or via direct presentation within a view.
 
----
-
 #### Preinstalled Lifecycle Emitters
 
 Each component instance comes with two lifecycle emitters: 
@@ -229,6 +264,7 @@ These emitters can be observed in the `+Observers.swift` file:
 
 ```swift
 // Auth+Observers.swift
+
 extension AuthComponent {
 
     var observers : Void {
@@ -248,8 +284,6 @@ extension AuthComponent {
 }
 ```
 
----
-
 ### `RouterComponent`
 
 `RouterComponent` is a protocol which is based on a basic `Component` protocol, but also requires the conforming `struct` to have a `Router`  instance defined.
@@ -260,6 +294,7 @@ Consider having the following components defined:
 
 ```swift
 // LogIn.swift
+
 struct LogInComponent : Component {
 
     let openSignUp = SignalEmitter()
@@ -267,6 +302,7 @@ struct LogInComponent : Component {
 }
 
 // LogIn+Observers.swift
+
 extension LogInComponent {
 
     var observers : Void {
@@ -278,6 +314,7 @@ extension LogInComponent {
 
 ```swift
 // SignUp.swift
+
 struct SignUpComponent : Component {
 
     let openLogin = SignalEmitter()
@@ -285,6 +322,7 @@ struct SignUpComponent : Component {
 }
 
 // SignUp+Observers.swift
+
 extension SignUpComponent {
 
     var observers : Void {
@@ -298,6 +336,7 @@ Then, we need to have a router component that would switch between our two compo
 
 ```swift
 // Auth.swift
+
 struct AuthComponent : RouterComponent {
 
     let logIn = LogInComponent()
@@ -308,6 +347,7 @@ struct AuthComponent : RouterComponent {
 }
 
 // Auth+Observers.swift 
+
 extension AuthComponent {
 
     var observers : Void {
@@ -331,11 +371,13 @@ There could be an occasion where routing is placed outside of the routing view. 
 
 ```swift
 // LogIn.swift
+
 struct LogInComponent : Component {
 
 }
 
 // LogIn+Observers.swift
+
 extension LogInComponent {
 
     var observers : Void {
@@ -345,6 +387,7 @@ extension LogInComponent {
 }
 
 // LogIn+View.swift
+
 extension LogInComponent {
 
     var body : some View {
@@ -356,11 +399,13 @@ extension LogInComponent {
 
 ```swift
 // SignUp.swift
+
 struct SignUpComponent : Component {
 
 }
 
 // SignUp+Observers.swift
+
 extension SignUpComponent {
 
     var observers : Void {
@@ -370,6 +415,7 @@ extension SignUpComponent {
 }
 
 // SignUp+View.swift
+
 extension SignUpComponent {
 
     var body : some View {
@@ -383,6 +429,7 @@ We should put the emitters onto the parent component instead:
 
 ```swift
 // Auth.swift
+
 struct AuthComponent : RouterComponent {
 
     let logIn = LogInComponent()
@@ -395,7 +442,8 @@ struct AuthComponent : RouterComponent {
 
 }
 
-// Auth+Observers.swift 
+// Auth+Observers.swift
+
 extension AuthComponent {
 
     var observers : Void {
@@ -411,6 +459,7 @@ extension AuthComponent {
 }
 
 // Auth+View.swift
+
 extension AuthComponent : View {
     
     var body : some View {
@@ -436,14 +485,13 @@ This case of centralised navigation ensures that `RouterView` is accompanied by 
 
 > ❗️ You must add `RouterView()` somewhere into the body of your `AuthComponent` in order for your children content to show up properly.
 
----
-
 #### `Router`
 
 Your `struct` conforming to `RouterComponent` must always define exactly one `Router` object that manages the routing. All routes are specified as keypaths to the components in the very same routing component:
 
 ```swift
 // Auth.swift
+
 struct AuthComponent : RouterComponent {
 
     let logIn = LogInComponent()
@@ -454,6 +502,7 @@ struct AuthComponent : RouterComponent {
 }
 
 // Auth+Observers.swift 
+
 extension AuthComponent {
 
     var observers : Void {
@@ -474,6 +523,7 @@ Whenever any of the aforementioned routing methods are executed, the router comp
 
 ```swift
 // Auth+Observers.swift 
+
 extension AuthComponent {
 
     var observers : Void {
@@ -489,6 +539,7 @@ It's also quite easy to perform the transition when animating to or from a parti
 
 ```swift
 // Auth+Observers.swift 
+
 extension AuthComponent {
 
     var observers : Void {
@@ -508,6 +559,7 @@ It is also possible to observe `router.path` property to access the currently na
 
 ```swift
 // Auth+View.swift
+
 extension AuthComponent : View {
 
     var body : some View {
@@ -533,13 +585,9 @@ extension AuthComponent : View {
 
 > ❗️ Don't forget to mark your `router` as `@ObservedObject` if you're going to observe its `path` or any other properties directly inside the SwiftUI View of the component.
 
----
-
 #### `RouterView`
 
-`RouterView` doesn't expose any configuration because its purpose is to present the children content. It is 
-
----
+`RouterView` doesn't expose any configuration because its purpose is to present the children content. 
 
 #### `RoutableView`
 
@@ -547,6 +595,7 @@ Sometimes it is handy to be able to add a default view on the router component i
 
 ```swift
 // Onboarding.swift
+
 struct OnboardingComponent : RouterComponent {
 
     let next = NextComponent()
@@ -558,6 +607,7 @@ struct OnboardingComponent : RouterComponent {
 }
 
 // Onboarding+Observers.swift
+
 extension OnboardingComponent {
 
     var observers : Void {
@@ -569,6 +619,7 @@ extension OnboardingComponent {
 }
 
 // Onboarding+View.swift
+
 extension OnboardingComponent : RoutableView {
 
     var body : some View {
@@ -588,8 +639,6 @@ extension OnboardingComponent : RoutableView {
 
 `RoutableView` requires a component to implement the `routableBody` computed property, which is displayed when the component's router is pointing at `\Self.self` keypath. If any other component's keypath is pushed onto the router stack, the other component's view will be displayed instead.
 
----
-
 ### `StartupComponent`
 
 `StartupComponent` is a protocol which is conformed by a component you define as your root application component.
@@ -600,6 +649,7 @@ The application must contain a root component, which is usually also a router co
 
 ```swift 
 // App.swift
+
 @main
 struct AppComponent : RouterComponent {
 
@@ -611,6 +661,7 @@ struct AppComponent : RouterComponent {
 }
 
 // App+Startup.swift
+
 extension AppComponent : StartupComponent {
 
     func willBindRootComponent() {
@@ -627,8 +678,6 @@ extension AppComponent : StartupComponent {
 
 If you conform your root component to `StartupComponent`, you don't need to add any other source files in your project to make your application work. Compose takes care of the setup for you.
 
----
-
 ### `LazyComponent`
 
 `LazyComponent` is a `struct` that accepts the component you wish to make lazy as a generic parameter.
@@ -637,6 +686,7 @@ Components can be quite heavy and might include a lot of nested components under
 
 ```swift
 // Profile.swift
+
 struct ProfileComponent : RouterComponent {
 
     let editProfile = LazyComponent(EditProfileComponent())
@@ -648,6 +698,7 @@ struct ProfileComponent : RouterComponent {
 }
 
 // Profile+Observes.swift
+
 extension ProfileComponent : View {
 
     var observers : Void {
@@ -659,6 +710,7 @@ extension ProfileComponent : View {
 }
 
 // Profile+View.swift
+
 extension ProfileComponent : RoutableView {
 
     var body : some View {
@@ -679,8 +731,6 @@ extension ProfileComponent : RoutableView {
 
 `LazyComponent` initialiser accepts an `@autoclosure` statement: supplied constructor will be executed once the component is accessed by the view. 
 
----
-
 #### Lifecycle Emitters
 
 `LazyComponent` provides two lifecycle emitters:
@@ -692,6 +742,7 @@ These emitters are super useful to observe underlying component's emitters with 
 
 ```swift
 // EditProfile.swift
+
 struct EditProfileComponent : Component {
 
     let didSave = SignalEmitter()
@@ -699,6 +750,7 @@ struct EditProfileComponent : Component {
 }
 
 // Profile+Observers.swift
+
 extension ProfileComponent {
 
     var observers : Void {
@@ -720,8 +772,6 @@ extension ProfileComponent {
 
 > ❗️ Keep in mind that all observers of all emitters are destroyed automatically when the component is destroyed. This means that, even though you have subscribed to `editProfile.didSave`, you did that only for the lfietime of the underlying `EditProfileComponent`. When it disappears, all emitters you setup before are also inactivated. When it appears again, new emitters are setup and the cycle continues.
 
----
-
 ### `DynamicComponent`
 
 `DynamicComponent` is a `struct` that accepts the component you wish to make lazy as a generic parameter.
@@ -732,11 +782,13 @@ Consider that `EditProfileComponent` from the `LazyComponent` section requires a
 
 ```swift
 // ProfileObject.swift
+
 struct ProfileObject {
     let fullName : String
 }
 
 // Profile.swift
+
 struct EditProfileComponent : Component {
 
     let profile : ProfileObject
@@ -749,8 +801,8 @@ struct EditProfileComponent : Component {
 In this case, initialisation of any  `EditProfileComponent` instace always requires `profile` to be passed in. This is easily achieved with `DynamicComponent`:
 
 ```swift
-
 // Profile.swift
+
 struct ProfileComponent : RouterComponent {
 
     let editProfile = DynamicComponent<EditProfileComponent>()
@@ -762,6 +814,7 @@ struct ProfileComponent : RouterComponent {
 }
 
 // Profile+Observers.swift
+
 extension ProfileComponent {
 
     var observers : Void {
@@ -787,8 +840,6 @@ extension ProfileComponent {
 
 > ❗️ If you try to navigate to dynamic component before it has been created, you will get an assertion failure and a crash. The component must always be created with `create(_:)` method and destroyed with `destroy()` method on a `DynamicComponent` instance.
 
----
-
 #### Lifecycle Emitters
 
 `DynamicComponent` provides two lifecycle emitters:
@@ -797,4 +848,504 @@ extension ProfileComponent {
 - `didDestroy` is invoked as soon as dynamic component was destroyed.
 
 Lifecycle emitters for `DynamicComponent` instances are used much more rarely because the developer usually controls the lifecycle of dynamic components manually. 
+
+## Services
+
+`Service` is a `protocol` which is adopted by `struct` entities to create services.
+
+Services are globally available shared pieces of application structure. Services are useful when there is some piece of data and some methods that operate on the data that need to be shared with the rest of components and available everywhere. 
+
+Services are available under `services` property for all instances of all components.
+
+Service defintion is split into two parts:
+
+- Create a `struct` with the service which conforms to `Service` protocol.
+- Extend `Services` with the computed property that returns the value via the type of the service as a key.
+
+```swift
+// UserService.swift
+
+extension Services {
+
+    var user : UserService {
+        get {
+            self[UserService.self]
+        }
+        set {
+            self[UserService.self] = newValue
+        }
+    }
+
+}
+
+struct UserService : Service {
+
+    static var Name = "storyline.user"
+    
+}
+
+// UserService+Account.swift
+
+extension UserService {
+
+    func login() {
+        // Log in action is performed here
+    }
+
+}
+```
+
+> ❗️ The services are always initialized lazily. This means they're only created when they're accessed for the first time. 
+
+The `UserService` instace will be available to all components inside the computed properties, for example:
+
+```swift
+// Auth+Observers.swift
+
+extension AuthComponent {
+    
+    var observers : Void {
+        login += {
+            services.user.login()
+        }
+    }
+    
+}
+```
+
+As you can see, the `UserService` is available as `services.user` in the `AuthComponent` (and in all other components too).
+
+## Stores
+
+`Store` is a `class` which is used by components to encapsulate state of a certain data shape. 
+
+Store is defined with three accompanying types that enhance or modify the store behavior:
+
+```swift
+let store = Store<State, Validation, Status>()
+```
+
+The first type is always required, and others might be omitted by passing `Empty` as an argument:
+
+```swift
+let store = Store<State, Empty, Empty>()
+```
+
+As an alternative, there are typealiases `PlainStore`, `ValidatedStore`, and `IndicatedStore`  available to create stores with particular features only:
+
+```swift
+let plainStore = PlainStore<State>()
+let validatedStore = ValidatedStore<State, Validation>()
+let indicatedStore = IndicatedStore<State, Status>()
+```
+
+### State via  `AnyState` 
+
+The `struct` that holds data of the state is the only required type to initialise a `Store` instance. This `struct` must conform to `AnyState` protocol.  The protocol requires any state to be:
+
+- `Codable` because data might be serialized and deserialized.
+- `Equatable` to find out changes and generate state differences.
+- Forces state to contain an empty  `init()`, which means that all state properties must have some default value.
+
+> ❗️ Properties of the state must be value types in order for all changes to be propagated correctly. If you put `class` instances into your state and update their properties, the state will not be updated and changes will not propagate to the views that use the state.
+
+
+```swift
+// LogIn.swift
+
+struct LogInComponent : Component {
+
+    @ObservedObject var store = Store<State, Empty, Empty>()
+
+}
+
+// LogIn+State.swift
+
+extension LogInComponent {
+
+    struct State : AnyState {
+
+        var firstName = ""
+        var lastName = ""
+        
+    }
+
+}
+```
+
+
+> ❗️ Don't forget to mark the `Store` instance as `@ObservedObject` to make sure all store changes update the SwiftUI view of the component.
+
+Now the state is accessible to the SwiftUI view. It's possible to query the state values using the `store.state.firstName` and `store.state.lastName` from within the view to get the values directly. It's also possible to get the state values as `Binding` instances to pass them into some SwiftUI views (e.g. `TextField`).
+
+
+```swift
+// LogIn+View.swift
+
+extension LogInComponent : View {
+
+    var body : some View {
+        VStack {
+            TextField("First Name", text: store.binding.firstName)
+            TextField("Last Name", text: store.binding.lastName)
+        }
+    }
+
+}
+```
+
+Now whenever the value of one of the `TextField` views are changed, the values will be instantly stored in the state under the `firstName` and `lastName` values respectively. 
+
+It's also possible to subscribe to changes to the store via emitters: the `didChange` emitter exposed by any `Store` instance can be observed in a familiar manner:
+
+```swift
+// LogIn+Observers.swift
+
+extension LogInComponent {
+
+    var observers : Void {
+        store.didChange += { state in
+            print("New full name is \(state.firstName) \(state.lastName).")
+        }
+    }
+
+}
+```
+
+### Validations via  `AnyValidation`
+
+To reactively validate any state `struct`, one can define a set of validators in a `struct` which conforms to the `AnyValidation` protocol. 
+
+Consider the state from the previous example and its validation:
+
+```swift
+// LogIn+State.swift
+
+extension LogInComponent {
+
+    struct State : AnyState {
+        var email : String = ""
+        var password : String = ""
+    }
+
+    struct Validation : AnyValidation {
+
+        let credentials = Validator {
+            ValidatorField(for: \State.email) {
+                NonEmptyRule()
+                    .errorMessage("Email address must be non-empty")
+                EmailRule()
+                    .errorMessage("Invalid email address format")
+            }
+            ValidatorField(for: \State.password) {
+                LengthRule(in: 6...1000)
+                    .errorMessage("Password must be at least 6 characters long")
+            }
+        }
+
+    }
+    
+}
+```
+
+`Validation` structure might contain any number of `Validator` instances. We have to modify our original `store` property on the component to have validation as well:
+
+```swift
+// LogIn.swift
+
+struct LogInComponent : Component {
+
+    @ObservedObject var store = Store<State, Validation, Empty>()
+
+    let login = SignalEmitter()
+
+}
+```
+
+All validators defined in `Validation` structure are accessible under the `store.validation` property of the `Store` instance. To access the `credentials` validator, for example, the `store.validation.credentials` is used. The defined validation can now be used within the view to disable submit button inside our component view:
+
+```swift
+// LogIn+View.swift
+
+extension LogInComponent : View {
+
+    var body : some View {
+        VStack {
+            TextField("First Name", text: store.binding.firstName)
+            TextField("Last Name", text: store.binding.lastName)
+            Button(emitter: login) {
+                Text("Log In")
+            }
+            .disabled(store.validation.credentials.isValid == false)
+            .opacity(store.validation.credentials.isValid == false)
+            
+            if store.validation.credentials ~= \Store.firstName {
+                Text("First name is invalid")
+            }
+            
+            if store.validation.credentials ~= \Store.lastName {
+                Text("Last name is invalid")
+            }
+        }
+    }
+
+}
+```
+
+#### `Validator`
+
+Exposes the following reactive properties:
+
+- `isEnabled` to enable or disable the validator. Disabled validators are not refreshed when validated fields are updated.
+- `isValid` to check whether the validator contains any errors, or whether all data is valid.
+- `invalidFields` is an array of keypaths that are not valid. 
+- `errors` is an array of error messages for invalid keypaths.
+
+All mentioned fields are automatically updated whenever the fields referenced by keypaths are updated.
+
+`Validator` contains any number of `ValidatorField` instances via function builder.
+
+##### `Validator` operators
+
+You can use the following operators with the `Validator` instance:
+
+- `~=` to check if a particular keypath exists in the `invalidFields` array.
+- `!~=` to check if a particular field doesn't exist in the `invalidFields` array.
+
+#### `ValidatorField`
+
+Points at a particular state value using a keypath:
+
+```swift
+ValidatorField(for: \State.email) {
+    ...
+}
+```
+
+`ValidatorField` itself doesn't expose any properties.
+
+`ValidatorField` contains any number of `ValidatorRule` instances via function builder.
+
+#### `ValidatorRule`
+
+Defines a particular rule to be executed on a field when it changes. `ValidatorRule` instances return a simple boolean to indicate whether the field is valid or not.
+
+```swift
+ValidatorField(for: \State.email) {
+    NonEmptyRule()
+    EmailRule()
+}
+```
+
+There are several predefined validators shipped with Compose:
+
+- `NonEmptyRule()` to ensure that the field is non-empty.
+- `EmailRule()` to ensure that the field is an email.
+- `LengthRule(in: 10...30)` to ensure the field has a particular length.
+- `EqualityRule(with: ~\State.repeatedPassword)` to ensure fields match.
+- `ConstantRule(value: false)` to ensure field has the exactly specified value.
+- `ArrayRule()` which uses nested rules to ensure that all values in the specified array are valid.
+
+There is also a `TriggerRule(tag: "your-trigger-tag")` which doesn't provide any innate validation, but can be triggered outside in response to various events:
+
+```swift
+validators.credentials.activateTrigger(for: ~\Self.password, tag: "your-trigger-tag")
+```
+
+Activating a trigger marks the rule as not valid, which in turns makes validator's `isValid` property equal to `false`.
+
+> ❗️ It's also possible to define a new rule by conforming to `ValidatorRule` protocol.
+
+### Statuses via  `AnyStatus`
+
+There are times where we have to notify user interface about certain loading progresses in the application. Doing network request, processing large amount of data usually result in some sort of loading indicators presented in the user interface.  `Store` contains the `status` property which simplify managing complex statuses of the particular state with enumerations. 
+
+Given the previous example of `LogInComponent`, we can imagine having two long network requests to check our fields on the backend separately. We start with creating a `Status` enumeration which conforms to the `AnyStatus` protocol:
+
+```swift
+// LogIn+State.swift
+
+extension LogInComponent {
+
+    enum Status : AnyStatus {
+        case checkingFirstName, checkingLastName
+    }
+
+}
+```
+
+The store definition has to be changed in order to use the new `Status` type:
+
+```swift
+// LogIn.swift
+
+struct LogInComponent : Component {
+
+    @ObservedObject var store = Store<State, Validation, Status>()
+    
+    let login = SignalEmitter()
+
+}
+```
+
+Firstly, we can change the store instance status in our `+Observers.swift` file:
+
+```swift
+// LogIn+Observers.swift
+
+extension LogInComponent {
+
+    var observers : Void {
+        login += {
+            store.status += .checkingFirstName
+            store.status += .checkingLastName
+            
+            services.network.checkFirstName(store.state.firstName) { 
+                store.status -= .checkingFirstName
+            }
+            
+            services.network.checkLastName(store.state.lastName) { 
+                store.status -= .checkingLastName
+            }
+        }
+    }
+
+}
+```
+
+Now it's possible to use  `checkingFirstName` and `checkingLastName` statuses to adjust our UI behaviour:
+
+```swift
+// LogIn+View.swift
+
+extension LogInComponent : View {
+
+    var body : some View {
+        VStack {
+            TextField("First Name", text: store.binding.firstName)
+            TextField("Last Name", text: store.binding.lastName)
+            Button(emitter: login) {
+                Text("Log In")
+            }
+            .disabled(store.validation.credentials.isValid == false || store.status.isEmpty == true)
+            .opacity(store.validation.credentials.isValid == false)
+        }
+        .overlay(
+            Text("Loading")
+                .opacity(store.status.isEmpty == false ? 1.0 : 0.0)
+        )
+    }
+
+}
+```
+
+> ❗️ The `status` property of `Store` instances is actually defined as `Set<Status>`, where `Status` is the type passed to the `Store` when initialising it. This means it is not possible to set the same status more than one time.
+
+#### `AnyStatus` operators
+
+There are several operators defined to operate on `status` property of any `Store` instance easily:
+
+- `+=` to add a new status to the list of statuses.
+- `-=` to remove status from the list of statuses.
+- `|=` to replace all statuses in the list with the specified status.
+- `~=` to check if the list of statuses contains a particular status.
+- `!~=` to check if the list of statuses doesn't contain a particular status.
+
+### Persistence via  `AnyPersistentStorage`
+
+It's useful to persist certain stores to some kind of a storage. The persistence can be used to store small chunks of data which can be retrieved any time even between launches of the application. 
+
+Compose comes with two persistent storages that can be used by `Store` instances:
+
+- `EmptyPersistentStorage` is a default persistent storage which does nothing.
+- `FilePersistentStorage` is a file-based storage for data. It can be initialised with a tag that will be used as its local filename: `FilePersistentStorage(key: "my-key")`
+
+> ❗️ It's possible to define new persistent storages by conforming to `AnyPersistentStorage` protocol.
+
+The storage is specified when the store is created via the `Store` initialiser:
+
+```swift
+// LogIn.swift
+
+struct LogInComponent : Component {
+
+    @ObservedObject var store = Store<State, Validation, Status>(storage: FilePersistentStorage(key: "login-fields"))
+
+    let login = SignalEmitter()
+
+}
+```
+
+The `persistence` property of the `Store` instance has several methods to manually do persistence actions:
+
+- `save()` to store the data to the persistent storage.
+- `restore()` to load the data from the persistent storage into the state of the store.
+- `purge()` to erase all stored data in the specified persistent storage.
+
+These methods are meant to be called manually during the lifecycle of a component or a service:
+
+```swift
+// LogIn.swift
+
+struct LogInComponent : Component {
+
+    @ObservedObject var store = Store<State, Validation, Status>(storage: FilePersistentStorage(key: "login-fields"))
+
+    let login = SignalEmitter()
+
+    init() {
+        store.persistence.restore()
+    }
+}
+
+// LogIn+Observers.swift
+
+extension LogInComponent {
+
+    var observers : Void {
+        login += {
+            store.persistence.save()
+        }
+    }
+
+}
+```
+
+#### Choosing Persisted Values
+
+The store persistence heavily relies on the fact that `State` of the store always conforms to `AnyState` protocol, which requires `State` to be `Codable`. This allows any storage to immediately serialize data into some intermediate format to be stored in the storage. 
+
+Since `State` conforms to `Codable`, it is also easy to choose which values are going to be stored in the persistence via the `CodingKey` enumeration defined on the state:
+
+```swift
+// LogIn+State.swift
+
+extension LogInComponent {
+
+    struct State : AnyState {
+    
+        enum PersistenceKeys : CodingKey {
+            case email
+        }
+    
+        var email : String = ""
+        var password : String = ""
+        
+        
+        var shouldShowWelcomeMessage : Bool = false
+    }
+    
+}
+```
+
+`PersistenceKeys` define the shape of persisted data—the `email` property will be persisted, but all other fields will not be persisted.
+
+### Data Management
+
+On the one hand, Compose favours decentralised data storage: each component has its own store (one or many), that holds the component's state validates it and performs actions with the services. 
+
+On the other hand, services can also have their own stores, making data available globally to all components. This enables developers to recreate familiar Redux-like storage solutions, where services encapsulate stores and actions on the stores, and views rely on the services' stores to display reactive constantly changing data.
+
+Which way data is stored in a particular application is never specified by Compose itself—the pattern is chosen by the developer.
+
 

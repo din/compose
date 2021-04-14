@@ -1,6 +1,6 @@
 import Foundation
 
-public struct EmailRule : ValidationRule {
+public struct EmailRule : ValidatorRule {
     
     public var errorMessage: String? = nil
     
@@ -21,7 +21,7 @@ public struct EmailRule : ValidationRule {
 
 }
 
-public struct LengthRule : ValidationRule {
+public struct LengthRule : ValidatorRule {
     
     public var errorMessage: String? = nil
     
@@ -41,7 +41,7 @@ public struct LengthRule : ValidationRule {
  
 }
 
-public struct EqualityRule : ValidationRule {
+public struct EqualityRule : ValidatorRule {
     
     public var errorMessage: String? = nil
     
@@ -65,7 +65,7 @@ public struct EqualityRule : ValidationRule {
     
 }
 
-public struct ConstantRule<T : Equatable> : ValidationRule {
+public struct ConstantRule<T : Equatable> : ValidatorRule {
     
     public var errorMessage: String? = nil
     
@@ -81,7 +81,7 @@ public struct ConstantRule<T : Equatable> : ValidationRule {
     
 }
 
-public struct NonEmptyRule : ValidationRule {
+public struct NonEmptyRule : ValidatorRule {
     
     public var errorMessage: String? = nil
     
@@ -98,7 +98,7 @@ public struct NonEmptyRule : ValidationRule {
     
 }
 
-public struct TriggerRule : ValidationRule {
+public struct TriggerRule : ValidatorRule {
     
     private class Storage {
         var isActive = false
@@ -129,16 +129,16 @@ public struct TriggerRule : ValidationRule {
     
 }
 
-public struct ArrayRule : ValidationRule {
+public struct ArrayRule : ValidatorRule {
     
     public var errorMessage: String? = "Invalid set of entries."
     
-    let rules : [ValidationRule]
+    let rules : [ValidatorRule]
     let validIfEmpty : Bool
     let path : AnyKeyPath?
     
-    public init(validIfEmpty : Bool, path : AnyKeyPath? = nil, @ValidationNodeBuilder rules : () -> [ValidationNode]) {
-        guard let rules = rules() as? [ValidationRule] else {
+    public init(validIfEmpty : Bool, path : AnyKeyPath? = nil, @ValidatorNodeBuilder rules : () -> [ValidatorNode]) {
+        guard let rules = rules() as? [ValidatorRule] else {
             fatalError("ValidationField must only contain ValidatorRule instances.")
         }
         

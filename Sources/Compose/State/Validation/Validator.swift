@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-public class Validation {
+public class Validator {
     
     public var isEnabled = true
     public var isValid = false
@@ -9,12 +9,10 @@ public class Validation {
     public var invalidFields = [AnyKeyPath]()
     public var errors = [String]()
     
-    public
+    let fields : [ValidatorField]
     
-    let fields : [ValidationField]
-    
-    public init(@ValidationNodeBuilder fields : () -> [ValidationNode]) {
-        guard let fields = fields() as? [ValidationField] else {
+    public init(@ValidatorNodeBuilder fields : () -> [ValidatorNode]) {
+        guard let fields = fields() as? [ValidatorField] else {
             fatalError("Validator must only contain ValidatorField instances.")
         }
         
@@ -56,13 +54,13 @@ public class Validation {
     
 }
 
-extension Validation {
+extension Validator {
     
-    public static func -(lhs : Validation, rhs : AnyKeyPath) -> Bool {
+    public static func ~=(lhs : Validator, rhs : AnyKeyPath) -> Bool {
         return lhs.invalidFields.contains(rhs) == true
     }
     
-    public static func +(lhs : Validation, rhs : AnyKeyPath) -> Bool {
+    public static func !~=(lhs : Validator, rhs : AnyKeyPath) -> Bool {
         return lhs.invalidFields.contains(rhs) == false
     }
     

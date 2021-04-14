@@ -12,13 +12,13 @@ public class Store<State : AnyState,
     
     @Published public var state : State
     
-    @Published public var status : Status = .idle
+    @Published public var status : Set<Status> = []
     
     @Published public var validation = Validation()
     
     public let didChange : Emitter<State>
 
-    public let didStatusChange : Emitter<Status>
+    public let didStatusChange : Emitter<Set<Status>>
     
     var cancellables = Set<AnyCancellable>()
     
@@ -27,7 +27,7 @@ public class Store<State : AnyState,
     public init(_ initialState : State = .init(), storage : AnyPersistentStorage = EmptyPersistentStorage()) {
         self.state = initialState
         self.didChange = Emitter(initialState)
-        self.didStatusChange = Emitter(.idle)
+        self.didStatusChange = Emitter([])
         self.storage = storage
         
         $state

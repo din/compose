@@ -1,16 +1,16 @@
 import Foundation
 
-public class MappedStore<Target, TargetStore : AnyStore> : ObservableObject, Bindable {
+public final class MappedStore<Target, TargetStore : AnyStore> : ObservableObject, Bindable {
     
     let keyPath : KeyPath<Target, TargetStore>
     
     @Published public var state : TargetStore.State
-    @Published public var status : TargetStore.Status
+    @Published public var status : Set<TargetStore.Status>
     
     public init(for keyPath : KeyPath<Target, TargetStore>) {
         self.keyPath = keyPath
         self.state = .init()
-        self.status = .idle
+        self.status = .init()
     }
     
     public func bind<C : Component>(to component: C) {

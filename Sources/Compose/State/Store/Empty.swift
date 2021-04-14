@@ -8,15 +8,18 @@ public final class Empty {
     
 }
 
-extension Empty : AnyStatus {
+extension Empty : AnyStatus, Equatable, Hashable {
+   
+    public static func == (lhs: Empty, rhs: Empty) -> Bool {
+        type(of: lhs) == type(of: rhs)
+    }
     
-    public static var idle : Empty {
-        return Empty()
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(ObjectIdentifier(Self.self))
     }
     
 }
 
 extension Empty : AnyValidation {
-    
     
 }

@@ -1,12 +1,12 @@
 import Foundation
 
-public struct ValidationField : ValidationNode {
+public struct ValidatorField : ValidatorNode {
     
-    let rules : [ValidationRule]
+    let rules : [ValidatorRule]
     let keyPath : AnyKeyPath
     
-    public init(for keyPath : AnyKeyPath, @ValidationNodeBuilder rules : () -> [ValidationNode]) {
-        guard let rules = rules() as? [ValidationRule] else {
+    public init(for keyPath : AnyKeyPath, @ValidatorNodeBuilder rules : () -> [ValidatorNode]) {
+        guard let rules = rules() as? [ValidatorRule] else {
             fatalError("ValidationField must only contain ValidatorRule instances.")
         }
         
@@ -14,7 +14,7 @@ public struct ValidationField : ValidationNode {
         self.keyPath = keyPath
     }
     
-    func validate(object : Any) -> [ValidationRule] {
+    func validate(object : Any) -> [ValidatorRule] {
         guard let value = object[keyPath: keyPath] else {
             print("ValidationField warning: cannot find field specified by keypath '\(keyPath)'")
             return []

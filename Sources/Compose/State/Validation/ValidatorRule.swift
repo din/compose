@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol ValidationRule : ValidationNode {
+public protocol ValidatorRule : ValidatorNode {
     
     var errorMessage : String? { get set }
     
@@ -8,9 +8,9 @@ public protocol ValidationRule : ValidationNode {
     
 }
 
-extension ValidationRule {
+extension ValidatorRule {
     
-    public func errorMessage(_ message : String) -> ValidationRule {
+    public func errorMessage(_ message : String) -> ValidatorRule {
         var rule = self
         rule.errorMessage = message
         
