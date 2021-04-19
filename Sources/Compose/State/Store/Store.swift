@@ -20,7 +20,7 @@ public class Store<State : AnyState,
 
     public let didStatusChange : Emitter<Set<Status>>
     
-    var cancellables = Set<AnyCancellable>()
+    internal var cancellables = Set<AnyCancellable>()
     
     fileprivate let storage : AnyPersistentStorage
     
@@ -36,18 +36,39 @@ public class Store<State : AnyState,
             self.didChange.send(state)
         }.store(in: &cancellables)
         
-        $state
-            .dropFirst()
-            .removeDuplicates()
-            .debounce(for: 0.1, scheduler: RunLoop.main)
-            .sink { state in
-            self.validation.validate(object: state)
-        }.store(in: &cancellables)
+        if validation is Empty == false {
+            $state
+                .dropFirst()
+                .removeDuplicates()
+                .debounce(for: 0.1, scheduler: RunLoop.main)
+                .sink { state in
+                self.validation.validate(object: state)
+            }.store(in: &cancellables)
+        }
         
-        $status
-            .sink { status in
-            self.didStatusChange.send(status)
-        }.store(in: &cancellables)
+        if Status.Type.self != Empty.Type.self {
+            $status
+                .sink { status in
+                self.didStatusChange.send(status)
+            }.store(in: &cancellables)
+        }
+        
+        let mirror = Mirror(reflecting: state)
+        
+        for child in mirror.children {
+            guard let value = child.value as? AnyRef else {
+                continue
+            }
+            
+            value.objectWillChange.sink { [weak self] in
+                guard let strongSelf = self else {
+                    return
+                }
+                
+                strongSelf.didChange.send(strongSelf.state)
+                strongSelf.objectWillChange.send()
+            }.store(in: &cancellables)
+        }
     }
     
     public func invalidate() {

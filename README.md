@@ -42,6 +42,7 @@ _Compose is still a work in progress. The framework is still alpha—feature set
     * [`AnyStatus` operators](#anystatus-operators)
   * [Persistence via `AnyPersistentStorage`](#persistence-via--anypersistentstorage)
     * [Choosing Persisted Values](#choosing-persisted-values)
+  * [Identified References via `@Ref` and `@RefCollection`](#identified-references-via--ref-and-refcollection)
   * [Data Management](#data-management)
 
 ## Supported Platforms
@@ -1339,6 +1340,10 @@ extension LogInComponent {
 ```
 
 `PersistenceKeys` define the shape of persisted data—the `email` property will be persisted, but all other fields will not be persisted.
+
+### Identified References via  `@Ref` and `@RefCollection`
+
+> To be done.
 
 ### Data Management
 
