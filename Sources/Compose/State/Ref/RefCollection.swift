@@ -5,11 +5,15 @@ import Combine
     
     public var wrappedValue : [T] {
         get {
-            return value.map { $0.wrappedValue }
+            value.map { $0.wrappedValue }
         }
         set {
             self.value = newValue.map { Ref(wrappedValue: $0) }
         }
+    }
+    
+    public var projectedValue : [Referred<T>] {
+        value.map { Referred(id: $0.wrappedValue.id) }
     }
     
     fileprivate var value : [Ref<T>] = []

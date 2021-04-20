@@ -965,10 +965,8 @@ struct LogInComponent : Component {
 extension LogInComponent {
 
     struct State : AnyState {
-
         var firstName = ""
         var lastName = ""
-        
     }
 
 }
@@ -1324,15 +1322,12 @@ Since `State` conforms to `Codable`, it is also easy to choose which values are 
 extension LogInComponent {
 
     struct State : AnyState {
-    
         enum PersistenceKeys : CodingKey {
             case email
         }
     
         var email : String = ""
-        var password : String = ""
-        
-        
+        var password : String = "" 
         var shouldShowWelcomeMessage : Bool = false
     }
     
@@ -1343,7 +1338,169 @@ extension LogInComponent {
 
 ### Identified References via  `@Ref` and `@RefCollection`
 
-> To be done.
+Sometimes data managed by a component might be mutated by child components. In order to update the parent component, one can reload the whole component and perform network requets which will supply refreshed data. The other way of keeping interactive chunks data up-to-date is by utilising `@Ref` and `@RefCollection` property wrappers.
+
+The `@Ref` and `@RefCollection` wrappers are used when declaring properties of the state for a `Store` instance. `@Ref` property wrapper is used for single objects, `@RefCollection` property wrapper is used for collection of objects. 
+
+In order to use the aforementioned property wrappers, the underlying object must conform to the following protocols:
+
+- `Codable` for serialization and storage purposes.
+- `Equatable` for equality checks.
+- `Identifiable` to make sure all objects are unique within a specific type.
+
+> ❗️ Identifiers for your objects must be unique. If your objects have collisions between their identifiers, the behavior of `@Ref` and `@RefCollection` is **undefined**.
+
+Firstly, we define a model we're going to pass between components:
+
+```
+// SpecimenModel.swift
+
+struct SpecimenModel : Codable, Equatable, Identifiable {
+    var id : String
+    var name : String
+}
+```
+
+Consider having a component which displays two underlying components:
+
+```
+// Exhibition.swift
+
+struct Exhibition : Component {
+
+    let specimenA : SpecimenComponent
+    let specimenB : SpecimenComponent
+
+    @ObservedObject var store = PlainStore<State>()
+
+    init() {
+        self.specimenA = SpecimenComponent(specimen: store.state.$specimen)
+        self.specimenB = SpecimenComponent(specimen: store.state.$specimen)
+    }
+}
+
+// Exhibition+State.swift
+
+extension Exhibition {
+
+    struct State {
+        @Ref var specimen = SpecimenModel(id: "MY-MODEL-ID", "Funny Circle")
+    }
+
+}
+
+// Exhibition+View.swift
+
+extension Exhibition : RoutableView {
+
+    var body : some View {
+        RouterView()
+    }
+
+    var routableBody : some View {
+        VStack {
+            Text("Welcome, we can show a '\(store.state.specimen.name)' today")
+            specimenA
+            specimenB
+        }
+    }
+
+}
+```
+
+Note how we pass `store.state.$specimen` into the children components instead of the value itself. The `$` notation allows us to obtain the `Referred` instance that is a super-lightweight object that can be passed around and assigned to other `Ref` instances. 
+
+Now it's time to define the underlying `SpecimenComponent`:
+
+```
+// Specimen.swift
+
+struct SpecimenComponent : Component {
+
+    @ObservedObject var store = PlainStore<State>()
+
+    init(specimen : Referred<SpecimenModel>) {
+        self.store.state.$specimen = specimen
+    }
+
+}
+
+// Specimen+State.swift
+extension SpecimenComponent {
+
+    struct State {
+        @Ref var specimen : SpecimenModel
+    }
+
+}
+
+// Specimen+View.swift 
+extension SpecimenComponent : View {
+
+    var body : some View {
+        VStack {
+            TextField("Name", text: store.binding.specimen.name)
+        }
+    }
+
+}
+```
+
+When we pass a `$specimen` to the constructor of our children components, we pass the `Referred` instance, which can be assigned to another `@Ref` object via `store.state.$specimen = specimen`. The `Referred` instance only carries the information necessary for the underlying `@Ref` property wrapper to hook up to the value by its identifier. 
+
+Now, when one of the text fields is updated in one of the components, all other values marked by `@Ref` will also be automatically updated, which ensures full synchronisation of the value across different components. 
+
+`@RefComponent` works in a similar manner, but instead holds an array of data that can be also passed around:
+
+```
+// Exhibition.swift
+
+struct Exhibition : Component {
+
+    let specimenA : SpecimenComponent
+    let specimenB : SpecimenComponent
+
+    @ObservedObject var store = PlainStore<State>()
+
+    init() {
+        self.specimenA = SpecimenComponent(specimen: store.state.$specimens[0])
+        self.specimenB = SpecimenComponent(specimen: store.state.$specimens[1])
+    }
+}
+
+// Exhibition+State.swift
+
+extension Exhibition {
+
+    struct State {
+        @RefCollection var specimens = [
+            SpecimenModel(id: "MY-MODEL-ID-FIRST", "Funny Circle"),
+            SpecimenModel(id: "MY-MODEL-ID-SECOND", "Heavy Box")
+        ]
+    }
+
+}
+
+// Exhibition+View.swift
+
+extension Exhibition : RoutableView {
+
+    var body : some View {
+        RouterView()
+    }
+
+    var routableBody : some View {
+        VStack {
+            Text("Welcome, we can show '\(store.state.specimens[0].name)' and '\(store.state.specimens[1].name)' today")
+            specimenA
+            specimenB
+        }
+    }
+
+}
+```
+
+Now updating a particular specimen would update only the appropriate chunk text and leave the other one be.
 
 ### Data Management
 
