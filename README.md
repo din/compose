@@ -1338,9 +1338,9 @@ extension LogInComponent {
 
 ### Identified References via  `@Ref` and `@RefCollection`
 
-Sometimes data managed by a component might be mutated by child components. In order to update the parent component, one can reload the whole component and perform network requets which will supply refreshed data. The other way of keeping interactive chunks data up-to-date is by utilising `@Ref` and `@RefCollection` property wrappers.
+The `@Ref` and `@RefCollection` wrappers are used when declaring properties of the state for a `Store` instance. `@Ref` property wrapper is used for single objects, `@RefCollection` property wrapper is used for collection of objects.  
 
-The `@Ref` and `@RefCollection` wrappers are used when declaring properties of the state for a `Store` instance. `@Ref` property wrapper is used for single objects, `@RefCollection` property wrapper is used for collection of objects. 
+Sometimes data managed by a component might be mutated by child components.  `@Ref` and `@RefCollection` property wrappers are used to keep interactive chunks of data synced between different components (most importantly, between children components of the same parent component).
 
 In order to use the aforementioned property wrappers, the underlying object must conform to the following protocols:
 
@@ -1350,7 +1350,7 @@ In order to use the aforementioned property wrappers, the underlying object must
 
 > ❗️ Identifiers for your objects must be unique. If your objects have collisions between their identifiers, the behavior of `@Ref` and `@RefCollection` is **undefined**.
 
-Firstly, we define a model we're going to pass between components:
+Firstly, a model must be defined that is going to be passed between components:
 
 ```
 // SpecimenModel.swift
@@ -1391,13 +1391,9 @@ extension Exhibition {
 
 // Exhibition+View.swift
 
-extension Exhibition : RoutableView {
+extension Exhibition : View {
 
     var body : some View {
-        RouterView()
-    }
-
-    var routableBody : some View {
         VStack {
             Text("Welcome, we can show a '\(store.state.specimen.name)' today")
             specimenA
@@ -1408,9 +1404,9 @@ extension Exhibition : RoutableView {
 }
 ```
 
-Note how we pass `store.state.$specimen` into the children components instead of the value itself. The `$` notation allows us to obtain the `Referred` instance that is a super-lightweight object that can be passed around and assigned to other `Ref` instances. 
+Note how we pass `store.state.$specimen` into the children components instead of the value itself. The `$` notation allows us to obtain the `Referred` instance—a super-lightweight object that can be passed around and assigned to other `Ref` instances via the same `$` notation. 
 
-Now it's time to define the underlying `SpecimenComponent`:
+It's time to define the underlying `SpecimenComponent`:
 
 ```
 // Specimen.swift
@@ -1500,7 +1496,7 @@ extension Exhibition : RoutableView {
 }
 ```
 
-Now updating a particular specimen would update only the appropriate chunk text and leave the other one be.
+Updating a particular specimen would update only the appropriate chunk text and leave the other one be.
 
 ### Data Management
 
