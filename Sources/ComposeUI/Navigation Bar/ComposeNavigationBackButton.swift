@@ -4,8 +4,6 @@ import Compose
 
 struct ComposeNavigationBackButton : View {
     
-    @Environment(\.composeNavigationBarStyle) var style
-    
     let action : () -> Void
     
     init(emitter : SignalEmitter) {
@@ -25,7 +23,6 @@ struct ComposeNavigationBackButton : View {
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 17, height: 17)
         }
-        .foregroundColor(style.tintColor)
         .buttonStyle(PlainButtonStyle())
     }
     

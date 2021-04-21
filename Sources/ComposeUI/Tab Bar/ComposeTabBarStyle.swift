@@ -15,8 +15,8 @@ public struct ComposeTabBarStyle {
     public init(backgroundColor : Color = .black,
                 foregroundColor : Color = .white,
                 tintColor : Color = .blue,
-                height : CGFloat = 50,
-                padding : CGFloat = 30,
+                height : CGFloat = 40,
+                padding : CGFloat = 24,
                 shouldShowDivider : Bool = true) {
         self.backgroundColor = backgroundColor
         self.foregroundColor = foregroundColor

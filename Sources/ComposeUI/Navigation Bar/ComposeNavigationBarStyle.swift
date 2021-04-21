@@ -8,18 +8,22 @@ public struct ComposeNavigationBarStyle {
     public var tintColor : Color
     
     public var height : CGFloat
-    public var padding : CGFloat
+    public var horizontalPadding : CGFloat
     
-    public init(backgroundColor : Color = .black,
-                foregroundColor : Color = .white,
+    public var shouldShowDivider : Bool
+    
+    public init(backgroundColor : Color = .clear,
+                foregroundColor : Color = .black,
                 tintColor : Color = .blue,
-                height : CGFloat = 60,
-                padding : CGFloat = 30) {
+                height : CGFloat = 44,
+                horizontalPadding : CGFloat = 24,
+                shouldShowDivider : Bool = false) {
         self.backgroundColor = backgroundColor
         self.foregroundColor = foregroundColor
         self.tintColor = tintColor
         self.height = height
-        self.padding = padding
+        self.horizontalPadding = horizontalPadding
+        self.shouldShowDivider = shouldShowDivider
     }
 
 }
