@@ -39,7 +39,7 @@ public struct ComposeNavigationBar<LeftView : View, RightView : View> : View {
                 }
                 else {
                     Text(NSLocalizedString(title, comment: ""))
-                        .font(.system(size: 22, weight: .regular))
+                        .font(.system(size: 20, weight: .regular))
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .position(x: info.frame(in: .local).midX, y: info.frame(in: .local).midY)
                 }
@@ -53,7 +53,7 @@ public struct ComposeNavigationBar<LeftView : View, RightView : View> : View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
             .padding(.horizontal, -style.horizontalPadding)
         }
-        .font(.system(size: 14, weight: .semibold, design: .default))
+        .font(.system(size: 16, weight: .semibold, design: .default))
         .frame(height: style.height)
         .padding(.horizontal, style.horizontalPadding)
         .overlay(

@@ -13,7 +13,7 @@ public struct ComposeNavigationBarStyle {
     public var shouldShowDivider : Bool
     
     public init(backgroundColor : Color = .clear,
-                foregroundColor : Color = .black,
+                foregroundColor : Color = .clear,
                 tintColor : Color = .blue,
                 height : CGFloat = 44,
                 horizontalPadding : CGFloat = 24,

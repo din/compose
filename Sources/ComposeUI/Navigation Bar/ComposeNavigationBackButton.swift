@@ -2,11 +2,11 @@ import Foundation
 import SwiftUI
 import Compose
 
-struct ComposeNavigationBackButton : View {
+public struct ComposeNavigationBackButton : View {
     
     let action : () -> Void
     
-    init(emitter : SignalEmitter) {
+    public init(emitter : SignalEmitter) {
         self.init {
             emitter.send()
         }
@@ -16,7 +16,7 @@ struct ComposeNavigationBackButton : View {
         self.action = action
     }
     
-    var body: some View {
+    public var body: some View {
         Button(action: action) {
             Image(systemName: "chevron.backward")
                 .resizable()
