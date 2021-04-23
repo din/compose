@@ -16,3 +16,17 @@ public class ComponentScope<T : Component> : ObservableObject {
     }
     
 }
+
+@propertyWrapper public class ComponentScopeObject<T : Component> : ObservableObject {
+    
+    public var wrappedValue : ComponentScope<T>? {
+        return Storage.storage(for: \Component.self).value(at: path) as? ComponentScope<T>
+    }
+    
+    fileprivate let path : AnyKeyPath
+    
+    public init(_ path : PartialKeyPath<T>) {
+        self.path = path
+    }
+    
+}

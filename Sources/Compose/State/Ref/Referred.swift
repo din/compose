@@ -8,5 +8,9 @@ public struct Referred<T : Identifiable> : Identifiable {
         self.id = id
     }
     
+    public static func `for`(_ object : T) -> Referred<T> {
+        .init(id: object.id)
+    }
+    
 }
 
