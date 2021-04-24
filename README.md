@@ -156,7 +156,7 @@ printMessage.send("A simple message.")
 
 Emitters are usually defined in the body of a component, but they also can be defined outside of components. _Emitters cannot be defined as computed properties._
 
-It is also possible to merge subscriptions to two emitters together using a touple:
+It is also possible to merge subscriptions to two emitters together using a tuple:
 
 ```swift
 // Define first emitter.
