@@ -165,6 +165,21 @@ There are several operators defined to add subscribers to any emitters.
 - `++=` is used when the subscription closure must be executed any time an emitter emits a value or a signal and immediately with the last emitted value, if presented.
 - `~+=` is used when the subscription closure must be executed with the new value and the previous emitted value, which allows computing diffing between two emitted values. 
 
+There is also a `+` operator which allows merging subscriptions to two emitters together:
+
+```swift
+// Define first emitter.
+let first = SignalEmitter()
+
+// Define second emitter.
+let second = SignalEmitter()
+
+// Make subscription to each of them and execute the closure when any of them is emitted:
+(first, second) + {
+    print("First or second emitter event received.")
+}
+```
+
 ## Components
 
 Compose is built with components tree and event-driven communication between them. Compose heavily utilises structures, keypaths, SwiftUI, and Combine to achieve the desired result and abstract complex logic from the user. 
@@ -1352,7 +1367,7 @@ In order to use the aforementioned property wrappers, the underlying object must
 
 Firstly, a model must be defined that is going to be passed between components:
 
-```
+```swift
 // SpecimenModel.swift
 
 struct SpecimenModel : Codable, Equatable, Identifiable {
@@ -1363,7 +1378,7 @@ struct SpecimenModel : Codable, Equatable, Identifiable {
 
 Consider having a component which displays two underlying components:
 
-```
+```swift
 // Exhibition.swift
 
 struct Exhibition : Component {
@@ -1408,7 +1423,7 @@ Note how we pass `store.state.$specimen` into the children components instead of
 
 It's time to define the underlying `SpecimenComponent`:
 
-```
+```swift
 // Specimen.swift
 
 struct SpecimenComponent : Component {
@@ -1448,7 +1463,7 @@ Now, when one of the text fields is updated in one of the components, all other 
 
 `@RefComponent` works in a similar manner, but instead holds an array of data that can be also passed around:
 
-```
+```swift
 // Exhibition.swift
 
 struct Exhibition : Component {
