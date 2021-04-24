@@ -156,16 +156,7 @@ printMessage.send("A simple message.")
 
 Emitters are usually defined in the body of a component, but they also can be defined outside of components. _Emitters cannot be defined as computed properties._
 
-### Emitters Operators
-
-There are several operators defined to add subscribers to any emitters.
-
-- `+=` is used when the subscription closure must be executed any time an emitter emits a value or a signal.
-- `!+=` is used when the subscription closure must be executed **only once** and then never executed again.
-- `++=` is used when the subscription closure must be executed any time an emitter emits a value or a signal and immediately with the last emitted value, if presented.
-- `~+=` is used when the subscription closure must be executed with the new value and the previous emitted value, which allows computing diffing between two emitted values. 
-
-There is also a `+` operator which allows merging subscriptions to two emitters together:
+It is also possible to merge subscriptions to two emitters together using a touple:
 
 ```swift
 // Define first emitter.
@@ -175,10 +166,19 @@ let first = SignalEmitter()
 let second = SignalEmitter()
 
 // Make subscription to each of them and execute the closure when any of them is emitted:
-(first, second) + {
+(first, second) += {
     print("First or second emitter event received.")
 }
 ```
+
+### Emitters Operators
+
+There are several operators defined to add subscribers to any emitters.
+
+- `+=` is used when the subscription closure must be executed any time an emitter emits a value or a signal.
+- `!+=` is used when the subscription closure must be executed **only once** and then never executed again.
+- `++=` is used when the subscription closure must be executed any time an emitter emits a value or a signal and immediately with the last emitted value, if presented.
+- `~+=` is used when the subscription closure must be executed with the new value and the previous emitted value, which allows computing diffing between two emitted values. 
 
 ## Components
 
