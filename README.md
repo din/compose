@@ -73,13 +73,13 @@ To install Compose using Swift Package Manager, open the following menu item in 
 
 **File > Swift Packages > Add Package Dependency**
 
-In the Choose Package Repository prompt add url:
+In the Choose Package Repository prompt, add the URL:
 
 ```
 https://github.com/din/compose
 ```
 
-Include the library as a dependency for your target then import it when you need it:
+Include the library as a dependency for your target, then import it when you need it:
 
 ```swift
 import Compose
@@ -182,7 +182,7 @@ There are several operators defined to add subscribers to any emitters (chained 
 
 ###  5.2. <a name='EmittersChaining'></a>Emitters Chaining
 
-It's possible to produce a chain of emitters to alter the outcome of a previous emitter in such a way. Chaining of emitters is similar to chaining multiple `Publisher` together in Combine. There are several predefined emitters which are scoped under the `Emitters` structure.
+It's possible to produce a chain of emitters to alter the outcome of a previous emitter in such a way. Chaining emitters is similar to chaining multiple `Publisher` together in Combine. There are several predefined emitters which are scoped under the `Emitters` structure.
 
 ####  5.2.1. <a name='Debounce'></a>Debounce
 
@@ -591,7 +591,7 @@ extension AuthComponent {
 
 Now, pushing any button in the appropriate component triggers the signal emitter, which, in turn, is observed by the `AuthComponent` and the currently presented component is replaced.
 
-There could be an occasion where routing is placed outside of the routing view. For example, tab bar controllers would have navigation links defined outside of the routed component itself. For this case, you can override default view of the router component. Let's rewrite our previous example by factoring emitters out of the children components:
+There could be an occasion where routing is placed outside of the routing view. For example, tab bar controllers would have navigation links defined outside of the routed component itself. For this case, you can override the default view of the router component. Let's rewrite our previous example by factoring emitters out of the children components:
 
 ```swift
 // LogIn.swift
@@ -739,7 +739,7 @@ extension AuthComponent {
 The starting route must always be specified as a keypath to the component which will be presented at first. A `Router` instance has the following methods to perform navigation:
 
 - `router.replace(_ keyPath : KeyPath<Component, Component>)` replaces the whole routing stack with the specified keypath.
-- `router.push(_ keyPath : KeyPath<Component, Component>)` pushes new view into the routing stack.
+- `router.push(_ keyPath : KeyPath<Component, Component>)` pushes a new view into the routing stack.
 - `router.pop()`  removes the last keypath from the routing stack.
 - `router.popToRoot()` removes all the keypaths from the routing stack and returns to the root one (which is specified when you create a `Router` instance).
 
@@ -777,7 +777,7 @@ extension AuthComponent {
 }
 ```
 
-> ❗️ The default transition on SwiftUI views is usually defined as a fade in/fade out animation. You can specify your own transitions for routing animations using the `.transition(_:)` method on the top view of your component.
+> ❗️ The default transition on SwiftUI views is usually defined as a fade-in/fade-out animation. You can specify your own transitions for routing animations using the `.transition(_:)` method on the top view of your component.
 
 It is also possible to observe `router.path` property to access the currently navigated keypath. This can be used to alter the presentation of your view:
 
@@ -906,7 +906,7 @@ If you conform your root component to `StartupComponent`, you don't need to add 
 
 `LazyComponent` is a `struct` that accepts the component you wish to make lazy as a generic parameter.
 
-Components can be quite heavy and might include a lot of nested components under them. Creating all of them as just properties on your view could sometimes lead to some performance overhead. `LazyComponent` can be used in order to avoid creating the whole component tree right away–the component will be created once it is accessed by the view and the component will be destroyed on disappearance automatically.
+Components can be quite heavy and might include a lot of nested components under them. Creating all of them as just properties on your view could sometimes lead to some performance overhead. `LazyComponent` can be used in order to avoid creating the whole component tree right away—the component will be created once it is accessed by the view, and the component will be destroyed on disappearance automatically.
 
 ```swift
 // Profile.swift
@@ -1381,7 +1381,7 @@ There are several predefined validators shipped with Compose:
 - `EmailRule()` to ensure that the field is an email.
 - `LengthRule(in: 10...30)` to ensure the field has a particular length.
 - `EqualityRule(with: ~\State.repeatedPassword)` to ensure fields match.
-- `ConstantRule(value: false)` to ensure field has the exactly specified value.
+- `ConstantRule(value: false)` to ensure the field has the exactly specified value.
 - `ArrayRule()` which uses nested rules to ensure that all values in the specified array are valid.
 
 There is also a `TriggerRule(tag: "your-trigger-tag")` which doesn't provide any innate validation, but can be triggered outside in response to various events:
@@ -1396,7 +1396,7 @@ Activating a trigger marks the rule as not valid, which in turns makes validator
 
 ###  8.3. <a name='StatusesviaAnyStatus'></a>Statuses via  `AnyStatus`
 
-There are times where we have to notify user interface about certain loading progresses in the application. Doing network request, processing large amount of data usually result in some sort of loading indicators presented in the user interface.  `Store` contains the `status` property which simplify managing complex statuses of the particular state with enumerations. 
+There are times where we have to notify user interface about certain loading progresses in the application. Doing network request, processing large amount of data usually result in some sort of loading indicators presented in the user interface.  `Store` contains the `status` property which simplifies managing complex statuses of the particular state with enumerations. 
 
 Given the previous example of `LogInComponent`, we can imagine having two long network requests to check our fields on the backend separately. We start with creating a `Status` enumeration which conforms to the `AnyStatus` protocol:
 
@@ -1491,7 +1491,7 @@ There are several operators defined to operate on `status` property of any `Stor
 
 ###  8.4. <a name='PersistenceviaAnyPersistentStorage'></a>Persistence via  `AnyPersistentStorage`
 
-It's useful to persist certain stores to some kind of a storage. The persistence can be used to store small chunks of data which can be retrieved any time even between launches of the application. 
+It's useful to persist certain stores to some kind of a storage. The persistence can be used to store small chunks of data which can be retrieved at any time, even between launches of the application. 
 
 Compose comes with two persistent storages that can be used by `Store` instances:
 
@@ -1573,13 +1573,13 @@ extension LogInComponent {
 }
 ```
 
-`PersistenceKeys` define the shape of persisted data—the `email` property will be persisted, but all other fields will not be persisted.
+`PersistenceKeys` defines the shape of persisted data—the `email` property will be persisted, but all other fields will not be persisted.
 
 ###  8.5. <a name='IdentifiedReferencesviaRefandRefCollection'></a>Identified References via  `@Ref` and `@RefCollection`
 
-The `@Ref` and `@RefCollection` wrappers are used when declaring properties of the state for a `Store` instance. `@Ref` property wrapper is used for single objects, `@RefCollection` property wrapper is used for collection of objects.  
+The `@Ref` and `@RefCollection` wrappers are used when declaring properties of the state for a `Store` instance. `@Ref` property wrapper is used for single objects, `@RefCollection` property wrapper is used for collection of objects.
 
-Sometimes data managed by a component might be mutated by child components.  `@Ref` and `@RefCollection` property wrappers are used to keep interactive chunks of data synced between different components (most importantly, between children components of the same parent component).
+Sometimes data managed by a component might be mutated by child components. `@Ref` and `@RefCollection` property wrappers are used to keep interactive chunks of data synced between different components (most importantly, between children components of the same parent component).
 
 In order to use the aforementioned property wrappers, the underlying object must conform to the following protocols:
 
@@ -1739,9 +1739,9 @@ Updating a particular specimen would update only the appropriate chunk text and 
 
 ###  8.6. <a name='DataManagement'></a>Data Management
 
-On the one hand, Compose favours decentralised data storage: each component has its own store (one or many), that holds the component's state validates it and performs actions with the services. 
+On the one hand, Compose favours decentralised data storage: each component has its own store (one or many) that holds the component's state, validates it, and performs actions with the services.
 
-On the other hand, services can also have their own stores, making data available globally to all components. This enables developers to recreate familiar Redux-like storage solutions, where services encapsulate stores and actions on the stores, and views rely on the services' stores to display reactive constantly changing data.
+On the other hand, services can also have their own stores, making data available globally to all components. This enables developers to recreate familiar Redux-like storage solutions, where services encapsulate stores and actions on the stores, and views rely on the services' stores to display reactive, constantly changing data.
 
 Which way data is stored in a particular application is never specified by Compose itself—the pattern is chosen by the developer.
 
