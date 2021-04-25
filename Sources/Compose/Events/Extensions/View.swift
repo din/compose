@@ -9,7 +9,7 @@ extension View {
         }
     }
     
-    public func onTapGesture<V>(emitter: Emitter<V>, value: V) -> some View {
+    public func onTapGesture<V>(emitter: ValueEmitter<V>, value: V) -> some View {
         self.onTapGesture {
             emitter.send(value)
         }

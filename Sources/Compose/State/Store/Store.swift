@@ -16,9 +16,9 @@ public class Store<State : AnyState,
     
     @Published public var validation = Validation()
     
-    public let didChange : Emitter<State>
+    public let didChange : ValueEmitter<State>
 
-    public let didStatusChange : Emitter<Set<Status>>
+    public let didStatusChange : ValueEmitter<Set<Status>>
     
     internal var cancellables = Set<AnyCancellable>()
     
@@ -26,8 +26,8 @@ public class Store<State : AnyState,
     
     public init(_ initialState : State = .init(), storage : AnyPersistentStorage = EmptyPersistentStorage()) {
         self.state = initialState
-        self.didChange = Emitter(initialState)
-        self.didStatusChange = Emitter([])
+        self.didChange = ValueEmitter(initialState)
+        self.didStatusChange = ValueEmitter([])
         self.storage = storage
         
         $state

@@ -16,7 +16,7 @@ public struct ComposeTabBarItem<Contents : View> : View, Identifiable {
     }
     
     public var body: some View {
-        VStack(spacing: 5) {
+        VStack(spacing: 0) {
             contents
         }
     }

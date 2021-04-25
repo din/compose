@@ -8,6 +8,6 @@ public protocol AnyStore : class {
     
     var state : State { get set }
     
-    var didChange : Emitter<State> { get }
-    var didStatusChange : Emitter<Set<Status>> { get }
+    var didChange : ValueEmitter<State> { get }
+    var didStatusChange : ValueEmitter<Set<Status>> { get }
 }

@@ -11,7 +11,7 @@ extension Button {
         }
     }
     
-    public init<V>(emitter : Emitter<V>, value : V, @ViewBuilder label : () -> Label) {
+    public init<V>(emitter : ValueEmitter<V>, value : V, @ViewBuilder label : () -> Label) {
         self.init {
             emitter.send(value)
         } label: {

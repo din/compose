@@ -42,14 +42,11 @@ public struct ComposeTabBar<Contents : View> : View {
             
             HStack {
                 
-                Spacer()
-                    .frame(width: style.padding)
-                
                 ForEach(0..<items.count) { index in
                     items[index].opacity(items[index].path == route.path ? 1.0 : 0.4)
                         .foregroundColor(items[index].path == route.path ? style.tintColor : style.foregroundColor)
-                        .frame(maxHeight: .infinity)
-                        .padding(paddingForItem(at: index))
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .contentShape(Rectangle())
                         .onTapGesture {
                             guard items[index].path != route.path else {
                                 return
@@ -57,16 +54,11 @@ public struct ComposeTabBar<Contents : View> : View {
                             
                             route.replace(items[index].path)
                         }
-                    
-                    if index != items.count - 1 {
-                        Spacer()
-                    }
                 }
-                
-                Spacer()
-                    .frame(width: style.padding)
+                .frame(maxHeight: .infinity)
                 
             }
+            .padding(.horizontal, style.padding)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
         }

@@ -30,8 +30,8 @@ import Combine
             Referred(id: self.wrappedValue.id)
         }
         set {
-            if let emitter = Storage.storage(for: ObjectIdentifier(Ref.self)).value(at: newValue.id) as? Emitter<Change>,
-                  let change = emitter.publisher.value {
+            if let emitter = Storage.storage(for: ObjectIdentifier(Ref.self)).value(at: newValue.id) as? ValueEmitter<Change>,
+                  let change = emitter.subject.value {
                 self.value = change.value
             }
 
@@ -82,9 +82,9 @@ extension Ref {
         public let value : T
     }
     
-    var didChange : Emitter<Change> {
+    var didChange : ValueEmitter<Change> {
         Storage.storage(for: ObjectIdentifier(Ref.self)).value(at: self.wrappedValue.id) {
-            Emitter<Change>()
+            ValueEmitter<Change>()
         }
     }
     
