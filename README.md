@@ -30,16 +30,16 @@ _Compose is still a work in progress. The framework is still alpha—feature set
 * 6. [Components](#Components)
 	* 6.1. [`Component`](#Component)
 		* 6.1.1. [Preinstalled Lifecycle Emitters](#PreinstalledLifecycleEmitters)
-	* 6.2. [Attaching Emitters With `@EmitterObject`](#AttachingEmittersWithEmitterObject)
-	* 6.3. [`RouterComponent`](#RouterComponent)
-		* 6.3.1. [`Router`](#Router)
-		* 6.3.2. [`RouterView`](#RouterView)
-		* 6.3.3. [`RoutableView`](#RoutableView)
-	* 6.4. [`StartupComponent`](#StartupComponent)
-	* 6.5. [`LazyComponent`](#LazyComponent)
-		* 6.5.1. [Lifecycle Emitters](#LifecycleEmitters)
-	* 6.6. [`DynamicComponent`](#DynamicComponent)
-		* 6.6.1. [Lifecycle Emitters](#LifecycleEmitters-1)
+		* 6.1.2. [Attaching Emitters With `@EmitterObject`](#AttachingEmittersWithEmitterObject)
+	* 6.2. [`RouterComponent`](#RouterComponent)
+		* 6.2.1. [`Router`](#Router)
+		* 6.2.2. [`RouterView`](#RouterView)
+		* 6.2.3. [`RoutableView`](#RoutableView)
+	* 6.3. [`StartupComponent`](#StartupComponent)
+	* 6.4. [`LazyComponent`](#LazyComponent)
+		* 6.4.1. [Lifecycle Emitters](#LifecycleEmitters)
+	* 6.5. [`DynamicComponent`](#DynamicComponent)
+		* 6.5.1. [Lifecycle Emitters](#LifecycleEmitters-1)
 * 7. [Services](#Services)
 * 8. [Stores](#Stores)
 	* 8.1. [State via  `AnyState`](#StateviaAnyState)
@@ -447,7 +447,7 @@ extension AuthComponent {
 }
 ```
 
-###  6.2. <a name='AttachingEmittersWithEmitterObject'></a>Attaching Emitters With `@EmitterObject`
+####  6.1.2. <a name='AttachingEmittersWithEmitterObject'></a>Attaching Emitters With `@EmitterObject`
 
 Sometimes it's necessary to pass the emitter down to a particular `View` instance from within different parents. The best way to achieve that, is to use the `@EmitterObject` property wrapper in conjunction with the `attach(emitter:at:)` instance method available for every `View`.
 
@@ -508,7 +508,7 @@ extension SomeComponent : View {
 }
 ```
 
-###  6.3. <a name='RouterComponent'></a>`RouterComponent`
+###  6.2. <a name='RouterComponent'></a>`RouterComponent`
 
 `RouterComponent` is a protocol which is based on a basic `Component` protocol, but also requires the conforming `struct` to have a `Router`  instance defined.
 
@@ -709,7 +709,7 @@ This case of centralised navigation ensures that `RouterView` is accompanied by 
 
 > ❗️ You must add `RouterView()` somewhere into the body of your `AuthComponent` in order for your children content to show up properly.
 
-####  6.3.1. <a name='Router'></a>`Router`
+####  6.2.1. <a name='Router'></a>`Router`
 
 Your `struct` conforming to `RouterComponent` must always define exactly one `Router` object that manages the routing. All routes are specified as keypaths to the components in the very same routing component:
 
@@ -809,11 +809,11 @@ extension AuthComponent : View {
 
 > ❗️ Don't forget to mark your `router` as `@ObservedObject` if you're going to observe its `path` or any other properties directly inside the SwiftUI View of the component.
 
-####  6.3.2. <a name='RouterView'></a>`RouterView`
+####  6.2.2. <a name='RouterView'></a>`RouterView`
 
 `RouterView` doesn't expose any configuration because its purpose is to present the children content. 
 
-####  6.3.3. <a name='RoutableView'></a>`RoutableView`
+####  6.2.3. <a name='RoutableView'></a>`RoutableView`
 
 Sometimes it is handy to be able to add a default view on the router component itself. In order to do that, it's possible to use `RoutableView` instead of `View` to be able to route to the current component via the `\Self.self` keypath:
 
@@ -863,7 +863,7 @@ extension OnboardingComponent : RoutableView {
 
 `RoutableView` requires a component to implement the `routableBody` computed property, which is displayed when the component's router is pointing at `\Self.self` keypath. If any other component's keypath is pushed onto the router stack, the other component's view will be displayed instead.
 
-###  6.4. <a name='StartupComponent'></a>`StartupComponent`
+###  6.3. <a name='StartupComponent'></a>`StartupComponent`
 
 `StartupComponent` is a protocol which is conformed by a component you define as your root application component.
 
@@ -902,7 +902,7 @@ extension AppComponent : StartupComponent {
 
 If you conform your root component to `StartupComponent`, you don't need to add any other source files in your project to make your application work. Compose takes care of the setup for you.
 
-###  6.5. <a name='LazyComponent'></a>`LazyComponent`
+###  6.4. <a name='LazyComponent'></a>`LazyComponent`
 
 `LazyComponent` is a `struct` that accepts the component you wish to make lazy as a generic parameter.
 
@@ -955,7 +955,7 @@ extension ProfileComponent : RoutableView {
 
 `LazyComponent` initialiser accepts an `@autoclosure` statement: supplied constructor will be executed once the component is accessed by the view. 
 
-####  6.5.1. <a name='LifecycleEmitters'></a>Lifecycle Emitters
+####  6.4.1. <a name='LifecycleEmitters'></a>Lifecycle Emitters
 
 `LazyComponent` provides two lifecycle emitters:
 
@@ -996,7 +996,7 @@ extension ProfileComponent {
 
 > ❗️ Keep in mind that all observers of all emitters are destroyed automatically when the component is destroyed. This means that, even though you have subscribed to `editProfile.didSave`, you did that only for the lfietime of the underlying `EditProfileComponent`. When it disappears, all emitters you setup before are also inactivated. When it appears again, new emitters are setup and the cycle continues.
 
-###  6.6. <a name='DynamicComponent'></a>`DynamicComponent`
+###  6.5. <a name='DynamicComponent'></a>`DynamicComponent`
 
 `DynamicComponent` is a `struct` that accepts the component you wish to make lazy as a generic parameter.
 
@@ -1064,7 +1064,7 @@ extension ProfileComponent {
 
 > ❗️ If you try to navigate to dynamic component before it has been created, you will get an assertion failure and a crash. The component must always be created with `create(_:)` method and destroyed with `destroy()` method on a `DynamicComponent` instance.
 
-####  6.6.1. <a name='LifecycleEmitters-1'></a>Lifecycle Emitters
+####  6.5.1. <a name='LifecycleEmitters-1'></a>Lifecycle Emitters
 
 `DynamicComponent` provides two lifecycle emitters:
 
