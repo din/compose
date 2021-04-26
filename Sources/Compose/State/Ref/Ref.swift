@@ -31,7 +31,7 @@ import Combine
         }
         set {
             if let emitter = Storage.storage(for: ObjectIdentifier(Ref.self)).value(at: newValue.id) as? ValueEmitter<Change>,
-                  let change = emitter.subject.value {
+                  let change = emitter.lastValue {
                 self.value = change.value
             }
 

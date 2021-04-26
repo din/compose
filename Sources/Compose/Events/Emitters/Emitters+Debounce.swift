@@ -6,7 +6,7 @@ extension Emitters {
     public struct Debounce<Value, SelectedScheduler : Scheduler> : Emitter {
         
         public let id = UUID()
-        public var publisher: AnyPublisher<Value?, Never>
+        public var publisher: AnyPublisher<Value, Never>
         
         public init<Upstream : Emitter>(emitter : Upstream,
                                         interval : SelectedScheduler.SchedulerTimeType.Stride,

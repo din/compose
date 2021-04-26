@@ -6,7 +6,7 @@ extension Emitters {
     public struct Filter<Upstream : Emitter> : Emitter where Upstream.Value : Equatable {
         
         public let id = UUID()
-        public let publisher: AnyPublisher<Upstream.Value?, Never>
+        public let publisher: AnyPublisher<Upstream.Value, Never>
         
         public init(emitter : Upstream, isIncluded : @escaping (Upstream.Value?) -> Bool) {
             self.publisher = emitter.publisher

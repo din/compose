@@ -11,61 +11,63 @@ Compose is an opinionated architecture framework intended to create applications
 
 _Compose is still a work in progress. The framework is still alpha—feature set may change, variable and method names may change too._
 
-##  1. <a name='TableofContents'></a>Table of Contents
+## <a name='TableofContents'></a>Table of Contents
 
 <!-- vscode-markdown-toc -->
-* 1. [Table of Contents](#TableofContents)
-* 2. [Supported Platforms](#SupportedPlatforms)
-* 3. [Installation](#Installation)
-* 4. [Getting Started](#GettingStarted)
-* 5. [Emitters](#Emitters)
-	* 5.1. [Emitters Operators](#EmittersOperators)
-	* 5.2. [Emitters Chaining](#EmittersChaining)
-		* 5.2.1. [Debounce](#Debounce)
-		* 5.2.2. [Filter, Only, Not](#FilterOnlyNot)
-		* 5.2.3. [Map](#Map)
-		* 5.2.4. [Merge](#Merge)
-		* 5.2.5. [Tap](#Tap)
-		* 5.2.6. [Undup](#Undup)
-* 6. [Components](#Components)
-	* 6.1. [`Component`](#Component)
-		* 6.1.1. [Preinstalled Lifecycle Emitters](#PreinstalledLifecycleEmitters)
-		* 6.1.2. [Attaching Emitters With `@EmitterObject`](#AttachingEmittersWithEmitterObject)
-	* 6.2. [`RouterComponent`](#RouterComponent)
-		* 6.2.1. [`Router`](#Router)
-		* 6.2.2. [`RouterView`](#RouterView)
-		* 6.2.3. [`RoutableView`](#RoutableView)
-	* 6.3. [`StartupComponent`](#StartupComponent)
-	* 6.4. [`LazyComponent`](#LazyComponent)
-		* 6.4.1. [Lifecycle Emitters](#LifecycleEmitters)
-	* 6.5. [`DynamicComponent`](#DynamicComponent)
-		* 6.5.1. [Lifecycle Emitters](#LifecycleEmitters-1)
-* 7. [Services](#Services)
-* 8. [Stores](#Stores)
-	* 8.1. [State via  `AnyState`](#StateviaAnyState)
-	* 8.2. [Validations via  `AnyValidation`](#ValidationsviaAnyValidation)
-		* 8.2.1. [`Validator`](#Validator)
-		* 8.2.2. [`ValidatorField`](#ValidatorField)
-		* 8.2.3. [`ValidatorRule`](#ValidatorRule)
-	* 8.3. [Statuses via  `AnyStatus`](#StatusesviaAnyStatus)
-		* 8.3.1. [`AnyStatus` operators](#AnyStatusoperators)
-	* 8.4. [Persistence via  `AnyPersistentStorage`](#PersistenceviaAnyPersistentStorage)
-		* 8.4.1. [Choosing Persisted Values](#ChoosingPersistedValues)
-	* 8.5. [Identified References via  `@Ref` and `@RefCollection`](#IdentifiedReferencesviaRefandRefCollection)
-	* 8.6. [Data Management](#DataManagement)
+* [Table of Contents](#TableofContents)
+* [Supported Platforms](#SupportedPlatforms)
+* [Installation](#Installation)
+* [Getting Started](#GettingStarted)
+* [Emitters](#Emitters)
+	* [Emitters Operators](#EmittersOperators)
+	* [Emitters Chaining](#EmittersChaining)
+		* [Debounce](#Debounce)
+		* [Filter, Only, Not](#FilterOnlyNot)
+		* [Map](#Map)
+		* [Merge](#Merge)
+		* [NonNull](#NonNull)
+		* [Tap](#Tap)
+		* [Undup](#Undup)
+		* [WithCurrent](#WithCurrent)
+* [Components](#Components)
+	* [`Component`](#Component)
+		* [Preinstalled Lifecycle Emitters](#PreinstalledLifecycleEmitters)
+		* [Attaching Emitters With `@EmitterObject`](#AttachingEmittersWithEmitterObject)
+	* [`RouterComponent`](#RouterComponent)
+		* [`Router`](#Router)
+		* [`RouterView`](#RouterView)
+		* [`RoutableView`](#RoutableView)
+	* [`StartupComponent`](#StartupComponent)
+	* [`LazyComponent`](#LazyComponent)
+		* [Lifecycle Emitters](#LifecycleEmitters)
+	* [`DynamicComponent`](#DynamicComponent)
+		* [Lifecycle Emitters](#LifecycleEmitters-1)
+* [Services](#Services)
+* [Stores](#Stores)
+	* [State via  `AnyState`](#StateviaAnyState)
+	* [Validations via  `AnyValidation`](#ValidationsviaAnyValidation)
+		* [`Validator`](#Validator)
+		* [`ValidatorField`](#ValidatorField)
+		* [`ValidatorRule`](#ValidatorRule)
+	* [Statuses via  `AnyStatus`](#StatusesviaAnyStatus)
+		* [`AnyStatus` operators](#AnyStatusoperators)
+	* [Persistence via  `AnyPersistentStorage`](#PersistenceviaAnyPersistentStorage)
+		* [Choosing Persisted Values](#ChoosingPersistedValues)
+	* [Identified References via  `@Ref` and `@RefCollection`](#IdentifiedReferencesviaRefandRefCollection)
+	* [Data Management](#DataManagement)
 
 <!-- vscode-markdown-toc-config
-	numbering=true
+	numbering=false
 	autoSave=true
 	/vscode-markdown-toc-config -->
 <!-- /vscode-markdown-toc -->
 
-##  2. <a name='SupportedPlatforms'></a>Supported Platforms
+## <a name='SupportedPlatforms'></a>Supported Platforms
 
 - iOS 13+
 - macOS 10.15+
 
-##  3. <a name='Installation'></a>Installation
+## <a name='Installation'></a>Installation
 
 Xcode 11+ with Swift 5.3 is required to use Compose. 
 
@@ -85,7 +87,7 @@ Include the library as a dependency for your target, then import it when you nee
 import Compose
 ```
 
-##  4. <a name='GettingStarted'></a>Getting Started
+## <a name='GettingStarted'></a>Getting Started
 
 The following _opinionated_ project structure is the most optimal to use Compose:
 
@@ -126,7 +128,7 @@ The following _opinionated_ project structure is the most optimal to use Compose
     + ...
 ```
 
-##  5. <a name='Emitters'></a>Emitters 
+## <a name='Emitters'></a>Emitters 
 
 Emitters emit values which can be observed by subscribed closures. Emitter is a basic building block of Compose which enables building event-driven communication within the component or between different components.
 
@@ -169,22 +171,21 @@ printMessage.send("A simple message.")
 
 Emitters are usually defined in the body of a component, but they also can be defined outside of components. _Emitters cannot be defined as computed properties._
 
-###  5.1. <a name='EmittersOperators'></a>Emitters Operators
+### <a name='EmittersOperators'></a>Emitters Operators
 
 There are several operators defined to add subscribers to any emitters (chained or vanilla).
 
 - `+=` is used when the subscription closure must be executed any time an emitter emits a value or a signal.
 - `!+=` is used when the subscription closure must be executed **only once** and then never executed again.
-- `++=` is used when the subscription closure must be executed any time an emitter emits a value or a signal and immediately with the last emitted value, if presented.
 
 `ValueEmitter` defines one additional operator: 
 - `~+=` when the subscription closure must be executed with the new value and the previous emitted value, which allows computing diffing between two emitted values. 
 
-###  5.2. <a name='EmittersChaining'></a>Emitters Chaining
+### <a name='EmittersChaining'></a>Emitters Chaining
 
 It's possible to produce a chain of emitters to alter the outcome of a previous emitter in such a way. Chaining emitters is similar to chaining multiple `Publisher` together in Combine. There are several predefined emitters which are scoped under the `Emitters` structure.
 
-####  5.2.1. <a name='Debounce'></a>Debounce
+#### <a name='Debounce'></a>Debounce
 
 Debounce received value via a signal or a value emitter:
 
@@ -204,7 +205,7 @@ for i in 0..<100 {
 
 ```
 
-####  5.2.2. <a name='FilterOnlyNot'></a>Filter, Only, Not
+#### <a name='FilterOnlyNot'></a>Filter, Only, Not
 
 Filter an emitted value and only fire the event when the filtered value is sent:
 
@@ -236,10 +237,9 @@ emitter.not(.three) += { value in
 emitter.send(.one)
 emitter.send(.two)
 emitter.send(.three)
-
 ```
 
-####  5.2.3. <a name='Map'></a>Map
+#### <a name='Map'></a>Map
 
 Transform emitted value using a closure:
 
@@ -258,7 +258,7 @@ emitter.send(10)
 emitter.send(35)
 ```
 
-####  5.2.4. <a name='Merge'></a>Merge
+#### <a name='Merge'></a>Merge
 
 Merge emitters together using the `+` operator:
 
@@ -277,7 +277,28 @@ let second = SignalEmitter()
 
 > ❗️ You can only merge `ValueEmitters` if they emit the same value type.
 
-####  5.2.5. <a name='Tap'></a>Tap
+#### <a name='NonNull'></a>NonNull
+
+Only get non-null values from the emitter:
+
+```swift
+// Define an emitter with some optional value.
+let emitter = ValueEmitter<Int?>()
+
+// Filter value using some closure.
+// This closure will receive only '5' and '100'.
+emitter.nonNull() += { value in
+    print("Received value:", value)
+}
+
+// Send different values.
+emitter.send(5)
+emitter.send(nil)
+emitter.send(nil)
+emitter.send(100)
+```
+
+#### <a name='Tap'></a>Tap
 
 Get nested value using its keypath:
 
@@ -305,7 +326,7 @@ emitter.tap(\.lastName) += { lastName in
 emitter.send(.init(firstName: "Jill", lastName: "Valentine"))
 ```
 
-####  5.2.6. <a name='Undup'></a>Undup
+#### <a name='Undup'></a>Undup
 
 Remove duplicates from emitted values and only receive unique ones.
 
@@ -325,11 +346,38 @@ emitter.send(5)
 emitter.send(10)
 ```
 
-##  6. <a name='Components'></a>Components
+#### <a name='WithCurrent'></a>WithCurrent
+
+Include last value of the `ValueEmitter<T>` emitter as part of emitted values. If the `ValueEmitter<T>` instance had any values before subscribing to it, using `.withCurrent` on the emitter will send the most recent values right away.
+
+```swift
+// Define a value emitter.
+let emitter = ValueEmitter<Int>()
+
+// Send value before subscribing to an emitter.
+emitter.send(100)
+
+// Subscribe to an emitter to get last sent value immediately.
+// This closure will receive '100' and '5'.
+emitter.withCurrent() += { value in
+    print("Received value with a current one:", value)
+}
+
+// Subscribe to an emitter and get only values sent afterwards.
+// This closure will receive '5' only.
+emitter += { value in
+    print("Received value:", value)
+}
+
+// Send different values.
+emitter.send(5)
+```
+
+## <a name='Components'></a>Components
 
 Compose is built with components tree and event-driven communication between them. Compose heavily utilises structures, keypaths, SwiftUI, and Combine to achieve the desired result and abstract complex logic from the user. 
 
-###  6.1. <a name='Component'></a>`Component`
+### <a name='Component'></a>`Component`
 
 A basic building block for presenting content. A component is usually a single screen of content.  Components define their presentation using SwiftUI `View`. 
 
@@ -416,7 +464,7 @@ extension AuthComponent {
 
 This component can now be presented in the tree of components using `Router` or via direct presentation within a view.
 
-####  6.1.1. <a name='PreinstalledLifecycleEmitters'></a>Preinstalled Lifecycle Emitters
+#### <a name='PreinstalledLifecycleEmitters'></a>Preinstalled Lifecycle Emitters
 
 Each component instance comes with two lifecycle emitters: 
 
@@ -447,7 +495,7 @@ extension AuthComponent {
 }
 ```
 
-####  6.1.2. <a name='AttachingEmittersWithEmitterObject'></a>Attaching Emitters With `@EmitterObject`
+#### <a name='AttachingEmittersWithEmitterObject'></a>Attaching Emitters With `@EmitterObject`
 
 Sometimes it's necessary to pass the emitter down to a particular `View` instance from within different parents. The best way to achieve that, is to use the `@EmitterObject` property wrapper in conjunction with the `attach(emitter:at:)` instance method available for every `View`.
 
@@ -508,7 +556,7 @@ extension SomeComponent : View {
 }
 ```
 
-###  6.2. <a name='RouterComponent'></a>`RouterComponent`
+### <a name='RouterComponent'></a>`RouterComponent`
 
 `RouterComponent` is a protocol which is based on a basic `Component` protocol, but also requires the conforming `struct` to have a `Router`  instance defined.
 
@@ -709,7 +757,7 @@ This case of centralised navigation ensures that `RouterView` is accompanied by 
 
 > ❗️ You must add `RouterView()` somewhere into the body of your `AuthComponent` in order for your children content to show up properly.
 
-####  6.2.1. <a name='Router'></a>`Router`
+#### <a name='Router'></a>`Router`
 
 Your `struct` conforming to `RouterComponent` must always define exactly one `Router` object that manages the routing. All routes are specified as keypaths to the components in the very same routing component:
 
@@ -809,11 +857,11 @@ extension AuthComponent : View {
 
 > ❗️ Don't forget to mark your `router` as `@ObservedObject` if you're going to observe its `path` or any other properties directly inside the SwiftUI View of the component.
 
-####  6.2.2. <a name='RouterView'></a>`RouterView`
+#### <a name='RouterView'></a>`RouterView`
 
 `RouterView` doesn't expose any configuration because its purpose is to present the children content. 
 
-####  6.2.3. <a name='RoutableView'></a>`RoutableView`
+#### <a name='RoutableView'></a>`RoutableView`
 
 Sometimes it is handy to be able to add a default view on the router component itself. In order to do that, it's possible to use `RoutableView` instead of `View` to be able to route to the current component via the `\Self.self` keypath:
 
@@ -863,7 +911,7 @@ extension OnboardingComponent : RoutableView {
 
 `RoutableView` requires a component to implement the `routableBody` computed property, which is displayed when the component's router is pointing at `\Self.self` keypath. If any other component's keypath is pushed onto the router stack, the other component's view will be displayed instead.
 
-###  6.3. <a name='StartupComponent'></a>`StartupComponent`
+### <a name='StartupComponent'></a>`StartupComponent`
 
 `StartupComponent` is a protocol which is conformed by a component you define as your root application component.
 
@@ -902,7 +950,7 @@ extension AppComponent : StartupComponent {
 
 If you conform your root component to `StartupComponent`, you don't need to add any other source files in your project to make your application work. Compose takes care of the setup for you.
 
-###  6.4. <a name='LazyComponent'></a>`LazyComponent`
+### <a name='LazyComponent'></a>`LazyComponent`
 
 `LazyComponent` is a `struct` that accepts the component you wish to make lazy as a generic parameter.
 
@@ -955,7 +1003,7 @@ extension ProfileComponent : RoutableView {
 
 `LazyComponent` initialiser accepts an `@autoclosure` statement: supplied constructor will be executed once the component is accessed by the view. 
 
-####  6.4.1. <a name='LifecycleEmitters'></a>Lifecycle Emitters
+#### <a name='LifecycleEmitters'></a>Lifecycle Emitters
 
 `LazyComponent` provides two lifecycle emitters:
 
@@ -996,7 +1044,7 @@ extension ProfileComponent {
 
 > ❗️ Keep in mind that all observers of all emitters are destroyed automatically when the component is destroyed. This means that, even though you have subscribed to `editProfile.didSave`, you did that only for the lfietime of the underlying `EditProfileComponent`. When it disappears, all emitters you setup before are also inactivated. When it appears again, new emitters are setup and the cycle continues.
 
-###  6.5. <a name='DynamicComponent'></a>`DynamicComponent`
+### <a name='DynamicComponent'></a>`DynamicComponent`
 
 `DynamicComponent` is a `struct` that accepts the component you wish to make lazy as a generic parameter.
 
@@ -1064,7 +1112,7 @@ extension ProfileComponent {
 
 > ❗️ If you try to navigate to dynamic component before it has been created, you will get an assertion failure and a crash. The component must always be created with `create(_:)` method and destroyed with `destroy()` method on a `DynamicComponent` instance.
 
-####  6.5.1. <a name='LifecycleEmitters-1'></a>Lifecycle Emitters
+#### <a name='LifecycleEmitters-1'></a>Lifecycle Emitters
 
 `DynamicComponent` provides two lifecycle emitters:
 
@@ -1073,7 +1121,7 @@ extension ProfileComponent {
 
 Lifecycle emitters for `DynamicComponent` instances are used much more rarely because the developer usually controls the lifecycle of dynamic components manually. 
 
-##  7. <a name='Services'></a>Services
+## <a name='Services'></a>Services
 
 `Service` is a `protocol` which is adopted by `struct` entities to create services.
 
@@ -1139,7 +1187,7 @@ extension AuthComponent {
 
 As you can see, the `UserService` is available as `services.user` in the `AuthComponent` (and in all other components too).
 
-##  8. <a name='Stores'></a>Stores
+## <a name='Stores'></a>Stores
 
 `Store` is a `class` which is used by components to encapsulate state of a certain data shape. 
 
@@ -1163,7 +1211,7 @@ let validatedStore = ValidatedStore<State, Validation>()
 let indicatedStore = IndicatedStore<State, Status>()
 ```
 
-###  8.1. <a name='StateviaAnyState'></a>State via  `AnyState` 
+### <a name='StateviaAnyState'></a>State via  `AnyState` 
 
 The `struct` that holds data of the state is the only required type to initialise a `Store` instance. This `struct` must conform to `AnyState` protocol.  The protocol requires any state to be:
 
@@ -1250,7 +1298,7 @@ extension LogInComponent {
 }
 ```
 
-###  8.2. <a name='ValidationsviaAnyValidation'></a>Validations via  `AnyValidation`
+### <a name='ValidationsviaAnyValidation'></a>Validations via  `AnyValidation`
 
 To reactively validate any state `struct`, one can define a set of validators in a `struct` which conforms to the `AnyValidation` protocol. 
 
@@ -1330,7 +1378,7 @@ extension LogInComponent : View {
 }
 ```
 
-####  8.2.1. <a name='Validator'></a>`Validator`
+#### <a name='Validator'></a>`Validator`
 
 Exposes the following reactive properties:
 
@@ -1350,7 +1398,7 @@ You can use the following operators with the `Validator` instance:
 - `~=` to check if a particular keypath exists in the `invalidFields` array.
 - `!~=` to check if a particular field doesn't exist in the `invalidFields` array.
 
-####  8.2.2. <a name='ValidatorField'></a>`ValidatorField`
+#### <a name='ValidatorField'></a>`ValidatorField`
 
 Points at a particular state value using a keypath:
 
@@ -1364,7 +1412,7 @@ ValidatorField(for: \State.email) {
 
 `ValidatorField` contains any number of `ValidatorRule` instances via function builder.
 
-####  8.2.3. <a name='ValidatorRule'></a>`ValidatorRule`
+#### <a name='ValidatorRule'></a>`ValidatorRule`
 
 Defines a particular rule to be executed on a field when it changes. `ValidatorRule` instances return a simple boolean to indicate whether the field is valid or not.
 
@@ -1394,7 +1442,7 @@ Activating a trigger marks the rule as not valid, which in turns makes validator
 
 > ❗️ It's also possible to define a new rule by conforming to `ValidatorRule` protocol.
 
-###  8.3. <a name='StatusesviaAnyStatus'></a>Statuses via  `AnyStatus`
+### <a name='StatusesviaAnyStatus'></a>Statuses via  `AnyStatus`
 
 There are times where we have to notify user interface about certain loading progresses in the application. Doing network request, processing large amount of data usually result in some sort of loading indicators presented in the user interface.  `Store` contains the `status` property which simplifies managing complex statuses of the particular state with enumerations. 
 
@@ -1479,7 +1527,7 @@ extension LogInComponent : View {
 
 > ❗️ The `status` property of `Store` instances is actually defined as `Set<Status>`, where `Status` is the type passed to the `Store` when initialising it. This means it is not possible to set the same status more than one time.
 
-####  8.3.1. <a name='AnyStatusoperators'></a>`AnyStatus` operators
+#### <a name='AnyStatusoperators'></a>`AnyStatus` operators
 
 There are several operators defined to operate on `status` property of any `Store` instance easily:
 
@@ -1489,7 +1537,7 @@ There are several operators defined to operate on `status` property of any `Stor
 - `~=` to check if the list of statuses contains a particular status.
 - `!~=` to check if the list of statuses doesn't contain a particular status.
 
-###  8.4. <a name='PersistenceviaAnyPersistentStorage'></a>Persistence via  `AnyPersistentStorage`
+### <a name='PersistenceviaAnyPersistentStorage'></a>Persistence via  `AnyPersistentStorage`
 
 It's useful to persist certain stores to some kind of a storage. The persistence can be used to store small chunks of data which can be retrieved at any time, even between launches of the application. 
 
@@ -1549,7 +1597,7 @@ extension LogInComponent {
 }
 ```
 
-####  8.4.1. <a name='ChoosingPersistedValues'></a>Choosing Persisted Values
+#### <a name='ChoosingPersistedValues'></a>Choosing Persisted Values
 
 The store persistence heavily relies on the fact that `State` of the store always conforms to `AnyState` protocol, which requires `State` to be `Codable`. This allows any storage to immediately serialize data into some intermediate format to be stored in the storage. 
 
@@ -1575,7 +1623,7 @@ extension LogInComponent {
 
 `PersistenceKeys` defines the shape of persisted data—the `email` property will be persisted, but all other fields will not be persisted.
 
-###  8.5. <a name='IdentifiedReferencesviaRefandRefCollection'></a>Identified References via  `@Ref` and `@RefCollection`
+### <a name='IdentifiedReferencesviaRefandRefCollection'></a>Identified References via  `@Ref` and `@RefCollection`
 
 The `@Ref` and `@RefCollection` wrappers are used when declaring properties of the state for a `Store` instance. `@Ref` property wrapper is used for single objects, `@RefCollection` property wrapper is used for collection of objects.
 
@@ -1737,7 +1785,7 @@ extension Exhibition : RoutableView {
 
 Updating a particular specimen would update only the appropriate chunk text and leave the other one be.
 
-###  8.6. <a name='DataManagement'></a>Data Management
+### <a name='DataManagement'></a>Data Management
 
 On the one hand, Compose favours decentralised data storage: each component has its own store (one or many) that holds the component's state, validates it, and performs actions with the services.
 

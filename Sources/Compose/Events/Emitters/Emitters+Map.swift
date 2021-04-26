@@ -6,10 +6,10 @@ extension Emitters {
     public struct Map<Upstream : Emitter, OutputValue> : Emitter {
         
         public let id = UUID()
-        public let publisher: AnyPublisher<OutputValue?, Never>
+        public let publisher: AnyPublisher<OutputValue, Never>
         
-        public init(emitter : Upstream, transform : @escaping (Upstream.Value?) -> OutputValue?) {
-            self.publisher = emitter.publisher.map({ (value : Upstream.Value?) -> OutputValue? in
+        public init(emitter : Upstream, transform : @escaping (Upstream.Value) -> OutputValue) {
+            self.publisher = emitter.publisher.map({ (value : Upstream.Value) -> OutputValue in
                 transform(value)
             }).eraseToAnyPublisher()
         }
@@ -20,7 +20,7 @@ extension Emitters {
 
 extension Emitter {
     
-    public func map<OutputValue>(_ transform : @escaping (Value?) -> OutputValue?) -> Emitters.Map<Self, OutputValue> {
+    public func map<OutputValue>(_ transform : @escaping (Value) -> OutputValue) -> Emitters.Map<Self, OutputValue> {
         Emitters.Map(emitter: self, transform: transform)
     }
     

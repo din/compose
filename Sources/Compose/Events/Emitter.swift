@@ -1,11 +1,18 @@
 import Foundation
 import Combine
 
+infix operator !+=
+infix operator ~+=
+
 public protocol Emitter {
     associatedtype Value
     
     var id : UUID { get }
-    var publisher : AnyPublisher<Value?, Never> { get }
+    var publisher : AnyPublisher<Value, Never> { get }
+    
+    func observe(handler : @escaping (Value) -> Void) -> AnyCancellable
+    func observeWithLastValue(handler : @escaping (Value) -> Void) -> AnyCancellable
+    func observeOnce(handler : @escaping (Value) -> Void) -> AnyCancellable
 }
 
 extension Emitter {
@@ -22,11 +29,7 @@ extension Emitter {
     
     @discardableResult
     public func observe(handler : @escaping (Value) -> Void) -> AnyCancellable {
-        let cancellable = publisher.dropFirst().sink { value in
-            guard let value = value else {
-                return
-            }
-            
+        let cancellable = publisher.sink { value in
             handler(value)
         }
         
@@ -36,12 +39,8 @@ extension Emitter {
     }
     
     @discardableResult
-    public func observeWithLastValue(handler : @escaping (Value) -> Void) -> AnyCancellable  {
+    public func observeWithLastValue(handler : @escaping (Value) -> Void) -> AnyCancellable {
         let cancellable = publisher.sink { value in
-            guard let value = value else {
-                return
-            }
-            
             handler(value)
         }
         
@@ -54,11 +53,7 @@ extension Emitter {
     public func observeOnce(handler : @escaping (Value) -> Void) -> AnyCancellable {
         var cancellable : AnyCancellable? = nil
         
-        cancellable = publisher.dropFirst().sink { value in
-            guard let value = value else {
-                return
-            }
-            
+        cancellable = publisher.sink { value in
             handler(value)
             
             if let cancellable = cancellable {
@@ -82,12 +77,7 @@ extension Emitter {
     public static func +=(lhs : Self, rhs : @escaping (Value) -> Void) -> AnyCancellable {
         return lhs.observe(handler: rhs)
     }
-    
-    @discardableResult
-    public static func ++=(lhs : Self, rhs : @escaping (Value) -> Void) -> AnyCancellable {
-        return lhs.observeWithLastValue(handler: rhs)
-    }
-    
+
     @discardableResult
     public static func !+=(lhs : Self, rhs : @escaping (Value) -> Void) -> AnyCancellable {
         return lhs.observeOnce(handler: rhs)
