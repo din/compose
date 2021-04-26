@@ -57,9 +57,5 @@ extension ValueEmitter {
     public static func ~+=(lhs : ValueEmitter, rhs : @escaping (Value, Value) -> Void) -> AnyCancellable {
         return lhs.observeChange(handler: rhs)
     }
-        
-    public static func +(lhs : Self, rhs : Self) -> Emitters.Merge<Self> {
-        Emitters.Merge(lhs, rhs)
-    }
     
 }

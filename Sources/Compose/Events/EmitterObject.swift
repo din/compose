@@ -24,14 +24,16 @@ import SwiftUI
     var target : Target? = nil
     
     public init() {
-        // Intentionally left blank
+        emptyDestinationEmitter += { _ in
+            print("Unattached emitter with value type '\(T.self)' triggered from a view.")
+        }
     }
     
 }
 
 extension View {
     
-    public func attach<T>(emitter : ValueEmitter<T>, at keyPath : KeyPath<Self, EmitterObject<T>>) -> some View {
+    public func attach<T>(emitter : ValueEmitter<T>, at keyPath : KeyPath<Self, EmitterObject<T>>) -> Self {
         let target = EmitterObject<T>.Target(emitterId: emitter.id, keyPath: keyPath)
         self[keyPath: keyPath].target = target
         

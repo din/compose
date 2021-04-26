@@ -20,8 +20,4 @@ public struct SignalEmitter : Emitter {
         subject.send()
     }
     
-    public static func +(lhs : Self, rhs : Self) -> Emitters.Merge<Self> {
-        Emitters.Merge(lhs, rhs)
-    }
-    
 }

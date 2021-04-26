@@ -17,3 +17,15 @@ extension Emitters {
     }
     
 }
+
+extension Emitter {
+    
+    public func merge(with otherEmitter : Self) -> Emitters.Merge<Self> {
+        Emitters.Merge(self, otherEmitter)
+    }
+    
+    public static func +(lhs : Self, rhs : Self) -> Emitters.Merge<Self> {
+        Emitters.Merge(lhs, rhs)
+    }
+    
+}
