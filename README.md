@@ -224,7 +224,7 @@ emitter.filter({ $0 == .one }) += { value in
 }
 
 // Only listen to a particular value.
-emitter.only(.two) += { value in
+emitter.only(.two) += {
     print("Two received.")
 }
 
