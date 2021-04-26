@@ -24,12 +24,6 @@ extension Emitter {
         Emitters.Filter(emitter: self, isIncluded: isIncluded)
     }
     
-    public func only(_ value : Value) -> Emitters.Filter<Self> where Value : Equatable {
-        Emitters.Filter(emitter: self) { currentValue in
-            value == currentValue
-        }
-    }
-    
     public func not(_ value : Value) -> Emitters.Filter<Self> where Value : Equatable {
         Emitters.Filter(emitter: self) { currentValue in
             value != currentValue
