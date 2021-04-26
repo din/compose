@@ -21,12 +21,10 @@ public final class MappedStore<Target, TargetStore : AnyStore> : ObservableObjec
         let store = component[keyPath: keyPath]
         
         store.didChange.withCurrent() += { state in
-            print("???", state)
             self.state = state
         }
         
         store.didStatusChange.withCurrent() += { status in
-            print("??? STA", status)
             self.status = status
         }
     }
