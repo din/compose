@@ -12,11 +12,10 @@ final public class ComposeModalManager : ObservableObject {
     public init(_ wrapper : ((ComposeModalContainerView) -> AnyView) = { view in AnyView(view) }) {
         guard let windowScene = UIApplication.shared
                 .connectedScenes
-                .filter({ $0.activationState == .foregroundActive })
                 .first as? UIWindowScene else {
             return
         }
-        
+ 
         let rootView = wrapper(ComposeModalContainerView())
             .environmentObject(self)
             .frame(maxWidth: .infinity, maxHeight: .infinity)

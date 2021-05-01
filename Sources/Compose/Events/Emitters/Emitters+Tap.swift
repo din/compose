@@ -6,13 +6,10 @@ extension Emitters {
     public struct Tap<Upstream : Emitter, OutputValue> : Emitter {
         
         public let id = UUID()
-        public let publisher: AnyPublisher<OutputValue?, Never>
+        public let publisher: AnyPublisher<OutputValue, Never>
         
         public init(emitter : Upstream, keyPath : KeyPath<Upstream.Value, OutputValue>) {
-            self.publisher = emitter.publisher.map({ (value : Upstream.Value?) -> OutputValue? in
-                let outputValue = value?[keyPath: keyPath]
-                return outputValue
-            }).eraseToAnyPublisher()
+            self.publisher = emitter.publisher.map(keyPath).eraseToAnyPublisher()
         }
         
     }
