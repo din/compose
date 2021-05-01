@@ -26,11 +26,17 @@ public struct RouterView : View, Identifiable {
                 else if index == router.views.indices.endIndex.advanced(by: -2) {
                     router.views[index]
                         .offset(x: isTransitioning ? startingSubviewTransitionOffset * (1.0 - transitionProgress) : 0)
-                        .disabled(isTransitioning)
                 }
                 else {
                     router.views[index]
                 }
+            }
+            
+            if isTransitioning == true {
+                Rectangle()
+                    .fill(Color.black.opacity(0.00001))
+                    .contentShape(Rectangle())
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .gesture(
@@ -60,7 +66,7 @@ public struct RouterView : View, Identifiable {
                         interactiveTransitionOffset = UIScreen.main.bounds.width
                     }
                     
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
                         router.pop()
                         interactiveTransitionOffset = 0
                         isTransitioning = false
@@ -86,6 +92,10 @@ extension RouterView {
     }
     
     fileprivate func canPerformTransition(value : DragGesture.Value) -> Bool {
+        guard isTransitioning == false else {
+            return true
+        }
+        
         guard router.options.canTransition == true else {
             return false
         }
