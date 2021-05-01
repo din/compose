@@ -11,11 +11,11 @@ public struct ComposeNavigationBar<LeftView : View, RightView : View> : View {
     public let rightView : RightView
     
     public init(title : String,
-                @ViewBuilder leftView : () -> LeftView,
-                @ViewBuilder rightView : () -> RightView) {
+                leftView : LeftView,
+                rightView : RightView) {
         self.title = title
-        self.leftView = leftView()
-        self.rightView = rightView()
+        self.leftView = leftView
+        self.rightView = rightView
     }
 
     public var body: some View {

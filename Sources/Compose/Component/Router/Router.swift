@@ -34,9 +34,11 @@ public final class Router : ObservableObject {
         return views
     }
     
+    internal let options : RouterOptions
     fileprivate let id = UUID()
     
-    public init(start : AnyKeyPath) {
+    public init(start : AnyKeyPath, options : RouterOptions = .init()) {
+        self.options = options
         replace(start)
     }
     

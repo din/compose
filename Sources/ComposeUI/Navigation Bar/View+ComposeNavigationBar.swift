@@ -6,56 +6,38 @@ extension View {
     public func composeNavigationBar<LeftView : View, RightView : View>(title : String,
                                                                         @ViewBuilder leftView : @escaping () -> LeftView,
                                                                         @ViewBuilder rightView : @escaping () -> RightView) -> some View {
-        VStack(spacing: 0) {
-            ComposeNavigationBar(title: title, leftView: leftView, rightView: rightView)
-            
-            self
-        }
+        ComposeNavigationContainer(title: title, content: self, leftView: leftView(), rightView: rightView())
     }
     
     public func composeNavigationBar<LeftView : View>(title : String,
                                                       @ViewBuilder leftView : @escaping () -> LeftView) -> some View {
-        VStack(spacing: 0) {
-            ComposeNavigationBar(title: title, leftView: leftView, rightView: { EmptyView() })
-            
-            self
-        }
+        ComposeNavigationContainer(title: title, content: self, leftView: leftView(), rightView: EmptyView())
     }
     
     public func composeNavigationBar<RightView : View>(title : String,
                                                        @ViewBuilder rightView : @escaping () -> RightView) -> some View {
-        VStack(spacing: 0) {
-            ComposeNavigationBar(title: title, leftView: { EmptyView() }, rightView: rightView)
-            
-            self
-        }
+        ComposeNavigationContainer(title: title, content: self, leftView: EmptyView(), rightView: rightView())
     }
     
     public func composeNavigationBar(title : String) -> some View {
-        VStack(spacing: 0) {
-            ComposeNavigationBar(title: title, leftView: { EmptyView() }, rightView: { EmptyView() })
-            
-            self
-        }
+        ComposeNavigationContainer(title: title, content: self, leftView: EmptyView(), rightView: EmptyView())
     }
     
     public func composeNavigationBar(title : String,
                               backButtonEmitter : SignalEmitter) -> some View {
-        VStack(spacing: 0) {
-            ComposeNavigationBar(title: title, leftView: { ComposeNavigationBackButton(emitter: backButtonEmitter) }, rightView: { EmptyView() })
-            
-            self
-        }
+        ComposeNavigationContainer(title: title,
+                                   content: self,
+                                   leftView: ComposeNavigationBackButton(emitter: backButtonEmitter),
+                                   rightView: EmptyView())
     }
     
     public func composeNavigationBar<RightView : View>(title : String,
                                                        backButtonEmitter : SignalEmitter,
                                                        @ViewBuilder rightView : @escaping () -> RightView) -> some View {
-        VStack(spacing: 0) {
-            ComposeNavigationBar(title: title, leftView: { ComposeNavigationBackButton(emitter: backButtonEmitter) }, rightView: rightView)
-            
-            self
-        }
+        ComposeNavigationContainer(title: title,
+                                   content: self,
+                                   leftView: ComposeNavigationBackButton(emitter: backButtonEmitter),
+                                   rightView: rightView())
     }
     
 }
