@@ -16,16 +16,16 @@ struct ComposeSheetContainerView<Content : View, Background : View> : View {
     
     var body: some View {
         content
-        .sheet(isPresented: manager.hasSheet) {
-            ZStack {
-                background
-                    .edgesIgnoringSafeArea(.all)
-                    .zIndex(5)
-                
-                manager.sheet?
-                    .zIndex(6)
-                    .environment(\.composeNavigationBarStyle, navigationBarStyle)
-            }
+            .sheet(isPresented: manager.hasSheet, onDismiss: manager.onDismiss) {
+                ZStack {
+                    background
+                        .edgesIgnoringSafeArea(.all)
+                        .zIndex(5)
+                    
+                    manager.sheet?
+                        .zIndex(6)
+                        .environment(\.composeNavigationBarStyle, navigationBarStyle)
+                }
         }
     }
     
