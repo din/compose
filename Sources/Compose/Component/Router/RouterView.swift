@@ -48,7 +48,7 @@ public struct RouterView<Content : View> : View, Identifiable {
             guard let component = router.target[keyPath: keyPath] as? Component else {
                 return
             }
-            
+    
             routes.append(.init(view: component.view, path: keyPath, zIndex: Double(index) + 1.0))
         }
 
@@ -87,7 +87,6 @@ public struct RouterView<Content : View> : View, Identifiable {
                     .animation(.none)
             }
         }
-        .readAnimationProgress(reader: router.reader)
         .gesture(
             DragGesture(minimumDistance: 0.03, coordinateSpace: .global)
                 .onChanged { value in

@@ -8,7 +8,7 @@ public final class Router : ObservableObject {
     }
     
     @Published public var paths = [AnyKeyPath]()
-        
+    
     public let didPush = ValueEmitter<AnyKeyPath>()
     public let didPop = ValueEmitter<AnyKeyPath>()
     public let didReplace = ValueEmitter<AnyKeyPath>()
@@ -18,7 +18,6 @@ public final class Router : ObservableObject {
 
     @Published internal var pushPath : AnyKeyPath? = nil
 
-    internal let reader = AnimationReader()
     internal let id = UUID()
     
     fileprivate let start : AnyKeyPath?
@@ -49,10 +48,10 @@ extension Router {
             self.paths.append(keyPath)
             self.pushPath = keyPath
         }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.29) {
-            self.pushPath = nil
-            self.didPush.send(keyPath)
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.29) { [weak self] in
+            self?.pushPath = nil
+            self?.didPush.send(keyPath)
         }
     }
     
