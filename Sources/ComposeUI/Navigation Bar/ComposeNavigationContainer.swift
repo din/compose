@@ -3,16 +3,23 @@ import SwiftUI
 
 struct ComposeNavigationContainer<Content : View, LeftView : View, RightView : View> : View {
     
+    @Environment(\.composeNavigationStyle) var style
+    
     let title : String
     let content : Content
     let leftView : LeftView
     let rightView : RightView
     
     var body: some View {
-        VStack(spacing: 0) {
-            ComposeNavigationBar(title: title, leftView: leftView, rightView: rightView)
+        ZStack {
+            style.backgroundColor
+                .edgesIgnoringSafeArea(.all)
             
-            content
+            VStack(spacing: 0) {
+                ComposeNavigationBar(title: title, leftView: leftView, rightView: rightView)
+                
+                content
+            }
         }
     }
     

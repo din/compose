@@ -4,6 +4,8 @@ import Compose
 
 public struct ComposeNavigationBackButton : View {
     
+    @Environment(\.composeNavigationBarStyle) var style
+    
     let action : () -> Void
     
     public init(emitter : SignalEmitter) {

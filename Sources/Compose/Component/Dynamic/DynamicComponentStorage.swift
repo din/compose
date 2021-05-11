@@ -9,6 +9,10 @@ final class DynamicComponentStorage<T : Component> {
         component != nil
     }
     
+    deinit {
+        destroy()
+    }
+    
     func create(allocator : () -> T) {
         ObservationBag.shared.beginMonitoring { cancellable in
             self.cancellables.insert(cancellable)

@@ -39,23 +39,21 @@ public final class Router : ObservableObject {
 extension Router {
     
     public func push(_ keyPath : AnyKeyPath, animated : Bool = true) {
-        
         guard animated == true else {
             self.paths.append(keyPath)
             self.didPush.send(keyPath)
             return
         }
         
-        withAnimation(.easeOut(duration: 0.25)) {
+        withAnimation(.easeOut(duration: 0.28)) {
             self.paths.append(keyPath)
             self.pushPath = keyPath
         }
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.26) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.29) {
             self.pushPath = nil
             self.didPush.send(keyPath)
         }
-        
     }
     
     public func pop(animated : Bool = true) {
@@ -82,7 +80,7 @@ extension Router {
             return
         }
 
-        withAnimation(.easeOut(duration: 0.2)) {
+        withAnimation(.easeOut(duration: 0.25)) {
             change()
         }
     }

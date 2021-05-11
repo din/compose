@@ -74,6 +74,7 @@ public struct RouterView<Content : View> : View, Identifiable {
                         .offset(x: isTransitioning == false && route.path != router.path && router.paths.count > 0 ? startingSubviewTransitionOffset : 0)
                         .offset(x: isTransitioning == true && route.path != router.path ? startingSubviewTransitionOffset * (1.0 - transitionProgress) : 0)
                         .offset(x: isTransitioning == true && route.path == router.path ? interactiveTransitionOffset : 0)
+                        .allowsHitTesting(isTransitioning == false && route.path != router.path && router.paths.count > 0 ? false : true)
                 }
             }
 
@@ -83,6 +84,7 @@ public struct RouterView<Content : View> : View, Identifiable {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .contentShape(Rectangle())
                     .zIndex(1005.0)
+                    .animation(.none)
             }
         }
         .readAnimationProgress(reader: router.reader)
@@ -102,22 +104,22 @@ public struct RouterView<Content : View> : View, Identifiable {
                     }
                     
                     guard value.predictedEndTranslation.width > maxInteractiveTransitionOffset else {
-                        withAnimation(.easeOut(duration: 0.15)) {
+                        withAnimation(.easeOut(duration: 0.25)) {
                             interactiveTransitionOffset = 0
                         }
                         
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.19) {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.26) {
                             isTransitioning = false
                         }
                         
                         return
                     }
                     
-                    withAnimation(.easeOut(duration: 0.2)) {
+                    withAnimation(.easeOut(duration: 0.25)) {
                         interactiveTransitionOffset = UIScreen.main.bounds.width
                     }
                     
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.26) {
                         router.pop(animated: false)
                         interactiveTransitionOffset = 0
                         isTransitioning = false
