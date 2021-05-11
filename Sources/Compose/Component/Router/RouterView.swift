@@ -21,7 +21,7 @@ public struct RouterView<Content : View> : View, Identifiable {
     }
     
     let maxInteractiveTransitionOffset : CGFloat = UIScreen.main.bounds.width / 2.0
-    let startingSubviewTransitionOffset : CGFloat = -120
+    let startingSubviewTransitionOffset : CGFloat = -90
     
     @EnvironmentObject var router : Router
     
@@ -71,17 +71,18 @@ public struct RouterView<Content : View> : View, Identifiable {
                     route.view
                         .zIndex(route.zIndex)
                         .transition(.asymmetric(insertion: .identity, removal: .move(edge: .trailing)))
-                        .offset(x: isTransitioning == false && route.path != router.path && router.paths.count > 0 ? -45 : 0)
+                        .offset(x: isTransitioning == false && route.path != router.path && router.paths.count > 0 ? startingSubviewTransitionOffset : 0)
                         .offset(x: isTransitioning == true && route.path != router.path ? startingSubviewTransitionOffset * (1.0 - transitionProgress) : 0)
                         .offset(x: isTransitioning == true && route.path == router.path ? interactiveTransitionOffset : 0)
                 }
             }
 
-            if isTransitioning == true {
+            if isTransitioning == true || router.pushPath != nil {
                 Rectangle()
-                    .fill(Color.black.opacity(0.00001))
-                    .zIndex(1005.0)
+                    .fill(Color.black.opacity(0.0001))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .contentShape(Rectangle())
+                    .zIndex(1005.0)
             }
         }
         .readAnimationProgress(reader: router.reader)
@@ -105,7 +106,7 @@ public struct RouterView<Content : View> : View, Identifiable {
                             interactiveTransitionOffset = 0
                         }
                         
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.19) {
                             isTransitioning = false
                         }
                         
@@ -117,7 +118,7 @@ public struct RouterView<Content : View> : View, Identifiable {
                     }
                     
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-                        router.pop()
+                        router.pop(animated: false)
                         interactiveTransitionOffset = 0
                         isTransitioning = false
                     }

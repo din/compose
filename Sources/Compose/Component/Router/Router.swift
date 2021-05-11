@@ -38,34 +38,53 @@ public final class Router : ObservableObject {
 
 extension Router {
     
-    public func push(_ keyPath : AnyKeyPath) {
-        self.pushPath = keyPath
-
-        reader.read { value in
-            guard value >= 1.0 else {
-                return
-            }
-            
-            self.pushPath = nil
+    public func push(_ keyPath : AnyKeyPath, animated : Bool = true) {
+        
+        guard animated == true else {
+            self.paths.append(keyPath)
+            self.didPush.send(keyPath)
+            return
         }
         
-        self.paths.append(keyPath)
-
-        didPush.send(keyPath)
+        withAnimation(.easeOut(duration: 0.25)) {
+            self.paths.append(keyPath)
+            self.pushPath = keyPath
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.26) {
+            self.pushPath = nil
+            self.didPush.send(keyPath)
+        }
+        
     }
     
-    public func pop() {
+    public func pop(animated : Bool = true) {
         guard self.paths.count > 0 else {
             return
         }
-
-        let path = paths.removeLast()
-   
-        if let component = self.target[keyPath: path] as? AnyDynamicComponent {
-            component.destroy()
+        
+        let change = { [weak self] in
+            guard let self = self else {
+                return
+            }
+            
+            let path = self.paths.removeLast()
+            
+            if let component = self.target[keyPath: path] as? AnyDynamicComponent {
+                component.destroy()
+            }
+            
+            self.didPop.send(path)
         }
         
-        didPop.send(path)
+        guard animated == true else {
+            change()
+            return
+        }
+
+        withAnimation(.easeOut(duration: 0.2)) {
+            change()
+        }
     }
     
     public func popToRoot() {
