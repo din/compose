@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol AnyPersistentStorage : class {
+public protocol AnyPersistentStorage : AnyObject {
     
     var key : String { get }
     

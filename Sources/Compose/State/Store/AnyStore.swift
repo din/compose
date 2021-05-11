@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol AnyStore : class {
+public protocol AnyStore : AnyObject {
     associatedtype State : AnyState
     associatedtype Status : AnyStatus
     

@@ -18,10 +18,14 @@ public struct ComposeNavigationBackButton : View {
     
     public var body: some View {
         Button(action: action) {
-            Image(systemName: "chevron.backward")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 17, height: 17)
+            ZStack {
+                Image(systemName: "chevron.backward")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 17, height: 17)
+            }
+            .frame(width: 25, alignment: .leading)
+            .contentShape(Rectangle())
         }
         .buttonStyle(PlainButtonStyle())
     }

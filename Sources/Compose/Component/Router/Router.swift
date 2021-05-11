@@ -4,70 +4,87 @@ import SwiftUI
 public final class Router : ObservableObject {
     
     public var path : AnyKeyPath? {
-        return paths.last
+        paths.last
     }
     
-    @Published public fileprivate(set) var paths = [AnyKeyPath]()
-    
-    var target : Component?
-    
-    var views : [AnyView] {
-        guard paths.count > 0 else {
-            return [AnyView(EmptyView())]
-        }
+    @Published public var paths = [AnyKeyPath]()
         
-        let views : [AnyView] = paths.compactMap {
-            target[keyPath: $0] as? Component
-        }.map {
-            if $0.id == target?.id, let component = target as? AnyRoutableView {
-                return component.routableView
-            }
-            else {
-                return $0.view
-            }
-        }
-        
-        guard views.count > 0 else {
-            return [AnyView(EmptyView())]
-        }
-        
-        return views
-    }
+    public let didPush = ValueEmitter<AnyKeyPath>()
+    public let didPop = ValueEmitter<AnyKeyPath>()
+    public let didReplace = ValueEmitter<AnyKeyPath>()
     
+    internal var target : Component?
     internal let options : RouterOptions
-    fileprivate let id = UUID()
+
+    @Published internal var pushPath : AnyKeyPath? = nil
+
+    internal let reader = AnimationReader()
+    internal let id = UUID()
+    
+    fileprivate let start : AnyKeyPath?
     
     public init(start : AnyKeyPath, options : RouterOptions = .init()) {
+        self.start = start
         self.options = options
         replace(start)
+    }
+    
+    public init(options : RouterOptions = .init()) {
+        self.start = nil
+        self.options = options
     }
     
 }
 
 extension Router {
     
+    public func push(_ keyPath : AnyKeyPath) {
+        self.pushPath = keyPath
+
+        reader.read { value in
+            guard value >= 1.0 else {
+                return
+            }
+            
+            self.pushPath = nil
+        }
+        
+        self.paths.append(keyPath)
+
+        didPush.send(keyPath)
+    }
+    
     public func pop() {
         guard self.paths.count > 0 else {
             return
         }
+
+        let path = paths.removeLast()
+   
+        if let component = self.target[keyPath: path] as? AnyDynamicComponent {
+            component.destroy()
+        }
         
-        paths.removeLast()
+        didPop.send(path)
     }
     
     public func popToRoot() {
-        guard paths.count > 0 else {
+        guard self.paths.count > 0 else {
             return
         }
         
-        paths = [paths.first!]
+        if let start = start {
+            paths = [start]
+        }
+        else {
+            paths = []
+        }
     }
     
-    public func push(_ path : AnyKeyPath) {
-        self.paths.append(path)
-    }
-    
-    public func replace(_ path : AnyKeyPath) {
-        self.paths = [path]
+    public func replace(_ keyPath : AnyKeyPath) {
+        self.paths = [keyPath]
+        
+        didReplace.send(keyPath)
     }
     
 }
@@ -77,7 +94,7 @@ extension Router : Bindable {
     public func bind<C : Component>(to component: C) {
         self.target = component
         
-        Storage.storage(for: \Router.self).setValue(self, at: \C.self)
+        Storage.shared.setValue(self, at: Storage.RouterObjectKey(id: \C.self))
     }
     
 }

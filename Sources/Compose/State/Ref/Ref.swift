@@ -1,6 +1,15 @@
 import Foundation
 import Combine
 
+extension Storage {
+    
+    struct RefKey<T : Codable & Equatable & Identifiable> : Hashable {
+        let id : T.ID
+        let objectId = \Ref<T>.self
+    }
+    
+}
+
 @propertyWrapper public class Ref<T : Codable & Equatable & Identifiable> : Codable, Identifiable, ObservableObject, AnyRef {
     
     public enum CodingKeys : CodingKey {
@@ -30,7 +39,7 @@ import Combine
             Referred(id: self.wrappedValue.id)
         }
         set {
-            if let emitter = Storage.storage(for: ObjectIdentifier(Ref.self)).value(at: newValue.id) as? ValueEmitter<Change>,
+            if let emitter = Storage.shared.value(at: Storage.RefKey<T>(id: newValue.id)) as? ValueEmitter<Change>,
                   let change = emitter.lastValue {
                 self.value = change.value
             }
@@ -83,7 +92,7 @@ extension Ref {
     }
     
     var didChange : ValueEmitter<Change> {
-        Storage.storage(for: ObjectIdentifier(Ref.self)).value(at: self.wrappedValue.id) {
+        Storage.shared.value(at: Storage.RefKey<T>(id: self.wrappedValue.id)) {
             ValueEmitter<Change>()
         }
     }

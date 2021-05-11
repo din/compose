@@ -1,16 +1,25 @@
 import Foundation
 import SwiftUI
 
+extension Storage {
+    
+    struct LifecycleEmitterKey : Hashable {
+        let id : UUID
+        let keyPath : AnyKeyPath
+    }
+    
+}
+
 extension Component {
   
     public var didAppear : SignalEmitter {
-        Storage.storage(for: self.id).value(at: \Self.didAppear) {
+        Storage.shared.value(at: Storage.LifecycleEmitterKey(id: self.id, keyPath: \Self.didAppear)) {
             SignalEmitter()
         }
     }
     
     public var didDisappear : SignalEmitter {
-        Storage.storage(for: self.id).value(at: \Self.didDisappear) {
+        Storage.shared.value(at: Storage.LifecycleEmitterKey(id: self.id, keyPath: \Self.didDisappear)) {
             SignalEmitter()
         }
     }

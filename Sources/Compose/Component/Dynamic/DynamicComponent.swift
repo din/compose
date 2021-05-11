@@ -2,11 +2,9 @@ import Foundation
 import SwiftUI
 
 @dynamicMemberLookup
-public struct DynamicComponent<T : Component> : Component {
+public struct DynamicComponent<T : Component> : Component, AnyDynamicComponent {
     
-    let storage = ComponentStorage<T>()
-    
-    public let destroyOnDisappearance : Bool
+    let storage = DynamicComponentStorage<T>()
     
     public let didCreate = SignalEmitter()
     public let didDestroy = SignalEmitter()
@@ -19,31 +17,25 @@ public struct DynamicComponent<T : Component> : Component {
         storage.component
     }
     
-    public init(destroyOnDisappearance : Bool) {
-        self.destroyOnDisappearance = destroyOnDisappearance
+    public var isCreated : Bool {
+        storage.isCreated
     }
     
     public init() {
-        self.destroyOnDisappearance = false
+        // Intentionally left blank
     }
-    
 }
 
 extension DynamicComponent {
     
-    @discardableResult
-    public func create(_ allocator : () -> T) -> T {
-        let component = allocator().bind()
-        storage.component = component
-        
+    public func create(_ allocator : () -> T) {
+        storage.create(allocator: allocator)
         didCreate.send()
-        
-        return component
     }
     
     public func destroy() {
-        storage.component = nil
-        
+        storage.component?.didDisappear.send()
+        storage.destroy()
         didDestroy.send()
     }
     
@@ -65,13 +57,6 @@ extension DynamicComponent : View {
         }
         
         return component.view
-            .onDisappear {
-                guard destroyOnDisappearance == true else {
-                    return
-                }
-                
-                self.destroy()
-            }
     }
     
 }

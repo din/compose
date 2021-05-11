@@ -1,5 +1,14 @@
 import SwiftUI
 
+extension Storage {
+    
+    struct EmitterObjectKey<T> : Hashable {
+        let target : EmitterObject<T>.Target
+        let keyPath = \EmitterObject<T>.self
+    }
+    
+}
+
 @propertyWrapper public class EmitterObject<T> {
     
     struct Target : Hashable {
@@ -12,7 +21,7 @@ import SwiftUI
             return emptyDestinationEmitter
         }
         
-        return Storage.storage(for: \EmitterObject<T>.self).value(at: target) as? ValueEmitter<T> ?? emptyDestinationEmitter
+        return Storage.shared.value(at: Storage.EmitterObjectKey<T>(target: target)) as? ValueEmitter<T> ?? emptyDestinationEmitter
     }
     
     public var projectedValue : EmitterObject<T> {
@@ -37,7 +46,7 @@ extension View {
         let target = EmitterObject<T>.Target(emitterId: emitter.id, keyPath: keyPath)
         self[keyPath: keyPath].target = target
         
-        Storage.storage(for: \EmitterObject<T>.self).setValue(emitter, at: target)
+        Storage.shared.setValue(emitter, at: Storage.EmitterObjectKey<T>(target: target))
         
         return self
     }

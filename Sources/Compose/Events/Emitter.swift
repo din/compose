@@ -11,18 +11,7 @@ public protocol Emitter {
     var publisher : AnyPublisher<Value, Never> { get }
     
     func observe(handler : @escaping (Value) -> Void) -> AnyCancellable
-    func observeWithLastValue(handler : @escaping (Value) -> Void) -> AnyCancellable
     func observeOnce(handler : @escaping (Value) -> Void) -> AnyCancellable
-}
-
-extension Emitter {
-    
-    var cancellableStorage : CancellableStorage {
-        Storage.storage(for: \Emitters.self).value(at: id) {
-            CancellableStorage()
-        }
-    }
-    
 }
 
 extension Emitter {
@@ -33,19 +22,8 @@ extension Emitter {
             handler(value)
         }
         
-        cancellableStorage.cancellables.insert(cancellable)
-        
-        return cancellable
-    }
+        ObservationBag.shared.add(cancellable)
     
-    @discardableResult
-    public func observeWithLastValue(handler : @escaping (Value) -> Void) -> AnyCancellable {
-        let cancellable = publisher.sink { value in
-            handler(value)
-        }
-        
-        cancellableStorage.cancellables.insert(cancellable)
-        
         return cancellable
     }
     
@@ -57,13 +35,13 @@ extension Emitter {
             handler(value)
             
             if let cancellable = cancellable {
-                cancellableStorage.cancellables.remove(cancellable)
+                ObservationBag.shared.remove(cancellable)
                 cancellable.cancel()
             }
         }
         
         if let cancellable = cancellable {
-            cancellableStorage.cancellables.insert(cancellable)
+            ObservationBag.shared.add(cancellable)
         }
         
         return cancellable ?? AnyCancellable({ })

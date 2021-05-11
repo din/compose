@@ -20,15 +20,17 @@ public class TimerEmitter : Emitter {
     }
     
     public func start(_ handler : @escaping (Date) -> Void) {
-        cancellableStorage.namedCancellables[id.uuidString] = self.timerPublisher
+        let cancellable = self.timerPublisher
             .autoconnect()
             .sink { date in
                 handler(date)
             }
+        
+        ObservationBag.shared.add(cancellable, for: id)
     }
     
     public func stop() {
-        cancellableStorage.namedCancellables[id.uuidString]?.cancel()
+        ObservationBag.shared.remove(for: id)
     }
     
 }

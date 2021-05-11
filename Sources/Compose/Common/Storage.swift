@@ -2,25 +2,8 @@ import Foundation
 
 final class Storage {
     
-    static let idStorage = Storage()
+    static let shared = Storage()
     
-    fileprivate static var storages = [AnyHashable : Storage]()
-    
-    static func storage<Object : Hashable>(for object : Object) -> Storage {
-        if let storage = storages[object] {
-            return storage
-        }
-        else {
-            let storage = Storage()
-            storages[object] = storage
-            return storage
-        }
-    }
-    
-    static func removeStorage<Object : Hashable>(for object : Object) {
-        storages[object] = nil
-    }
- 
     var values = [AnyHashable : Any]()
     
     func value<T>(at key : AnyHashable, allocator : () -> T) -> T {

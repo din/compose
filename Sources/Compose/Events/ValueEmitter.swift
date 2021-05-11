@@ -48,8 +48,8 @@ extension ValueEmitter {
             handler(value, oldValue)
         }
         
-        cancellableStorage.cancellables.insert(cancellable)
-        
+        ObservationBag.shared.add(cancellable)
+         
         return cancellable
     }
     

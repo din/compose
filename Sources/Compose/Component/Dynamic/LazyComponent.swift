@@ -4,7 +4,7 @@ import SwiftUI
 @dynamicMemberLookup
 public struct LazyComponent<T : Component> : Component {
     
-    let storage = ComponentStorage<T>()
+    let storage = DynamicComponentStorage<T>()
     let allocator : () -> T
     
     public let didCreate = SignalEmitter()
@@ -15,8 +15,8 @@ public struct LazyComponent<T : Component> : Component {
         None
     }
     
-    public var component : T? {
-        storage.component
+    public var isCreated : Bool {
+        storage.isCreated
     }
     
     public init(_ allocator : @autoclosure @escaping () -> T) {
@@ -41,7 +41,7 @@ extension LazyComponent : View {
     
     public var body: some View {
         if storage.component == nil {
-            storage.component = allocator().bind()
+            storage.create(allocator: allocator)
             didCreate.send()
         }
         
@@ -50,7 +50,7 @@ extension LazyComponent : View {
                 self.didAppear.send()
             }
             .onDisappear {
-                self.storage.component = nil
+                storage.destroy()
                 self.didDisappear.send()
             }
     }

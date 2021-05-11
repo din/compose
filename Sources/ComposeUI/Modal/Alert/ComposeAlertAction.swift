@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-@_functionBuilder public struct ComposeAlertActionBuilder {
+@resultBuilder public struct ComposeAlertActionBuilder {
     
     public static func buildBlock() -> [ComposeAlertAction] {
         return []

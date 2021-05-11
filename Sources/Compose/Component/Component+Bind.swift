@@ -30,9 +30,9 @@ extension Component {
             }
             
         }
-        
-        _ = self.observers
 
+        _ = self.observers
+ 
         return self
     }
     

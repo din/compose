@@ -4,7 +4,7 @@ public protocol ValidatorNode {
     
 }
 
-@_functionBuilder public struct ValidatorNodeBuilder {
+@resultBuilder public struct ValidatorNodeBuilder {
     
     public static func buildBlock() -> [ValidatorNode] {
         return []

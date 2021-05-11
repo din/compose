@@ -2,7 +2,7 @@ import Foundation
 import Compose
 import SwiftUI
 
-@_functionBuilder public struct ComposeTabBarBuilder<Contents : View> {
+@resultBuilder public struct ComposeTabBarBuilder<Contents : View> {
     
     public static func buildBlock() -> [ComposeTabBarItem<Contents>] {
         return []

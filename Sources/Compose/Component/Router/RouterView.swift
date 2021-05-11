@@ -1,11 +1,27 @@
 import Foundation
 import SwiftUI
 import simd
+import Combine
 
-public struct RouterView : View, Identifiable {
+public struct RouterView<Content : View> : View, Identifiable {
+
+    struct Route : Identifiable, Equatable {
+        
+        static func == (lhs: RouterView<Content>.Route, rhs: RouterView<Content>.Route) -> Bool {
+            lhs.id == rhs.id
+        }
+       
+        var id : AnyKeyPath {
+            path
+        }
+        
+        let view : AnyView
+        let path : AnyKeyPath
+        let zIndex : Double
+    }
     
     let maxInteractiveTransitionOffset : CGFloat = UIScreen.main.bounds.width / 2.0
-    let startingSubviewTransitionOffset : CGFloat = -80
+    let startingSubviewTransitionOffset : CGFloat = -120
     
     @EnvironmentObject var router : Router
     
@@ -15,30 +31,60 @@ public struct RouterView : View, Identifiable {
     ///Identifier on a router view allows us to switch between similar nested router views inside other router views.
     ///Without an identifiers, SwiftUI wouldn't replace a view inside a `ForEach` statement because they would be identical to SwiftUI.
     public let id = UUID()
+    
+    ///Default view contents.
+    let content : Content
+    
+    var routes : [Route] {
+        var routes = [Route]()
+        
+        // Adding content view if it exists
+        if content is EmptyView == false {
+            routes.append(.init(view: AnyView(content), path: \Component.self, zIndex: 0))
+        }
+
+        // Adding all other routed views
+        router.paths.enumerated().forEach { (index, keyPath) in
+            guard let component = router.target[keyPath: keyPath] as? Component else {
+                return
+            }
+            
+            routes.append(.init(view: component.view, path: keyPath, zIndex: Double(index) + 1.0))
+        }
+
+        return routes
+    }
+
+    public init(@ViewBuilder content : () -> Content) {
+        self.content = content()
+    }
 
     public var body: some View {
         ZStack(alignment: .top) {
-            ForEach(router.views.indices, id: \.self) { index in
-                if index == router.views.indices.last {
-                    router.views[index]
-                        .offset(x: isTransitioning ? interactiveTransitionOffset : 0)
-                }
-                else if index == router.views.indices.endIndex.advanced(by: -2) {
-                    router.views[index]
-                        .offset(x: isTransitioning ? startingSubviewTransitionOffset * (1.0 - transitionProgress) : 0)
+            ForEach(self.routes) { route in
+                if route.path == router.pushPath {
+                    route.view
+                        .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .identity))
+                        .zIndex(1000.0)
                 }
                 else {
-                    router.views[index]
+                    route.view
+                        .zIndex(route.zIndex)
+                        .transition(.asymmetric(insertion: .identity, removal: .move(edge: .trailing)))
+                        .offset(x: isTransitioning == false && route.path != router.path && router.paths.count > 0 ? -45 : 0)
+                        .offset(x: isTransitioning == true && route.path != router.path ? startingSubviewTransitionOffset * (1.0 - transitionProgress) : 0)
+                        .offset(x: isTransitioning == true && route.path == router.path ? interactiveTransitionOffset : 0)
                 }
             }
-            
+
             if isTransitioning == true {
                 Rectangle()
                     .fill(Color.black.opacity(0.00001))
+                    .zIndex(1005.0)
                     .contentShape(Rectangle())
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
+        .readAnimationProgress(reader: router.reader)
         .gesture(
             DragGesture(minimumDistance: 0.03, coordinateSpace: .global)
                 .onChanged { value in
@@ -50,13 +96,17 @@ public struct RouterView : View, Identifiable {
                     interactiveTransitionOffset = max(value.translation.width, 0)
                 }
                 .onEnded { value in
-                    guard canPerformTransition(value: value) else {
+                    guard isTransitioning == true else {
                         return
                     }
                     
                     guard value.predictedEndTranslation.width > maxInteractiveTransitionOffset else {
-                        withAnimation {
+                        withAnimation(.easeOut(duration: 0.15)) {
                             interactiveTransitionOffset = 0
+                        }
+                        
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) {
+                            isTransitioning = false
                         }
                         
                         return
@@ -75,8 +125,12 @@ public struct RouterView : View, Identifiable {
         )
     }
     
+}
+
+extension RouterView where Content == EmptyView {
+    
     public init() {
-        
+        self.content = EmptyView()
     }
     
 }
@@ -100,7 +154,7 @@ extension RouterView {
             return false
         }
         
-        guard router.paths.count > 1 else {
+        guard router.paths.count > (content is EmptyView ? 1 : 0) else {
             return false
         }
         
