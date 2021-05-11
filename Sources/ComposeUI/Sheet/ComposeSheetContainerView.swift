@@ -4,6 +4,7 @@ import SwiftUI
 struct ComposeSheetContainerView<Content : View, Background : View> : View {
     
     @Environment(\.composeNavigationBarStyle) var navigationBarStyle
+    @Environment(\.composeNavigationStyle) var navigationStyle
     @EnvironmentObject var manager : ComposeSheetManager
     
     let content : Content
@@ -25,6 +26,7 @@ struct ComposeSheetContainerView<Content : View, Background : View> : View {
                     manager.sheet?
                         .zIndex(6)
                         .environment(\.composeNavigationBarStyle, navigationBarStyle)
+                        .environment(\.composeNavigationStyle, navigationStyle)
                 }
         }
     }
