@@ -49,7 +49,9 @@ public struct RouterView<Content : View> : View, Identifiable {
                 return
             }
     
-            routes.append(.init(view: component.view, path: keyPath, zIndex: Double(index) + 1.0))
+            routes.append(.init(view: AnyView(component.view.transition(.move(edge: .trailing))),
+                                path: keyPath,
+                                zIndex: Double(index) + 1.0))
         }
 
         return routes
@@ -62,20 +64,13 @@ public struct RouterView<Content : View> : View, Identifiable {
     public var body: some View {
         ZStack(alignment: .top) {
             ForEach(self.routes) { route in
-                if route.path == router.pushPath {
-                    route.view
-                        .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .identity))
-                        .zIndex(1000.0)
-                }
-                else {
-                    route.view
-                        .zIndex(route.zIndex)
-                        .transition(.asymmetric(insertion: .identity, removal: .move(edge: .trailing)))
-                        .offset(x: isTransitioning == false && route.path != router.path && router.paths.count > 0 ? startingSubviewTransitionOffset : 0)
-                        .offset(x: isTransitioning == true && route.path != router.path ? startingSubviewTransitionOffset * (1.0 - transitionProgress) : 0)
-                        .offset(x: isTransitioning == true && route.path == router.path ? interactiveTransitionOffset : 0)
-                        .allowsHitTesting(isTransitioning == false && route.path != router.path && router.paths.count > 0 ? false : true)
-                }
+                route.view
+                    .zIndex(route.zIndex)
+                    .transition(.asymmetric(insertion: .identity, removal: .move(edge: .trailing)))
+                    .offset(x: isTransitioning == false && route.path != router.path && router.paths.count > 0 ? startingSubviewTransitionOffset : 0)
+                    .offset(x: isTransitioning == true && route.path != router.path ? startingSubviewTransitionOffset * (1.0 - transitionProgress) : 0)
+                    .offset(x: isTransitioning == true && route.path == router.path ? interactiveTransitionOffset : 0)
+                    .allowsHitTesting(isTransitioning == false && route.path != router.path && router.paths.count > 0 ? false : true)
             }
 
             if isTransitioning == true || router.pushPath != nil {
