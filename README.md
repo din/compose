@@ -22,10 +22,16 @@ _Compose is still a work in progress. The framework is still alpha—feature set
 	* [Emitters Operators](#EmittersOperators)
 	* [Emitters Chaining](#EmittersChaining)
 		* [Debounce](#Debounce)
+		* [DropFirst](#DropFirst)
+		* [DropUntil](#DropUntil)
 		* [Filter, Only, Not](#FilterOnlyNot)
+		* [FlatMap](#FlatMap)
+		* [IgnoreOutput](#IgnoreOutput)
 		* [Map](#Map)
+		* [MapErrorToNil](#MapErrorToNil)
 		* [Merge](#Merge)
 		* [NonNull](#NonNull)
+		* [Publisher](#Publisher)
 		* [Tap](#Tap)
 		* [Undup](#Undup)
 		* [WithCurrent](#WithCurrent)
@@ -36,12 +42,10 @@ _Compose is still a work in progress. The framework is still alpha—feature set
 	* [`RouterComponent`](#RouterComponent)
 		* [`Router`](#Router)
 		* [`RouterView`](#RouterView)
-		* [`RoutableView`](#RoutableView)
 	* [`StartupComponent`](#StartupComponent)
-	* [`LazyComponent`](#LazyComponent)
-		* [Lifecycle Emitters](#LifecycleEmitters)
 	* [`DynamicComponent`](#DynamicComponent)
-		* [Lifecycle Emitters](#LifecycleEmitters-1)
+		* [Lifecycle Emitters](#LifecycleEmitters)
+	* [`InstanceComponent`](#InstanceComponent)
 * [Services](#Services)
 * [Stores](#Stores)
 	* [State via  `AnyState`](#StateviaAnyState)
@@ -202,6 +206,49 @@ emitter.debounce(interval: .seconds(1)) += {
 for i in 0..<100 {
     emitter.send()
 }
+```
+
+#### <a name='DropFirst'></a>DropFirst
+
+Drop first value or a signal received from an emitter:
+
+```swift
+// Define an emitter.
+let emitter = SignalEmitter()
+
+emitter.dropFirst() += {
+    // This is executed only once.
+    print("Second signal received!")
+}
+
+// Send signal 2 times.
+emitter.send()
+emitter.send()
+```
+
+#### <a name='DropUntil'></a>DropUntil
+
+Drop values or signals from emitter until another emitter sends any value:
+
+```swift
+// Define an emitter.
+let emitter = ValueEmitter<Int>()
+
+// Define another emitter
+let controlEmitter = SignalEmitter()
+
+emitter.dropUntil(emitter: controlEmitter) += { value in
+    // This is executed only with value '300'.
+    print("Received value:", value)
+}
+
+// Send signal 2 times.
+emitter.send(100)
+emitter.send(200)
+
+controlEmitter.send()
+
+emitter.send(300)
 
 ```
 
@@ -239,6 +286,82 @@ emitter.send(.two)
 emitter.send(.three)
 ```
 
+#### <a name='FlatMap'></a>FlatMap
+
+Transform an emitter into a new emitter:
+
+```swift
+
+// Define emitters.
+let firstEmitter = SignalEmitter()
+let secondEmitter = ValueEmitter()
+
+firstEmitter.flatMap {
+    secondEmitter
+} += {
+    // This is executed only when second emitter is fired after the first emitter.
+    print("Second emitter fired after the first emitter!")
+}
+
+// Send signal 2 times
+firstEmitter.send()
+secondEmitter.send()
+```
+
+It is useful to subscribe to nested emitters which are created dynamically:
+
+```swift
+
+struct OuterValue {
+
+    struct InnerValue {
+
+        let sendData = ValueEmitter<String>()
+    
+    }
+
+    let didCreate = SignalEmitter()
+
+    var innerValue : InnerValue? = nil
+
+    func create() {
+        innerValue = InnerValue()
+        didCreate.send()
+    }
+}
+
+let value = OuterValue()
+
+value.didCreate.flatMap {
+    value.innerValue?.sendData ?? ValueEmitter<String>()
+} += { value in 
+    // Will be executed whenever InnerValue's emitter is invoked.
+    print("Received:", value)
+}
+
+value.create()
+value.innerValue?.send("super-data-payload")
+
+```
+
+#### <a name='IgnoreOutput'></a>IgnoreOutput
+
+Ignore all output from an emitter treating it like a signal emitter:
+
+```swift
+// Define an emitter.
+let emitter = ValueEmitter<Int>()
+
+emitter.ignoreOutput() += {
+    // No values received by this block.
+    print("Some values were sent!")
+}
+
+// Send some values.
+emitter.send(100)
+emitter.send(200)
+```
+
 #### <a name='Map'></a>Map
 
 Transform emitted value using a closure:
@@ -247,7 +370,7 @@ Transform emitted value using a closure:
 // Define an emitter.
 let emitter = ValueEmitter<Int>()
 
-// Filter value using some closure.
+// Map value using a closure.
 emitter.map({ $0 + 10 }) += { value in
     print("Received some value plus '10'.")
 }
@@ -256,6 +379,37 @@ emitter.map({ $0 + 10 }) += { value in
 emitter.send(5)
 emitter.send(10)
 emitter.send(35)
+```
+
+#### <a name='MapErrorToNil'></a>MapErrorToNil
+
+Transform the `Result<Value, Error>` payload to the `Value?` form. 
+
+> ❗️ You can chain this emitter if the underlying emitter value is `Result<Value, Error>`.
+
+```swift
+// Define error type
+enum ValueError : Error {
+    case customError
+}
+
+// Define an emitter with a result type.
+let emitter = ValueEmitter<Result<Int, ValueError>>()
+
+// Map value using a closure.
+emitter.mapErrorToNil += { value in
+    guard let value = value else {
+        return
+    }
+
+    // '100' and '200' received by this block.
+    print("Received:", value)
+}
+
+// Send different values.
+emitter.send(.success(100))
+emitter.send(.failure(.customError))
+emitter.send(.success(200))
 ```
 
 #### <a name='Merge'></a>Merge
@@ -275,7 +429,7 @@ let second = SignalEmitter()
 }
 ```
 
-> ❗️ You can only merge `ValueEmitters` if they emit the same value type.
+> ❗️ You can merge only `ValueEmitters` if they emit the same value type.
 
 #### <a name='NonNull'></a>NonNull
 
@@ -296,6 +450,37 @@ emitter.send(5)
 emitter.send(nil)
 emitter.send(nil)
 emitter.send(100)
+```
+
+#### <a name='Publisher'></a>Publisher
+
+Transform Combine's `AnyPublisher<Value, Error>` publisher into the `Result<Value, Error>` emitter:
+
+```swift
+// Define a publisher
+let fetchData = Future { fulfill in
+
+    // Fetch data using network
+    do {
+        let data = try fetchNetworkDataAsynchronously()
+        fulfill(.success(data))
+    }
+    catch let error {
+        fulfill(.failure(error))
+    }
+
+}.eraseToAnyPublisher()
+
+// Make emitter from the publisher and subscribe to it immediately.
+fetchData.emitter() += { result in
+    guard let data = try? result.get() else {
+        print("Error when fetching data!")
+        return
+    }
+
+    print("Fetched data: ", data)
+}
+
 ```
 
 #### <a name='Tap'></a>Tap
@@ -787,9 +972,9 @@ extension AuthComponent {
 The starting route must always be specified as a keypath to the component which will be presented at first. A `Router` instance has the following methods to perform navigation:
 
 - `router.replace(_ keyPath : KeyPath<Component, Component>)` replaces the whole routing stack with the specified keypath.
-- `router.push(_ keyPath : KeyPath<Component, Component>)` pushes a new view into the routing stack.
-- `router.pop()`  removes the last keypath from the routing stack.
-- `router.popToRoot()` removes all the keypaths from the routing stack and returns to the root one (which is specified when you create a `Router` instance).
+- `router.push(_ keyPath : KeyPath<Component, Component>, animated : Bool = true)` pushes a new view into the routing stack.
+- `router.pop(animated : Bool = true)`  removes the last keypath from the routing stack.
+- `router.popToRoot(animated : Bool = false)` removes all the keypaths from the routing stack and returns to the root one (which is specified when you create a `Router` instance).
 
 Whenever any of the aforementioned routing methods are executed, the router componet's view is immediately updated with the contents of the component under the routed keypath.
 
@@ -807,25 +992,7 @@ extension AuthComponent {
 }
 ```
 
-It's also quite easy to perform the transition when animating to or from a particular view:
-
-```swift
-// Auth+Observers.swift 
-
-extension AuthComponent {
-
-    var observers : Void {
-        openLogIn += {
-            withAnimation {
-                router.replace(\Self.logIn)
-            }
-        }
-    }
-
-}
-```
-
-> ❗️ The default transition on SwiftUI views is usually defined as a fade-in/fade-out animation. You can specify your own transitions for routing animations using the `.transition(_:)` method on the top view of your component.
+> ❗️ Pushing and popping operations are animated by the `Router` instance. If you wish to prevent router from animating, you could always pass the `animated: false` property when you do a push or a pop operation. The replace operation is not animated by the router.
 
 It is also possible to observe `router.path` property to access the currently navigated keypath. This can be used to alter the presentation of your view:
 
@@ -859,11 +1026,7 @@ extension AuthComponent : View {
 
 #### <a name='RouterView'></a>`RouterView`
 
-`RouterView` doesn't expose any configuration because its purpose is to present the children content. 
-
-#### <a name='RoutableView'></a>`RoutableView`
-
-Sometimes it is handy to be able to add a default view on the router component itself. In order to do that, it's possible to use `RoutableView` instead of `View` to be able to route to the current component via the `\Self.self` keypath:
+Sometimes it is handy to be able to add a default view on the router component itself. In order to do that, it's possible pass the default view using `@ViewBuilder` when creating a `RouterView` instance:
 
 ```swift
 // Onboarding.swift
@@ -872,7 +1035,7 @@ struct OnboardingComponent : RouterComponent {
 
     let next = NextComponent()
 
-    @ObservedObject var router = Router(start: \Self.self)
+    @ObservedObject var router = Router()
 
     let openNext = SignalEmitter()
 
@@ -892,24 +1055,22 @@ extension OnboardingComponent {
 
 // Onboarding+View.swift
 
-extension OnboardingComponent : RoutableView {
+extension OnboardingComponent : View {
 
     var body : some View {
-        RouterView()
-    }
-    
-    var routableBody : some View {
-        VStack {
-            Button(emitter: openNext) {
-                Text("Open Next Page")
+        RouterView {
+            VStack {
+                Button(emitter: openNext) {
+                    Text("Open Next Page")
+                }
             }
         }
     }
-
+    
 }
 ```
 
-`RoutableView` requires a component to implement the `routableBody` computed property, which is displayed when the component's router is pointing at `\Self.self` keypath. If any other component's keypath is pushed onto the router stack, the other component's view will be displayed instead.
+When default router view is specified, the `Router` instance must be created without any starting keypath.
 
 ### <a name='StartupComponent'></a>`StartupComponent`
 
@@ -950,107 +1111,13 @@ extension AppComponent : StartupComponent {
 
 If you conform your root component to `StartupComponent`, you don't need to add any other source files in your project to make your application work. Compose takes care of the setup for you.
 
-### <a name='LazyComponent'></a>`LazyComponent`
-
-`LazyComponent` is a `struct` that accepts the component you wish to make lazy as a generic parameter.
-
-Components can be quite heavy and might include a lot of nested components under them. Creating all of them as just properties on your view could sometimes lead to some performance overhead. `LazyComponent` can be used in order to avoid creating the whole component tree right away—the component will be created once it is accessed by the view, and the component will be destroyed on disappearance automatically.
-
-```swift
-// Profile.swift
-
-struct ProfileComponent : RouterComponent {
-
-    let editProfile = LazyComponent(EditProfileComponent())
-
-    @ObservedObject var router = Router(start: \Self.self)
-
-    let openEditProfile = SignalEmitter()
-    
-}
-
-// Profile+Observes.swift
-
-extension ProfileComponent : View {
-
-    var observers : Void {
-        openEditProfile += {
-            router.push(\Self.editProfile)
-        }
-    }
-
-}
-
-// Profile+View.swift
-
-extension ProfileComponent : RoutableView {
-
-    var body : some View {
-        RouterView()
-    }
-
-    var routableBody : some View {
-        VStack {
-            Button(emitter: openEditProfile) {
-                Text("Show Edit Profile")
-            }
-        }
-        
-    }
-
-}
-```
-
-`LazyComponent` initialiser accepts an `@autoclosure` statement: supplied constructor will be executed once the component is accessed by the view. 
-
-#### <a name='LifecycleEmitters'></a>Lifecycle Emitters
-
-`LazyComponent` provides two lifecycle emitters:
-
-- `didCreate` is invoked as soon as lazy component's view appears.
-- `didDestroy` is invoked as soon as lazy component's view disappears.
-
-These emitters are super useful to observe underlying component's emitters with ease:
-
-```swift
-// EditProfile.swift
-
-struct EditProfileComponent : Component {
-
-    let didSave = SignalEmitter()
-
-}
-
-// Profile+Observers.swift
-
-extension ProfileComponent {
-
-    var observers : Void {
-        openEditProfile += {
-            router.push(\Self.editProfile)
-        }
-    
-        editProfile.didCreate += {
-            print("Edit profile created!")
-            
-            editProfile.didSave += {
-                print("Edit profile's didSave received!")
-            }
-        }
-    }
-
-}
-```
-
-> ❗️ Keep in mind that all observers of all emitters are destroyed automatically when the component is destroyed. This means that, even though you have subscribed to `editProfile.didSave`, you did that only for the lfietime of the underlying `EditProfileComponent`. When it disappears, all emitters you setup before are also inactivated. When it appears again, new emitters are setup and the cycle continues.
-
 ### <a name='DynamicComponent'></a>`DynamicComponent`
 
-`DynamicComponent` is a `struct` that accepts the component you wish to make lazy as a generic parameter.
+`DynamicComponent` is a `struct` that accepts the component you wish to make dynamic as a generic parameter.
 
-`DynamicComponent` is very similar to `LazyComponent`, except the latter one is created automatically, and the former one must be initialised by the developer. `DynamicComponent` is used when the underlying component requires any data to be passed into the component.
+`DynamicComponent`'s underlying component must be initialised by the developer. `DynamicComponent` is used when the component has to be initialised lazily.
 
-Consider that `EditProfileComponent` from the `LazyComponent` section requires any input data to be present, the input data is usually passed via the initialiser of the component:
+The input data is usually passed via the initialiser of the component:
 
 ```swift
 // ProfileObject.swift
@@ -1070,7 +1137,7 @@ struct EditProfileComponent : Component {
 }
 ```
 
-In this case, initialisation of any  `EditProfileComponent` instace always requires `profile` to be passed in. This is easily achieved with `DynamicComponent`:
+Initialisation of any  `EditProfileComponent` instace always requires `profile` to be passed in. This is easily achieved with `DynamicComponent`:
 
 ```swift
 // Profile.swift
@@ -1092,15 +1159,7 @@ extension ProfileComponent {
     var observers : Void {
         openEditProfile += { profileToEdit in 
             // Create an instance of an underlying component
-            editProfile.create {
-                EditProfileComponent(profile: profileToEdit)
-            }
-            
-            // Observe emitters of the newly created instance
-            editProfile.close += {
-                editProfile.destroy()
-                router.pop()
-            }
+            editProfile.create(EditProfileComponent(profile: profileToEdit))
   
             // Present the instance using routing
             router.push(\Self.editProfile)
@@ -1110,16 +1169,22 @@ extension ProfileComponent {
 }
 ```
 
-> ❗️ If you try to navigate to dynamic component before it has been created, you will get an assertion failure and a crash. The component must always be created with `create(_:)` method and destroyed with `destroy()` method on a `DynamicComponent` instance.
+All instances of `DynamicComponent` manage their memory automatically. That means, when you present it via the router, or inside a sheet, the underlying component will be deallocated as soon as it goes out of scope. For example, for sheet presentation, it will be deallocated as soon as sheet is dismissed. For router push/pop navigation, the component will be deallocated as soon as the component is popped from the router.
 
-#### <a name='LifecycleEmitters-1'></a>Lifecycle Emitters
+> ❗️ If you try to navigate to dynamic component before it has been created, you will get an assertion failure and a crash. The component must always be created with `create(_:)` method on a `DynamicComponent` instance.
+
+> ❗️ Keep in mind that all observers of all emitters are destroyed automatically when the component goes out of scope. When it disappears, all observers you setup in the `observers` computed property are cancelled.
+
+#### <a name='LifecycleEmitters'></a>Lifecycle Emitters
 
 `DynamicComponent` provides two lifecycle emitters:
 
 - `didCreate` is invoked as soon as dynamic component was created.
 - `didDestroy` is invoked as soon as dynamic component was destroyed.
 
-Lifecycle emitters for `DynamicComponent` instances are used much more rarely because the developer usually controls the lifecycle of dynamic components manually. 
+### <a name='InstanceComponent'></a>`InstanceComponent`
+
+While `DynamicComponent` allows only one component to be created, there are cases where it might be necessary to create any number of dynamic components. This might be useful, for example, to display infinite number of nested components. `InstanceComponent` works similarly to `DynamicComponent`, but allows having infinite number of components created instead. The `InstanceComponent` instance manages memory of all underlying components—all underlying components are automatically destroyed when they go out of scope.
 
 ## <a name='Services'></a>Services
 
