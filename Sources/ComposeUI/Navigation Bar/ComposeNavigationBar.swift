@@ -32,7 +32,7 @@ public struct ComposeNavigationBar<LeftView : View, RightView : View> : View {
             .offset(y: 2)
             
             GeometryReader { info in
-                if leftView is EmptyView == false {
+                if leftView is EmptyView == false || style.alwaysCenterTitle == true {
                     Text(NSLocalizedString(title, comment: ""))
                         .font(.system(size: 16, weight: .semibold, design: .default))
                         .position(x: info.frame(in: .local).midX, y: info.frame(in: .local).midY)

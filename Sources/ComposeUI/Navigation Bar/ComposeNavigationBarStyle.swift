@@ -12,18 +12,22 @@ public struct ComposeNavigationBarStyle {
     
     public var shouldShowDivider : Bool
     
+    public var alwaysCenterTitle : Bool
+    
     public init(backgroundColor : Color = .clear,
                 foregroundColor : Color = .clear,
                 tintColor : Color = .blue,
                 height : CGFloat = 44,
                 horizontalPadding : CGFloat = 24,
-                shouldShowDivider : Bool = false) {
+                shouldShowDivider : Bool = false,
+                alwaysCenterTitle : Bool = false) {
         self.backgroundColor = backgroundColor
         self.foregroundColor = foregroundColor
         self.tintColor = tintColor
         self.height = height
         self.horizontalPadding = horizontalPadding
         self.shouldShowDivider = shouldShowDivider
+        self.alwaysCenterTitle = alwaysCenterTitle
     }
 
 }
