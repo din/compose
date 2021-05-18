@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol AnyStatus : Hashable {
+public protocol AnyStatus : Codable, Hashable {
     
 }
 

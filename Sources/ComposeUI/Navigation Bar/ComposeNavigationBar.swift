@@ -29,6 +29,7 @@ public struct ComposeNavigationBar<LeftView : View, RightView : View> : View {
                 rightView
                     .foregroundColor(style.tintColor)
             }
+            .offset(y: 2)
             
             GeometryReader { info in
                 if leftView is EmptyView == false {
@@ -39,14 +40,15 @@ public struct ComposeNavigationBar<LeftView : View, RightView : View> : View {
                 }
                 else {
                     Text(NSLocalizedString(title, comment: ""))
-                        .font(.system(size: 20, weight: .regular))
+                        .font(.system(size: 18, weight: .regular))
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .position(x: info.frame(in: .local).midX, y: info.frame(in: .local).midY)
                 }
             }
             .truncationMode(.tail)
             .lineLimit(1)
-            
+            .offset(y: 2)
+        
             VStack {
                 Divider()
             }

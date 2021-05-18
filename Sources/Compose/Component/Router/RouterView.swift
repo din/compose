@@ -4,21 +4,6 @@ import simd
 import Combine
 
 public struct RouterView<Content : View> : View, Identifiable {
-
-    struct Route : Identifiable, Equatable {
-        
-        static func == (lhs: RouterView<Content>.Route, rhs: RouterView<Content>.Route) -> Bool {
-            lhs.id == rhs.id
-        }
-       
-        var id : AnyKeyPath {
-            path
-        }
-        
-        let view : AnyView
-        let path : AnyKeyPath
-        let zIndex : Double
-    }
     
     let maxInteractiveTransitionOffset : CGFloat = UIScreen.main.bounds.width / 2.0
     let startingSubviewTransitionOffset : CGFloat = -90
@@ -36,25 +21,7 @@ public struct RouterView<Content : View> : View, Identifiable {
     let content : Content
     
     var routes : [Route] {
-        var routes = [Route]()
-        
-        // Adding content view if it exists
-        if content is EmptyView == false {
-            routes.append(.init(view: AnyView(content), path: \Component.self, zIndex: 0))
-        }
-
-        // Adding all other routed views
-        router.paths.enumerated().forEach { (index, keyPath) in
-            guard let component = router.target[keyPath: keyPath] as? Component else {
-                return
-            }
-    
-            routes.append(.init(view: AnyView(component.view.transition(.move(edge: .trailing))),
-                                path: keyPath,
-                                zIndex: Double(index) + 1.0))
-        }
-
-        return routes
+        router.routes
     }
 
     public init(@ViewBuilder content : () -> Content) {
@@ -63,17 +30,23 @@ public struct RouterView<Content : View> : View, Identifiable {
 
     public var body: some View {
         ZStack(alignment: .top) {
-            ForEach(self.routes) { route in
+            content
+                .zIndex(1)
+                .offset(x: isTransitioning == false && routes.count > 0 ? startingSubviewTransitionOffset : 0)
+                .offset(x: isTransitioning == true && routes.count == 1 ? startingSubviewTransitionOffset * (1.0 - transitionProgress) : 0)
+                .allowsHitTesting(isTransitioning == false && routes.count == 0)
+       
+            ForEach(routes) { route in
                 route.view
                     .zIndex(route.zIndex)
                     .transition(.asymmetric(insertion: .identity, removal: .move(edge: .trailing)))
-                    .offset(x: isTransitioning == false && route.path != router.path && router.paths.count > 0 ? startingSubviewTransitionOffset : 0)
-                    .offset(x: isTransitioning == true && route.path != router.path ? startingSubviewTransitionOffset * (1.0 - transitionProgress) : 0)
-                    .offset(x: isTransitioning == true && route.path == router.path ? interactiveTransitionOffset : 0)
-                    .allowsHitTesting(isTransitioning == false && route.path != router.path && router.paths.count > 0 ? false : true)
+                    .offset(x: isTransitioning == false && route.id != routes.last?.id && routes.count > 0 ? startingSubviewTransitionOffset : 0)
+                    .offset(x: isTransitioning == true && route.id != routes.last?.id ? startingSubviewTransitionOffset * (1.0 - transitionProgress) : 0)
+                    .offset(x: isTransitioning == true && route.id == routes.last?.id ? interactiveTransitionOffset : 0)
+                    .allowsHitTesting(isTransitioning == false && route.id != routes.last?.id ? false : true)
             }
 
-            if isTransitioning == true || router.pushPath != nil {
+            if isTransitioning == true || router.isPushing == true {
                 Rectangle()
                     .fill(Color.black.opacity(0.0001))
                     .frame(maxWidth: .infinity, maxHeight: .infinity)

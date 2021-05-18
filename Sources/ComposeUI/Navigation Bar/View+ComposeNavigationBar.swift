@@ -23,20 +23,18 @@ extension View {
         ComposeNavigationContainer(title: title, content: self, leftView: EmptyView(), rightView: EmptyView())
     }
     
-    public func composeNavigationBar(title : String,
-                              backButtonEmitter : SignalEmitter) -> some View {
+    public func composeNavigationBarWithBackButton(title : String) -> some View {
         ComposeNavigationContainer(title: title,
                                    content: self,
-                                   leftView: ComposeNavigationBackButton(emitter: backButtonEmitter),
+                                   leftView: ComposeNavigationBackButton(),
                                    rightView: EmptyView())
     }
     
-    public func composeNavigationBar<RightView : View>(title : String,
-                                                       backButtonEmitter : SignalEmitter,
-                                                       @ViewBuilder rightView : @escaping () -> RightView) -> some View {
+    public func composeNavigationBarWithBackButton<RightView : View>(title : String,
+                                                                     @ViewBuilder rightView : @escaping () -> RightView) -> some View {
         ComposeNavigationContainer(title: title,
                                    content: self,
-                                   leftView: ComposeNavigationBackButton(emitter: backButtonEmitter),
+                                   leftView: ComposeNavigationBackButton(),
                                    rightView: rightView())
     }
     

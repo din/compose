@@ -2,6 +2,7 @@ import Foundation
 import Combine
 
 final class DynamicComponentStorage<T : Component> {
+    
     var component : T? = nil
     var cancellables = Set<AnyCancellable>()
     
@@ -30,11 +31,7 @@ final class DynamicComponentStorage<T : Component> {
         }
         
         cancellables.removeAll()
-        
-        if let router = Storage.shared.value(at: Storage.RouterObjectKey(id: \T.self)) as? Router {
-            router.target = nil
-        }
-        
+  
         self.component = nil
     }
 }

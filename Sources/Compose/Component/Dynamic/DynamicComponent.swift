@@ -2,10 +2,10 @@ import Foundation
 import SwiftUI
 
 @dynamicMemberLookup
-public struct DynamicComponent<T : Component> : Component, AnyDynamicComponent {
+public struct DynamicComponent<T : Component> : Component {
     
     let storage = DynamicComponentStorage<T>()
-    
+
     public let didCreate = SignalEmitter()
     public let didDestroy = SignalEmitter()
     
@@ -28,20 +28,19 @@ public struct DynamicComponent<T : Component> : Component, AnyDynamicComponent {
 
 extension DynamicComponent {
     
-    public func create(_ allocator : () -> T) {
+    public func create(_ allocator : @autoclosure () -> T) {
+        guard isCreated == false else {
+            print("[DynamicComponent] Warning: trying to create component \(T.self) more than one time")
+            return
+        }
+        
         storage.create(allocator: allocator)
         didCreate.send()
     }
     
-    public func destroy() {
-        storage.component?.didDisappear.send()
-        storage.destroy()
-        didDestroy.send()
-    }
-    
     public subscript<V>(dynamicMember keyPath : KeyPath<T, V>) -> V {
         guard storage.component != nil else {
-            fatalError("Attempting to get dynamic component's property without creating it first.")
+            fatalError("[DynamicComponent] Attempting to get property of \(T.self) without creating it first.")
         }
         
         return storage.component![keyPath: keyPath]
@@ -53,10 +52,14 @@ extension DynamicComponent : View {
     
     public var body: some View {
         guard let component = storage.component else {
-            fatalError("DynamicComponent's component must be set before accessing it.")
+            fatalError("[DynamicComponent] Component \(T.self) must be set before accessing it.")
         }
         
         return component.view
+            .onDisappear {
+                storage.destroy()
+                didDestroy.send()
+            }
     }
     
 }

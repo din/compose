@@ -1,37 +1,55 @@
 import Foundation
-import Compose
 import SwiftUI
 
-@resultBuilder public struct ComposeTabBarBuilder<Contents : View> {
+@resultBuilder public struct ComposeTabViewBuilder {
     
-    public static func buildBlock() -> [ComposeTabBarItem<Contents>] {
+    public static func buildBlock() -> [ComposeTabItem] {
         return []
     }
     
-    public static func buildBlock(_ item : ComposeTabBarItem<Contents>) -> [ComposeTabBarItem<Contents>] {
+    public static func buildBlock(_ item : ComposeTabItem) -> [ComposeTabItem] {
         return [item]
     }
     
-    public static func buildBlock(_ items : ComposeTabBarItem<Contents>...) -> [ComposeTabBarItem<Contents>] {
+    public static func buildBlock(_ items : ComposeTabItem...) -> [ComposeTabItem] {
         return items
     }
     
 }
 
-public struct ComposeTabBar<Contents : View> : View {
+public struct ComposeTabView : View {
     
-    @Environment(\.composeTabBarStyle) var style
+    public let items : [ComposeTabItem]
     
-    @ObservedObject var route : Router
+    @Environment(\.composeTabViewStyle) fileprivate var style
+    @State fileprivate var currentId : UUID? = nil
     
-    public let items : [ComposeTabBarItem<Contents>]
-    
-    public init(_ route : Router, @ComposeTabBarBuilder<Contents> items : () -> [ComposeTabBarItem<Contents>]) {
-        self.route = route
+    public init(@ComposeTabViewBuilder items : () -> [ComposeTabItem]) {
         self.items = items()
     }
     
     public var body: some View {
+        VStack {
+            ZStack {
+                ForEach(items) { item in
+                    item.view
+                        .opacity(item.id == currentId ? 1.0 : 0.0)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            
+            tabBarBody
+        }
+        .onAppear {
+            self.currentId = self.items.first?.id
+        }
+    }
+    
+}
+
+extension ComposeTabView {
+    
+    var tabBarBody : some View {
         ZStack(alignment: .top) {
             
             Rectangle()
@@ -42,17 +60,18 @@ public struct ComposeTabBar<Contents : View> : View {
             
             HStack {
                 
-                ForEach(0..<items.count) { index in
-                    items[index].opacity(items[index].path == route.path ? 1.0 : 0.4)
-                        .foregroundColor(items[index].path == route.path ? style.tintColor : style.foregroundColor)
+                ForEach(items) { item in
+                    item.itemContent
+                        .opacity(item.id == currentId ? 1.0 : 0.4)
+                        .foregroundColor(item.id == currentId ? style.tintColor : style.foregroundColor)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .contentShape(Rectangle())
                         .onTapGesture {
-                            guard items[index].path != route.path else {
+                            guard item.id != currentId else {
                                 return
                             }
                             
-                            route.replace(items[index].path)
+                            currentId = item.id
                         }
                 }
                 .frame(maxHeight: .infinity)
@@ -68,7 +87,7 @@ public struct ComposeTabBar<Contents : View> : View {
         .overlay(style.shouldShowDivider == true ? Divider() : nil, alignment: .top)
     }
     
-    fileprivate func paddingForItem(at index : Int) -> EdgeInsets {
+    private func paddingForItem(at index : Int) -> EdgeInsets {
         if index == 0 {
             return .init(top: 0, leading: 0, bottom: 0, trailing: 15)
         }

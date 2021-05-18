@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-public struct ComposeTabBarStyle {
+public struct ComposeTabViewStyle {
     
     public var backgroundColor : Color
     public var foregroundColor : Color
@@ -29,25 +29,25 @@ public struct ComposeTabBarStyle {
     
 }
 
-private struct ComposeTabBarStyleKey : EnvironmentKey {
+private struct ComposeTabViewStyleKey : EnvironmentKey {
     
-    static let defaultValue: ComposeTabBarStyle = ComposeTabBarStyle()
+    static let defaultValue: ComposeTabViewStyle = ComposeTabViewStyle()
     
 }
 
 extension EnvironmentValues {
     
-    public var composeTabBarStyle : ComposeTabBarStyle {
-        get { self[ComposeTabBarStyleKey.self] }
-        set { self[ComposeTabBarStyleKey.self] = newValue }
+    public var composeTabViewStyle : ComposeTabViewStyle {
+        get { self[ComposeTabViewStyleKey.self] }
+        set { self[ComposeTabViewStyleKey.self] = newValue }
     }
     
 }
 
 extension View {
     
-    public func composeTabBarStyle(_ style : ComposeTabBarStyle) -> some View {
-        self.environment(\.composeTabBarStyle, style)
+    public func composeTabViewStyle(_ style : ComposeTabViewStyle) -> some View {
+        self.environment(\.composeTabViewStyle, style)
     }
     
 }

@@ -1,5 +1,5 @@
 import Foundation
 
-public enum LoadingStatus : AnyStatus {
+public enum LoadingStatus : String, AnyStatus {
     case loading
 }
