@@ -13,6 +13,7 @@ public struct ComposeModalContainerView : View {
                 manager.presenters[index].backgroundView
                     .edgesIgnoringSafeArea(.all)
                     .zIndex(Double(index))
+                    .environmentObject(manager)
 
                 manager.presenters[index].modalView
                     .zIndex(100.0 + Double(index))

@@ -28,16 +28,20 @@ public struct ComposeAlertAction : Identifiable, Equatable {
         lhs.id == rhs.id
     }
     
-    public let title : String
+    public let content : AnyView
     public let kind : Kind
     public let handler : () -> Void
     
-    public var id: String {
-        title
+    public let id = UUID()
+    
+    public init<Content : View>(@ViewBuilder content : () -> Content) {
+        self.content = AnyView(content())
+        self.kind = .normal
+        self.handler = {}
     }
     
     public init(title : String, kind : Kind = .normal, handler : @escaping () -> Void = {}) {
-        self.title = title
+        self.content = AnyView(Text(title))
         self.kind = kind
         self.handler = handler
     }

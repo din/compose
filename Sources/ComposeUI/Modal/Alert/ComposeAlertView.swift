@@ -6,43 +6,61 @@ public struct ComposeAlertView : ComposeModal {
     @EnvironmentObject private var manager : ComposeModalManager
     @Environment(\.composeAlertViewStyle) private var style
     
-    public let title : String
-    public let message : String
-    
+    public let title : String?
+    public let message : String?
+    public let mode : ComposeAlertViewPresentationMode
     public let actions : [ComposeAlertAction]
     
-    public init(title : String, message : String, @ComposeAlertActionBuilder actions : () -> [ComposeAlertAction]) {
+    public init(title : String? = nil,
+                message : String? = nil,
+                mode : ComposeAlertViewPresentationMode = .alert,
+                @ComposeAlertActionBuilder actions : () -> [ComposeAlertAction]) {
         self.title = title
         self.message = message
+        self.mode = mode
         self.actions = actions()
     }
     
     public var backgroundBody: some View {
         style.overlayColor
-            .transition(.opacity)
+            .transition(.opacity.animation(.easeOut(duration: 0.2)))
     }
     
     public var body: some View {
+        if mode == .alert {
+            alertBody
+        }
+        else {
+            sheetBody
+        }
+    }
+    
+    fileprivate var alertBody : some View {
         VStack(spacing: 0) {
+            
             Spacer()
             
             VStack(spacing: 0) {
                 
-                Text(title)
-                    .font(.headline)
-                    .padding(.top, style.verticalPadding)
+                if let title = title {
+                    Text(title)
+                        .font(.headline)
+                        .padding(.top, style.alertVerticalPadding)
+                    
+                    Spacer()
+                        .frame(height: 10)
+                }
                 
-                Spacer()
-                    .frame(height: 10)
-                
-                Text(message)
-                    .font(.system(size: 15, weight: .regular, design: .rounded))
-                    .lineLimit(nil)
-                    .lineSpacing(3)
-                    .multilineTextAlignment(.leading)
-                    .padding(.bottom, style.verticalPadding)
-                    .padding(.horizontal, style.horizontalPadding)
-                    .fixedSize(horizontal: false, vertical: true)
+                if let message = message {
+                    Text(message)
+                        .font(.system(size: 15, weight: .regular, design: .rounded))
+                        .lineLimit(nil)
+                        .lineSpacing(3)
+                        .multilineTextAlignment(.leading)
+                        .padding(.bottom, style.alertVerticalPadding)
+                        .padding(.horizontal, style.alertHorizontalPadding)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
                 
                 Divider()
                 
@@ -52,7 +70,7 @@ public struct ComposeAlertView : ComposeModal {
                             manager.dismiss()
                             action.handler()
                         }) {
-                            Text(action.title)
+                            action.content
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .foregroundColor(action.kind == .destructive ? style.destructiveColor : style.actionColor)
@@ -74,7 +92,7 @@ public struct ComposeAlertView : ComposeModal {
                 RoundedRectangle(cornerRadius: 10)
                     .stroke(Color(UIColor.separator).opacity(0.5))
             )
-            .padding(.horizontal, style.outerHorizontalPadding)
+            .padding(.horizontal, style.alertOuterHorizontalPadding)
             
             Spacer()
         }
@@ -83,6 +101,54 @@ public struct ComposeAlertView : ComposeModal {
                 .combined(with: AnyTransition.scale(scale: 0.91))
                 .combined(with: AnyTransition.offset(x: 0, y: -20))
         )
+    }
+    
+    fileprivate var sheetBody : some View {
+        ZStack(alignment: .bottom) {
+            
+            Rectangle()
+                .fill(style.overlayColor.opacity(0.00001))
+                .edgesIgnoringSafeArea(.all)
+                .onTapGesture {
+                    manager.dismiss()
+                }
+
+            VStack(spacing: 0) {
+                if let title = title {
+                    Text(title)
+                        .font(.system(size: 14, weight: .regular, design: .default))
+                        .foregroundColor(style.foregroundColor.opacity(0.7))
+                        .padding(.vertical, style.sheetVerticalSpacing)
+                    
+                    Divider()
+                }
+                
+                ForEach(actions) { action in
+                    Button(action: {
+                        manager.dismiss()
+                        action.handler()
+                    }) {
+                        action.content
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .contentShape(Rectangle())
+                    }
+                    .foregroundColor(action.kind == .destructive ? style.destructiveColor : style.actionColor)
+                    .padding(.vertical, style.sheetVerticalSpacing)
+                    
+                    if action != actions.last {
+                        Divider()
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(style.backgroundColor)
+            )
+            .padding(.horizontal, style.sheetHorizontalPadding)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .transition(.move(edge: .bottom).animation(.easeOut(duration: 0.2)))
     }
     
 }

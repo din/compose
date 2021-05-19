@@ -9,10 +9,12 @@ public struct ComposeAlertViewStyle {
     public var destructiveColor : Color
     public var overlayColor : Color
     
-    public var verticalPadding : CGFloat
-    public var horizontalPadding : CGFloat
+    public var alertVerticalPadding : CGFloat
+    public var alertHorizontalPadding : CGFloat
+    public var alertOuterHorizontalPadding : CGFloat
     
-    public var outerHorizontalPadding : CGFloat
+    public var sheetVerticalSpacing : CGFloat
+    public var sheetHorizontalPadding : CGFloat
     
     public init(backgroundColor : Color = .black,
                 foregroundColor : Color = .white,
@@ -21,15 +23,19 @@ public struct ComposeAlertViewStyle {
                 overlayColor : Color = Color.black.opacity(0.85),
                 verticalPadding : CGFloat = 15,
                 horizontalPadding : CGFloat = 15,
-                outerHorizontalPadding : CGFloat = 40) {
+                outerHorizontalPadding : CGFloat = 40,
+                sheetVerticalSpacing : CGFloat = 15,
+                sheetHorizontalPadding : CGFloat = 15) {
         self.backgroundColor = backgroundColor
         self.foregroundColor = foregroundColor
         self.actionColor = actionColor
         self.destructiveColor = destructiveColor
         self.overlayColor = overlayColor
-        self.verticalPadding = verticalPadding
-        self.horizontalPadding = horizontalPadding
-        self.outerHorizontalPadding = outerHorizontalPadding
+        self.alertVerticalPadding = verticalPadding
+        self.alertHorizontalPadding = horizontalPadding
+        self.alertOuterHorizontalPadding = outerHorizontalPadding
+        self.sheetVerticalSpacing = sheetVerticalSpacing
+        self.sheetHorizontalPadding = sheetHorizontalPadding
     }
     
 }
