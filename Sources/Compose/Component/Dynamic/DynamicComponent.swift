@@ -28,7 +28,7 @@ public struct DynamicComponent<T : Component> : Component {
 
 extension DynamicComponent {
     
-    public func create(_ allocator : @autoclosure () -> T) {
+    public func create(_ allocator : () -> T) {
         guard isCreated == false else {
             print("[DynamicComponent] Warning: trying to create component \(T.self) more than one time")
             return

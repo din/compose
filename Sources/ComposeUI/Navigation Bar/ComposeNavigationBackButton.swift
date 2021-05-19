@@ -5,23 +5,21 @@ import Compose
 public struct ComposeNavigationBackButton : View {
     
     @Environment(\.composeNavigationBarStyle) var style
-    @EnvironmentObject var router : Router
     
-    let action : (() -> Void)?
+    let action : () -> Void
     
-    init(action : (() -> Void)? = nil) {
+    public init(emitter : SignalEmitter) {
+        self.init {
+            emitter.send()
+        }
+    }
+    
+    init(action : @escaping () -> Void) {
         self.action = action
     }
     
     public var body: some View {
-        Button(action: {
-            if let action = action {
-                action()
-            }
-            else {
-                router.pop()
-            }
-        }) {
+        Button(action: action) {
             ZStack {
                 Image(systemName: "chevron.backward")
                     .resizable()

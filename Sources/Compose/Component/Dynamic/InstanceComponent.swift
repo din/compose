@@ -21,7 +21,7 @@ public struct InstanceComponent<T : Component> : Component {
 
 extension InstanceComponent {
     
-    public func add(_ allocator : @autoclosure () -> T) {
+    public func add(_ allocator : () -> T) {
         storage.create(allocator: allocator)
     }
     

@@ -114,13 +114,24 @@ extension Router {
         }
     }
     
-    public func replace(_ keyPath : AnyKeyPath) {
+    public func replace(_ keyPath : AnyKeyPath, animated : Bool = false) {
         guard let route = route(for: keyPath) else {
             return
         }
         
-        self.routes = [route]
-        didReplace.send(keyPath)
+        let change = { [weak self] in
+            self?.routes = [route]
+            self?.didReplace.send(keyPath)
+        }
+        
+        guard animated == true else {
+            change()
+            return
+        }
+        
+        withAnimation {
+            change()
+        }
     }
     
     fileprivate func route(for keyPath : AnyKeyPath) -> Route? {
