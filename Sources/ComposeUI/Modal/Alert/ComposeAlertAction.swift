@@ -1,18 +1,52 @@
 import Foundation
 import SwiftUI
 
+public protocol ComposeAlertActionGroup {
+    
+    var actions : [ComposeAlertAction] { get }
+    
+}
+
+extension ComposeAlertAction : ComposeAlertActionGroup {
+   
+    public var actions: [ComposeAlertAction] {
+        [self]
+    }
+    
+}
+
+extension Array: ComposeAlertActionGroup where Element == ComposeAlertAction {
+  
+    public var actions: [ComposeAlertAction] {
+        self
+    }
+    
+}
+
 @resultBuilder public struct ComposeAlertActionBuilder {
     
     public static func buildBlock() -> [ComposeAlertAction] {
-        return []
+        []
     }
     
     public static func buildBlock(_ action : ComposeAlertAction) -> [ComposeAlertAction] {
-        return [action]
+        [action]
     }
     
-    public static func buildBlock(_ actions : ComposeAlertAction...) -> [ComposeAlertAction] {
-        return actions
+    public static func buildBlock(_ actions: ComposeAlertActionGroup...) -> [ComposeAlertAction] {
+        actions.flatMap { $0.actions }
+    }
+    
+    public static func buildEither(first action: [ComposeAlertAction]) -> [ComposeAlertAction] {
+        action
+    }
+    
+    public static func buildEither(second action: [ComposeAlertAction]) -> [ComposeAlertAction] {
+        action
+    }
+    
+    public static func buildOptional(_ actions: [ComposeAlertActionGroup]?) -> [ComposeAlertAction] {
+        actions?.flatMap { $0.actions } ?? []
     }
     
 }

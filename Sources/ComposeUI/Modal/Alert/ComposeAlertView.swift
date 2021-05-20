@@ -148,7 +148,7 @@ public struct ComposeAlertView : ComposeModal {
             .padding(.horizontal, style.sheetHorizontalPadding)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .transition(.move(edge: .bottom).animation(.easeOut(duration: 0.2)))
+        .transition(.move(edge: .bottom).animation(.easeOut(duration: 0.18)))
     }
     
 }
