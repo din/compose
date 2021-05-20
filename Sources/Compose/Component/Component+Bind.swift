@@ -32,6 +32,10 @@ extension Component {
         }
 
         _ = self.observers
+        
+        for keyPath in Self.auxiliaryBindableKeyPaths {
+            _ = self[keyPath: keyPath]
+        }
  
         return self
     }
