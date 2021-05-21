@@ -3,10 +3,8 @@ import SwiftUI
 
 final public class ComposeSheetManager : ObservableObject {
     
-    public typealias DismissHandler = () -> Void
-    
     @Published var sheet : AnyView? = nil
-    @Published var onDismiss : DismissHandler? = nil
+    @Published public var shouldPreventDismissal : Bool = false
     
     public init() {
         
@@ -22,14 +20,13 @@ final public class ComposeSheetManager : ObservableObject {
         })
     }
     
-    public func present<Content : View>(@ViewBuilder content : () -> Content, onDismiss : DismissHandler? = nil) {
+    public func present<Content : View>(@ViewBuilder content : () -> Content) {
         self.sheet = AnyView(content())
-        self.onDismiss = onDismiss
     }
     
     public func dismiss() {
         sheet = nil
+        shouldPreventDismissal = false
     }
-    
     
 }
