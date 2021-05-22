@@ -30,13 +30,15 @@ final class DynamicComponentStorage<T : Component> {
     }
     
     func destroy() {
-        cancellables.forEach {
-            $0.cancel()
-        }
-        
         router?.target = nil
-        cancellables.removeAll()
-  
         self.component = nil
+        
+        DispatchQueue.main.async {
+            self.cancellables.forEach {
+                $0.cancel()
+            }
+            
+            self.cancellables.removeAll()
+        }
     }
 }

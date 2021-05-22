@@ -31,15 +31,18 @@ final class InstanceComponentStorage<T : Component> {
     }
     
     func destroy(id : UUID) {
-        cancellables[id]?.forEach {
-            $0.cancel()
-        }
-        
-        cancellables[id] = nil
         components[id] = nil
         
         routers.object(forKey: id.uuidString as NSString)?.target = nil
         routers.removeObject(forKey: id.uuidString as NSString)
+        
+        DispatchQueue.main.async {
+            cancellables[id]?.forEach {
+                $0.cancel()
+            }
+            
+            cancellables[id] = nil
+        }
     }
     
     fileprivate func destroyAll() {
