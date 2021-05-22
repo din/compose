@@ -70,12 +70,18 @@ public struct ComposeAlertAction : Identifiable, Equatable {
     
     public init<Content : View>(@ViewBuilder content : () -> Content) {
         self.content = AnyView(content())
+        
         self.kind = .normal
         self.handler = {}
     }
     
     public init(title : String, kind : Kind = .normal, handler : @escaping () -> Void = {}) {
-        self.content = AnyView(Text(title))
+        self.content = AnyView(
+            Text(title)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .contentShape(Rectangle())
+        )
+        
         self.kind = kind
         self.handler = handler
     }

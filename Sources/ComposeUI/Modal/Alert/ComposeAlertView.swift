@@ -106,9 +106,9 @@ public struct ComposeAlertView : ComposeModal {
     fileprivate var sheetBody : some View {
         ZStack(alignment: .bottom) {
             
-            Rectangle()
-                .fill(style.overlayColor.opacity(0.00001))
+            style.overlayColor.opacity(0.00001)
                 .edgesIgnoringSafeArea(.all)
+                .contentShape(Rectangle())
                 .onTapGesture {
                     manager.dismiss()
                 }
