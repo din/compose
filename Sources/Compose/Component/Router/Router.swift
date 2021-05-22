@@ -154,11 +154,7 @@ extension Router : Bindable {
     
     public func bind<C : Component>(to component: C) {
         self.target = component
-        
-        component.didDisappear += {
-            self.target = nil
-        }
-        
+
         Storage.shared.setValue(self, at: Storage.RouterObjectKey(id: \C.self))
         
         if let start = start {

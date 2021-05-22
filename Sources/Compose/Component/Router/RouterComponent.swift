@@ -2,9 +2,7 @@ import Foundation
 import SwiftUI
 
 public protocol RouterComponent : Component {
-    associatedtype RouterType : Router
-    
-    var router : RouterType { get }
+    var router : Router { get }
 }
 
 extension RouterComponent {

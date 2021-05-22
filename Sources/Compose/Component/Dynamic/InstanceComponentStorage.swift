@@ -4,7 +4,9 @@ import Combine
 final class InstanceComponentStorage<T : Component> {
     
     var components = [UUID : T]()
-    var cancellables = [UUID : Set<AnyCancellable>]()
+    fileprivate var cancellables = [UUID : Set<AnyCancellable>]()
+    fileprivate var routers = NSMapTable<NSString, Router>(keyOptions: .copyIn,
+                                                           valueOptions: .weakMemory)
     
     var currentId : UUID? = nil
     
@@ -19,9 +21,11 @@ final class InstanceComponentStorage<T : Component> {
             self.cancellables[component.id]?.insert(cancellable)
         }
         
-        self.cancellables[component.id] = []
-        self.components[component.id] = component.bind()
-        self.currentId = component.id
+        cancellables[component.id] = []
+        components[component.id] = component.bind()
+        currentId = component.id
+        
+        routers.setObject((component as? RouterComponent)?.router, forKey: component.id.uuidString as NSString)
         
         ObservationBag.shared.endMonitoring()
     }
@@ -30,9 +34,12 @@ final class InstanceComponentStorage<T : Component> {
         cancellables[id]?.forEach {
             $0.cancel()
         }
-                
+        
         cancellables[id] = nil
         components[id] = nil
+        
+        routers.object(forKey: id.uuidString as NSString)?.target = nil
+        routers.removeObject(forKey: id.uuidString as NSString)
     }
     
     fileprivate func destroyAll() {
