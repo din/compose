@@ -71,6 +71,8 @@ public struct ComposeAlertView : ComposeModal {
                             action.handler()
                         }) {
                             action.content
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .contentShape(Rectangle())
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .foregroundColor(action.kind == .destructive ? style.destructiveColor : style.actionColor)

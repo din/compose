@@ -76,11 +76,7 @@ public struct ComposeAlertAction : Identifiable, Equatable {
     }
     
     public init(title : String, kind : Kind = .normal, handler : @escaping () -> Void = {}) {
-        self.content = AnyView(
-            Text(title)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .contentShape(Rectangle())
-        )
+        self.content = AnyView(Text(title))
         
         self.kind = kind
         self.handler = handler
