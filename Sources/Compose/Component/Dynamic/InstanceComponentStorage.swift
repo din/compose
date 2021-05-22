@@ -36,12 +36,12 @@ final class InstanceComponentStorage<T : Component> {
         routers.object(forKey: id.uuidString as NSString)?.target = nil
         routers.removeObject(forKey: id.uuidString as NSString)
         
-        DispatchQueue.main.async {
-            self.cancellables[id]?.forEach {
+        DispatchQueue.main.async { [weak self] in
+            self?.cancellables[id]?.forEach {
                 $0.cancel()
             }
             
-            self.cancellables[id] = nil
+            self?.cancellables[id] = nil
         }
     }
     

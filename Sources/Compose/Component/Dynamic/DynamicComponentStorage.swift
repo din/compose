@@ -33,12 +33,12 @@ final class DynamicComponentStorage<T : Component> {
         router?.target = nil
         self.component = nil
         
-        DispatchQueue.main.async {
-            self.cancellables.forEach {
+        DispatchQueue.main.async { [weak self] in
+            self?.cancellables.forEach {
                 $0.cancel()
             }
             
-            self.cancellables.removeAll()
+            self?.cancellables.removeAll()
         }
     }
 }
