@@ -9,6 +9,14 @@ public struct InstanceComponent<T : Component> : Component {
     public var observers: Void {
         None
     }
+    
+    public var component : T? {
+        storage.components[id]
+    }
+    
+    public var isEmpty : Bool {
+        storage.components.isEmpty
+    }
 
     public var id : UUID {
         storage.currentId ?? UUID()
