@@ -2,14 +2,14 @@ import SwiftUI
 
 extension Storage {
     
-    struct EmitterObjectKey<T> : Hashable {
-        let target : EmitterObject<T>.Target
-        let keyPath = \EmitterObject<T>.self
+    struct EmitterRefKey<T> : Hashable {
+        let target : EmitterRef<T>.Target
+        let keyPath = \EmitterRef<T>.self
     }
     
 }
 
-@propertyWrapper public class EmitterObject<T> {
+@propertyWrapper public class EmitterRef<T> {
     
     struct Target : Hashable {
         let emitterId : UUID
@@ -21,10 +21,10 @@ extension Storage {
             return emptyDestinationEmitter
         }
         
-        return Storage.shared.value(at: Storage.EmitterObjectKey<T>(target: target)) as? ValueEmitter<T> ?? emptyDestinationEmitter
+        return Storage.shared.value(at: Storage.EmitterRefKey<T>(target: target)) as? ValueEmitter<T> ?? emptyDestinationEmitter
     }
     
-    public var projectedValue : EmitterObject<T> {
+    public var projectedValue : EmitterRef<T> {
         self
     }
     
@@ -42,11 +42,11 @@ extension Storage {
 
 extension View {
     
-    public func attach<T>(emitter : ValueEmitter<T>, at keyPath : KeyPath<Self, EmitterObject<T>>) -> Self {
-        let target = EmitterObject<T>.Target(emitterId: emitter.id, keyPath: keyPath)
+    public func attach<T>(emitter : ValueEmitter<T>, at keyPath : KeyPath<Self, EmitterRef<T>>) -> Self {
+        let target = EmitterRef<T>.Target(emitterId: emitter.id, keyPath: keyPath)
         self[keyPath: keyPath].target = target
         
-        Storage.shared.setValue(emitter, at: Storage.EmitterObjectKey<T>(target: target))
+        Storage.shared.setValue(emitter, at: Storage.EmitterRefKey<T>(target: target))
         
         return self
     }

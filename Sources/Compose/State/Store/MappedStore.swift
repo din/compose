@@ -1,31 +1,29 @@
 import Foundation
+import SwiftUI
 
-public final class MappedStore<Target, TargetStore : AnyStore> : ObservableObject, Bindable {
+@propertyWrapper public struct MappedStore<Target : Component, State : AnyState> : DynamicProperty, Bindable {
     
-    let keyPath : KeyPath<Target, TargetStore>
-    
-    @Published public var state : TargetStore.State
-    @Published public var status : Set<TargetStore.Status>
-    
-    public init(for keyPath : KeyPath<Target, TargetStore>) {
-        self.keyPath = keyPath
-        self.state = .init()
-        self.status = .init()
+    public var wrappedValue : State {
+        container.state
     }
     
-    public func bind<C : Component>(to component: C) {
+    fileprivate let keyPath : KeyPath<Target, StoreContainer<State>>
+    
+    @ObservedObject fileprivate var container = StoreContainer<State>()
+    
+    public init(for keyPath : KeyPath<Target, StoreContainer<State>>) {
+        self.keyPath = keyPath
+    }
+    
+    public func bind<C>(to component: C) where C : Component {
         guard let component = component as? Target else {
             return
         }
         
         let store = component[keyPath: keyPath]
         
-        store.didChange.withCurrent() += { state in
-            self.state = state
-        }
-        
-        store.didStatusChange.withCurrent() += { status in
-            self.status = status
+        store.willChange.withCurrent() += { state in
+            self.container.state = state
         }
     }
     

@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol AnyState : Codable, Equatable {
+public protocol AnyState : Equatable {
     init()
 }
 

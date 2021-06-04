@@ -6,7 +6,7 @@ public protocol AnyPersistentStorage : AnyObject {
     
     init(key : String)
     
-    func save<State : AnyState>(state : State)
-    func restore<State : AnyState>() -> State?
+    func save<State : Codable>(state : State)
+    func restore<State : Codable>() -> State?
     func purge()
 }

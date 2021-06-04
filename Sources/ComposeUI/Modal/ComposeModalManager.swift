@@ -57,7 +57,6 @@ final public class ComposeModalManager : ObservableObject {
             }
         }
         
-        
     }
     
 }

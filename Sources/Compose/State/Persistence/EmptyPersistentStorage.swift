@@ -12,11 +12,11 @@ public class EmptyPersistentStorage : AnyPersistentStorage {
         self.key = key
     }
     
-    public func save<State>(state: State) where State : AnyState {
+    public func save<State>(state: State) where State : Codable {
         //Intentionally left blank
     }
     
-    public func restore<State>() -> State? where State : AnyState {
+    public func restore<State>() -> State? where State : Codable {
         return nil
     }
     

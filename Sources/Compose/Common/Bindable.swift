@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol Bindable : AnyObject {
+public protocol Bindable {
     
     func bind<C : Component>(to component : C)
     

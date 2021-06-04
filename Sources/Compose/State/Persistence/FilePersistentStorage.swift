@@ -15,7 +15,7 @@ public class FilePersistentStorage : AnyPersistentStorage {
                                                  attributes: nil)
     }
     
-    public func save<State>(state: State) where State : AnyState {
+    public func save<State>(state: State) where State : Codable {
         let encoder = PropertyListEncoder()
         
         do {
@@ -27,7 +27,7 @@ public class FilePersistentStorage : AnyPersistentStorage {
         }
     }
     
-    public func restore<State>() -> State? where State : AnyState {
+    public func restore<State>() -> State? where State : Codable {
         let decoder = PropertyListDecoder()
         
         guard let data = try? Data(contentsOf: url) else {

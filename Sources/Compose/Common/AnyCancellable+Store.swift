@@ -3,7 +3,7 @@ import Combine
 
 extension AnyCancellable {
  
-    public func store<State : AnyState, Validation : AnyValidation, Status : AnyStatus>(in store : Store<State, Validation, Status>) {
+    public func store<State : AnyState>(in store : StoreContainer<State>) {
         self.store(in: &store.cancellables)
     }
     

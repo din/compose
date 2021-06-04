@@ -8,7 +8,9 @@ precedencegroup SetBooleanComparisonPrecedence {
     assignment: false
 }
 
-extension Set where Element : AnyStatus {
+public typealias StatusSet<S : AnyStatus> = Set<S>
+
+extension StatusSet {
     
     public static func +=(lhs : inout Set<Element>, rhs : Element) {
         lhs.insert(rhs)
