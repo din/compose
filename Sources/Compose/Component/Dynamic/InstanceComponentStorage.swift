@@ -14,7 +14,8 @@ final class InstanceComponentStorage<T : Component> {
         destroyAll()
     }
     
-    func create(allocator : () -> T) {
+    @discardableResult
+    func create(allocator : () -> T) -> UUID {
         let component = allocator()
         
         ObservationBag.shared.beginMonitoring { cancellable in
@@ -28,6 +29,8 @@ final class InstanceComponentStorage<T : Component> {
         routers.setObject((component as? RouterComponent)?.router, forKey: component.id.uuidString as NSString)
         
         ObservationBag.shared.endMonitoring()
+        
+        return component.id
     }
     
     func destroy(id : UUID) {

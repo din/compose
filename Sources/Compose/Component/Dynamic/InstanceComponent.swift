@@ -6,6 +6,9 @@ public struct InstanceComponent<T : Component> : Component {
     
     let storage = InstanceComponentStorage<T>()
     
+    public let didCreate = ValueEmitter<UUID>()
+    public let didDestroy = ValueEmitter<UUID>()
+    
     public var observers: Void {
         None
     }
@@ -30,7 +33,8 @@ public struct InstanceComponent<T : Component> : Component {
 extension InstanceComponent {
     
     public func add(_ allocator : () -> T) {
-        storage.create(allocator: allocator)
+        let id = storage.create(allocator: allocator)
+        didCreate.send(id)
     }
     
     public subscript<V>(dynamicMember keyPath : KeyPath<T, V>) -> V {
@@ -53,6 +57,7 @@ extension InstanceComponent : View {
         return component.view
             .onDisappear {
                 storage.destroy(id: id)
+                didDestroy.send(id)
             }
     }
     

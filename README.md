@@ -38,7 +38,7 @@ _Compose is still a work in progress. The framework is still alpha—feature set
 * [Components](#Components)
 	* [`Component`](#Component)
 		* [Preinstalled Lifecycle Emitters](#PreinstalledLifecycleEmitters)
-		* [Attaching Emitters With `@EmitterObject`](#AttachingEmittersWithEmitterObject)
+		* [Attaching Emitters With `@AttachedEmitter`](#AttachingEmittersWithAttachedEmitter)
 	* [`RouterComponent`](#RouterComponent)
 		* [`Router`](#Router)
 		* [`RouterView`](#RouterView)
@@ -47,7 +47,7 @@ _Compose is still a work in progress. The framework is still alpha—feature set
 		* [Lifecycle Emitters](#LifecycleEmitters)
 	* [`InstanceComponent`](#InstanceComponent)
 * [Services](#Services)
-* [Stores](#Stores)
+* [Store](#Stores)
 	* [State via  `AnyState`](#StateviaAnyState)
 	* [Validations via  `AnyValidation`](#ValidationsviaAnyValidation)
 		* [`Validator`](#Validator)
@@ -680,16 +680,16 @@ extension AuthComponent {
 }
 ```
 
-#### <a name='AttachingEmittersWithEmitterObject'></a>Attaching Emitters With `@EmitterObject`
+#### <a name='AttachingEmittersWithAttachedEmitter'></a>Attaching Emitters With `@AttachedEmitter`
 
-Sometimes it's necessary to pass the emitter down to a particular `View` instance from within different parents. The best way to achieve that, is to use the `@EmitterObject` property wrapper in conjunction with the `attach(emitter:at:)` instance method available for every `View`.
+Sometimes it's necessary to pass the emitter down to a particular `View` instance from within different parents. The best way to achieve that, is to use the `@AttachedEmitter` property wrapper in conjunction with the `attach(emitter:at:)` instance method available for every `View`.
 
 Consider having a view which wants to open a certain link when a button is clicked:
 
 ```swift
 struct ChildView : View {
 
-    @EmitterObject var openLink : SignalEmitter
+    @AttachedEmitter var openLink : SignalEmitter
 
     var body : some View {
         VStack {
@@ -702,9 +702,9 @@ struct ChildView : View {
 }
 ```
 
-> ❗️ It's highly discouraged to subscribe to emitters provided via `EmitterObject` property wrappers inside views—the `observers` computed property on a `Component` instance should be used instead.
+> ❗️ It's highly discouraged to subscribe to emitters provided via `@AttachedEmitter` property wrappers inside views—the `observers` computed property on a `Component` instance should be used instead.
 
-Now, if we put it inside a component, we can attach an emitter to be passed down to the view. The emitter is attached to the *projected value* of the `@EmitterObject` property wrapper. It is then can be used to emit events like an ordinary emitter:
+Now, if we put it inside a component, we can attach an emitter to be passed down to the view. The emitter is attached to the *projected value* of the `@AttachedEmitter` property wrapper. It is then can be used to emit events like an ordinary emitter:
 
 ```swift
 // SomeComponent.swift
@@ -1252,35 +1252,20 @@ extension AuthComponent {
 
 As you can see, the `UserService` is available as `services.user` in the `AuthComponent` (and in all other components too).
 
-## <a name='Stores'></a>Stores
+## <a name='Stores'></a>`@Store` and state management
 
-`Store` is a `class` which is used by components to encapsulate state of a certain data shape. 
+`@Store` is a property wrapper which is used inside components to manage state of a certain data shape represented by a structure conforming to `AnyState`. 
 
-Store is defined with three accompanying types that enhance or modify the store behavior:
-
-```swift
-let store = Store<State, Validation, Status>()
-```
-
-The first type is always required, and others might be omitted by passing `Empty` as an argument:
+Store is defined with a property wrapper:
 
 ```swift
-let store = Store<State, Empty, Empty>()
+@Store var state : State
 ```
 
-As an alternative, there are typealiases `PlainStore`, `ValidatedStore`, and `IndicatedStore`  available to create stores with particular features only:
-
-```swift
-let plainStore = PlainStore<State>()
-let validatedStore = ValidatedStore<State, Validation>()
-let indicatedStore = IndicatedStore<State, Status>()
-```
-
-### <a name='StateviaAnyState'></a>State via  `AnyState` 
+`@Store` property wrapper can only be applied to value types that conform to `AnyState`. 
 
 The `struct` that holds data of the state is the only required type to initialise a `Store` instance. This `struct` must conform to `AnyState` protocol.  The protocol requires any state to be:
 
-- `Codable` because data might be serialized and deserialized.
 - `Equatable` to find out changes and generate state differences.
 - Forces state to contain an empty  `init()`, which means that all state properties must have some default value.
 
@@ -1292,7 +1277,7 @@ The `struct` that holds data of the state is the only required type to initialis
 
 struct LogInComponent : Component {
 
-    @ObservedObject var store = Store<State, Empty, Empty>()
+    @Store var state : State
 
 }
 
@@ -1308,11 +1293,7 @@ extension LogInComponent {
 }
 ```
 
-
-> ❗️ Don't forget to mark the `Store` instance as `@ObservedObject` to make sure all store changes update the SwiftUI view of the component.
-
-Now the state is accessible to the SwiftUI view. It's possible to query the state values using the `store.state.firstName` and `store.state.lastName` from within the view to get the values directly. It's also possible to get the state values as `Binding` instances to pass them into some SwiftUI views (e.g. `TextField`).
-
+Now the state is accessible to the SwiftUI view. It's possible to query the state values using the `state.firstName` and `state.lastName` from within the view to get the values and update the view whenever the values change:
 
 ```swift
 // LogIn+View.swift
@@ -1321,8 +1302,32 @@ extension LogInComponent : View {
 
     var body : some View {
         VStack {
-            TextField("First Name", text: store.binding.firstName)
-            TextField("Last Name", text: store.binding.lastName)
+            Text("Hello, \(state.firstName)")
+        }
+    }
+
+}
+```
+
+To access various properties of the `@Store` property wrapper, use `$`-notation to get access to projected value of a property wrapper. For example, if you defined your state as `@Store var state : State`, you can access meta properties via the `$state` expression. THe following properties are exposed via projected value of a `@Store` property wrapper:
+
+- `$state.binding` to get a `Binding` instance from the state.
+- `$state.persistence` to get access to persistence capabilities.
+- `$state.willChange` to subscribe to state changes in `+Observers.swift` files.
+
+It's possible to pass `State` values into some SwiftUI views (e.g. `TextField`) as `Binding` instances:
+
+```swift
+// LogIn+View.swift
+
+extension LogInComponent : View {
+
+    var body : some View {
+        VStack {
+            Text("Hello, \(state.firstName)")
+
+            TextField("First Name", text: $state.binding.firstName)
+            TextField("Last Name", text: $state.binding.lastName)
         }
     }
 
@@ -1331,7 +1336,7 @@ extension LogInComponent : View {
 
 Now whenever the value of one of the `TextField` views are changed, the values will be instantly stored in the state under the `firstName` and `lastName` values respectively. 
 
-It's also possible to subscribe to changes to the store via emitters: the `didChange` emitter exposed by any `Store` instance can be observed in a familiar manner:
+It's also possible to subscribe to changes to the store via emitters. The `willChange` emitter exposed by any `@Store` property wrapper projected value can be observed in a familiar manner:
 
 ```swift
 // LogIn+Observers.swift
@@ -1339,7 +1344,7 @@ It's also possible to subscribe to changes to the store via emitters: the `didCh
 extension LogInComponent {
 
     var observers : Void {
-        store.didChange += { state in
+        $state.willChange += { state in
             print("New full name is \(state.firstName) \(state.lastName).")
         }
     }
@@ -1355,7 +1360,7 @@ Using emitter chaining, it's possible to get updates of a certain value in the s
 extension LogInComponent {
 
     var observers : Void {
-        store.didChange.undup().tap(\.firstName) += { firstName in
+        $state.willChange.undup().tap(\.firstName) += { firstName in
             print("New firstName is \(firstName)")
         }
     }
@@ -1363,11 +1368,23 @@ extension LogInComponent {
 }
 ```
 
-### <a name='ValidationsviaAnyValidation'></a>Validations via  `AnyValidation`
+### Validating state
 
-To reactively validate any state `struct`, one can define a set of validators in a `struct` which conforms to the `AnyValidation` protocol. 
+To reactively validate any state `struct`, one can define a validation as a computed property inside the state. For simple cases, validation can be expressed with Swift methods without any higher-level abstractions. For example, it's easy to check whether the state values are valid:
 
-Consider the state from the previous example and its validation:
+```swift
+ struct State : AnyState {
+    var email : String = ""
+    var password : String = ""
+
+    var isValid : Bool {
+        // Very simple validation example
+        email.isEmpty == false && password.isEmpty == false && password.count > 10
+    }
+}
+```
+
+Compose also provides advanced validation techniques with error reporting via `@ValidationBuilder` and `Validation` helpers. Consider the state from the previous example and its validation:
 
 ```swift
 // LogIn+State.swift
@@ -1377,43 +1394,20 @@ extension LogInComponent {
     struct State : AnyState {
         var email : String = ""
         var password : String = ""
-    }
 
-    struct Validation : AnyValidation {
-
-        let credentials = Validator {
-            ValidatorField(for: \State.email) {
-                NonEmptyRule()
-                    .errorMessage("Email address must be non-empty")
-                EmailRule()
-                    .errorMessage("Invalid email address format")
-            }
-            ValidatorField(for: \State.password) {
-                LengthRule(in: 6...1000)
-                    .errorMessage("Password must be at least 6 characters long")
-            }
+        @ValidationBuilder
+        var credentials : Validation {
+            Field(email, rules: .nonEmpty, .email)
+            Field(password, rules: .length(6...1000))
         }
-
     }
     
 }
 ```
 
-`Validation` structure might contain any number of `Validator` instances. We have to modify our original `store` property on the component to have validation as well:
+> ❗️ `Validation` must always be a computed property on your state. Do not forget to add `@ValidationBuilder` to the computed property to define `Validation` easier with a property builder.
 
-```swift
-// LogIn.swift
-
-struct LogInComponent : Component {
-
-    @ObservedObject var store = Store<State, Validation, Empty>()
-
-    let login = SignalEmitter()
-
-}
-```
-
-All validators defined in `Validation` structure are accessible under the `store.validation` property of the `Store` instance. To access the `credentials` validator, for example, the `store.validation.credentials` is used. The defined validation can now be used within the view to disable submit button inside our component view:
+The defined validation can now be used within the view to disable submit button inside our component view:
 
 ```swift
 // LogIn+View.swift
@@ -1422,124 +1416,136 @@ extension LogInComponent : View {
 
     var body : some View {
         VStack {
-            TextField("First Name", text: store.binding.firstName)
-            TextField("Last Name", text: store.binding.lastName)
+            TextField("Email", text: $state.binding.email)
+            SecureField("Password", text: $state.binding.password)
             Button(emitter: login) {
                 Text("Log In")
             }
-            .disabled(store.validation.credentials.isValid == false)
-            .opacity(store.validation.credentials.isValid == false)
-            
-            if store.validation.credentials ~= \Store.firstName {
-                Text("First name is invalid")
-            }
-            
-            if store.validation.credentials ~= \Store.lastName {
-                Text("Last name is invalid")
-            }
+            .disabled(state.credentials.isValid == false)
+            .opacity(state.credentials.isValid == false ? 0.5 : 1.0)
         }
     }
 
 }
 ```
 
-#### <a name='Validator'></a>`Validator`
-
-Exposes the following reactive properties:
-
-- `isEnabled` to enable or disable the validator. Disabled validators are not refreshed when validated fields are updated.
-- `isValid` to check whether the validator contains any errors, or whether all data is valid.
-- `invalidFields` is an array of keypaths that are not valid. 
-- `errors` is an array of error messages for invalid keypaths.
-
-All mentioned fields are automatically updated whenever the fields referenced by keypaths are updated.
-
-`Validator` contains any number of `ValidatorField` instances via function builder.
-
-##### `Validator` operators
-
-You can use the following operators with the `Validator` instance:
-
-- `~=` to check if a particular keypath exists in the `invalidFields` array.
-- `!~=` to check if a particular field doesn't exist in the `invalidFields` array.
-
-#### <a name='ValidatorField'></a>`ValidatorField`
-
-Points at a particular state value using a keypath:
-
-```swift
-ValidatorField(for: \State.email) {
-    ...
-}
-```
-
-`ValidatorField` itself doesn't expose any properties.
-
-`ValidatorField` contains any number of `ValidatorRule` instances via function builder.
-
-#### <a name='ValidatorRule'></a>`ValidatorRule`
-
-Defines a particular rule to be executed on a field when it changes. `ValidatorRule` instances return a simple boolean to indicate whether the field is valid or not.
-
-```swift
-ValidatorField(for: \State.email) {
-    NonEmptyRule()
-    EmailRule()
-}
-```
-
-There are several predefined validators shipped with Compose:
-
-- `NonEmptyRule()` to ensure that the field is non-empty.
-- `EmailRule()` to ensure that the field is an email.
-- `LengthRule(in: 10...30)` to ensure the field has a particular length.
-- `EqualityRule(with: ~\State.repeatedPassword)` to ensure fields match.
-- `ConstantRule(value: false)` to ensure the field has the exactly specified value.
-- `ArrayRule()` which uses nested rules to ensure that all values in the specified array are valid.
-
-There is also a `TriggerRule(tag: "your-trigger-tag")` which doesn't provide any innate validation, but can be triggered outside in response to various events:
-
-```swift
-validators.credentials.activateTrigger(for: ~\Self.password, tag: "your-trigger-tag")
-```
-
-Activating a trigger marks the rule as not valid, which in turns makes validator's `isValid` property equal to `false`.
-
-> ❗️ It's also possible to define a new rule by conforming to `ValidatorRule` protocol.
-
-### <a name='StatusesviaAnyStatus'></a>Statuses via  `AnyStatus`
-
-There are times where we have to notify user interface about certain loading progresses in the application. Doing network request, processing large amount of data usually result in some sort of loading indicators presented in the user interface.  `Store` contains the `status` property which simplifies managing complex statuses of the particular state with enumerations. 
-
-Given the previous example of `LogInComponent`, we can imagine having two long network requests to check our fields on the backend separately. We start with creating a `Status` enumeration which conforms to the `AnyStatus` protocol:
+Notice that the validation above exposes `state.credentials.isValid` to check whether all fields are valid. If necessary, it's also possible to provide error messages for validations:
 
 ```swift
 // LogIn+State.swift
 
 extension LogInComponent {
 
-    enum Status : AnyStatus {
-        case checkingFirstName, checkingLastName
+    struct State : AnyState {
+        var email : String = ""
+        var password : String = ""
+
+        @ValidationBuilder
+        var credentials : Validation {
+            Field(email, rules: [
+                .nonEmpty : "Email address must be non-empty",
+                .email : "Invalid email address format"
+            ])
+            Field(password, rules: [
+                .length(6...1000) : "Password must be at least 6 characters long"
+            ])
+        }
+    }
+    
+}
+```
+
+The error messages will be accessible under `state.credentials.errors` as an array of error strings for all invalid fields.
+
+#### `Validation`
+
+Exposes the following properties:
+
+- `isValid` to check whether the validator contains any errors, or whether all data is valid.
+- `errors` is an array of error messages for invalid keypaths.
+
+All mentioned fields are automatically updated because `Validation` is always defined as a computed property.
+
+`Validation` contains any number of `Field` instances via property builder.
+
+#### `Field`
+
+Points at a particular state value to be validated:
+
+```swift
+Field(firstName, rules: .nonEmpty)
+```
+
+`Field` itself doesn't expose any properties.
+
+`Field` is created with specific set of `Rule` instances applied to the value to validate it.
+
+#### `ArrayField`
+
+Points at a particular array state value to be validated:
+
+```swift
+ArrayField(arrayToValidate,
+           validIfEmpty: true,
+           path: \ArrayElementType.title,
+           rules: .nonEmpty, .length(0...90))
+```
+
+`ArrayField` ensures all fields in array are valid with predefined constraints. The initialiser of `ArrayField` accepts the following arguments:
+
+- `validIfEmpty` is a boolean value which indicates whether an empty array should produce valid result or not.
+- `path` is a keypath that points to a property on an element of an array to apply validation rules to.
+
+#### `Rule`
+
+Defines a particular rule to be executed on a field.
+
+There are several predefined validators shipped with Compose:
+
+- `.nonEmpty` to ensure that the field is non-empty.
+- `.email` to ensure that the field is an email.
+- `.length(10...30)` to ensure the field has a particular length.
+- `.equal(to: repeatedPassword)` to ensure fields match.
+
+> ❗️ It's also possible to define a new rule by extending the `Rule` structure.
+
+### Tracking state statuses
+
+There are times where we have to notify user interface about certain progresses in the application. Doing network request, processing large amount of data usually result in some sort of loading indicators presented in the user interface. 
+
+Given the previous example of `LogInComponent`, we can imagine having two long network requests to check our fields on the backend separately. We start with creating a `Status` enumeration which conforms to the `AnyStatus` and `Codable` protocols. Then we add a property of type `StatusSet<Status>` to our state: 
+
+```swift
+// LogIn+State.swift
+
+extension LogInComponent {
+
+    enum Status : String, AnyStatus {
+        case loading, loadingProfile
+    }
+
+    struct State : AnyState {
+        var status = StatusSet<Status>()
+
+        var email : String = ""
+        var password : String = ""
+
+        @ValidationBuilder
+        var credentials : Validation {
+            Field(email, rules: [
+                .nonEmpty : "Email address must be non-empty",
+                .email : "Invalid email address format"
+            ])
+            Field(password, rules: [
+                .length(6...1000) : "Password must be at least 6 characters long"
+            ])
+        }
     }
 
 }
 ```
 
-The store definition has to be changed in order to use the new `Status` type:
-
-```swift
-// LogIn.swift
-
-struct LogInComponent : Component {
-
-    @ObservedObject var store = Store<State, Validation, Status>()
-    
-    let login = SignalEmitter()
-
-}
-```
-
-Firstly, we can change the store instance status in our `+Observers.swift` file:
+Now we can use the status in our `+Observers.swift` file:
 
 ```swift
 // LogIn+Observers.swift
@@ -1548,15 +1554,15 @@ extension LogInComponent {
 
     var observers : Void {
         login += {
-            store.status += .checkingFirstName
-            store.status += .checkingLastName
+            state.status += .loading
+            state.status += .loadingProfile
             
-            services.network.checkFirstName(store.state.firstName) { 
-                store.status -= .checkingFirstName
+            services.network.login(email: state.email, password: state.password) { 
+                state.status -= .loading
             }
             
-            services.network.checkLastName(store.state.lastName) { 
-                store.status -= .checkingLastName
+            services.network.loadProfile(email: state.email) { 
+                state.status -= .loadingProfile
             }
         }
     }
@@ -1564,7 +1570,7 @@ extension LogInComponent {
 }
 ```
 
-Now it's possible to use  `checkingFirstName` and `checkingLastName` statuses to adjust our UI behaviour:
+Now it's possible to use the status to adjust our UI behaviour:
 
 ```swift
 // LogIn+View.swift
@@ -1573,28 +1579,28 @@ extension LogInComponent : View {
 
     var body : some View {
         VStack {
-            TextField("First Name", text: store.binding.firstName)
-            TextField("Last Name", text: store.binding.lastName)
+            TextField("Email", text: $state.binding.email)
+            SecureField("Password", text: $state.binding.password)
             Button(emitter: login) {
                 Text("Log In")
             }
-            .disabled(store.validation.credentials.isValid == false || store.status.isEmpty == false)
-            .opacity(store.validation.credentials.isValid == false)
+            .disabled(state.credentials.isValid == false)
+            .opacity(state.credentials.isValid == false ? 0.5 : 1.0)
         }
         .overlay(
             Text("Loading")
-                .opacity(store.status.isEmpty == false ? 1.0 : 0.0)
+                .opacity(state.status.isEmpty == false ? 1.0 : 0.0)
         )
     }
 
 }
 ```
 
-> ❗️ The `status` property of `Store` instances is actually defined as `Set<Status>`, where `Status` is the type passed to the `Store` when initialising it. This means it is not possible to set the same status more than one time.
+> ❗️ The `StatusSet<Status>` is a typealias to `Set<AnyStatus>`. This means it is not possible to set the same status more than one time.
 
-#### <a name='AnyStatusoperators'></a>`AnyStatus` operators
+#### `StatusSet` operators
 
-There are several operators defined to operate on `status` property of any `Store` instance easily:
+There are several operators defined to operate on any `StatusSet` instance:
 
 - `+=` to add a new status to the list of statuses.
 - `-=` to remove status from the list of statuses.
@@ -1602,9 +1608,9 @@ There are several operators defined to operate on `status` property of any `Stor
 - `~=` to check if the list of statuses contains a particular status.
 - `!~=` to check if the list of statuses doesn't contain a particular status.
 
-### <a name='PersistenceviaAnyPersistentStorage'></a>Persistence via  `AnyPersistentStorage`
+### Persisting state
 
-It's useful to persist certain stores to some kind of a storage. The persistence can be used to store small chunks of data which can be retrieved at any time, even between launches of the application. 
+It's useful to persist certain state to some kind of storage. The persistence can be used to store small chunks of data which can be retrieved at any time, even between launches of the application. 
 
 Compose comes with two persistent storages that can be used by `Store` instances:
 
@@ -1613,24 +1619,24 @@ Compose comes with two persistent storages that can be used by `Store` instances
 
 > ❗️ It's possible to define new persistent storages by conforming to `AnyPersistentStorage` protocol.
 
-The storage is specified when the store is created via the `Store` initialiser:
+The storage is specified when the store is created via the `@Store` property wrapper initialiser:
 
 ```swift
 // LogIn.swift
 
 struct LogInComponent : Component {
 
-    @ObservedObject var store = Store<State, Validation, Status>(storage: FilePersistentStorage(key: "login-fields"))
+    @Store(storage: FilePersistentStorage(key: "login-fields")) var state : State
 
     let login = SignalEmitter()
 
 }
 ```
 
-The `persistence` property of the `Store` instance has several methods to manually do persistence actions:
+The `persistence` property of the `@Store` projected value has several methods to manually do persistence actions:
 
 - `save()` to store the data to the persistent storage.
-- `restore()` to load the data from the persistent storage into the state of the store.
+- `restore()` to load the data from the persistent storage into the state.
 - `purge()` to erase all stored data in the specified persistent storage.
 
 These methods are meant to be called manually during the lifecycle of a component or a service:
@@ -1640,12 +1646,12 @@ These methods are meant to be called manually during the lifecycle of a componen
 
 struct LogInComponent : Component {
 
-    @ObservedObject var store = Store<State, Validation, Status>(storage: FilePersistentStorage(key: "login-fields"))
+    @Store(storage: FilePersistentStorage(key: "login-fields")) var state : State
 
     let login = SignalEmitter()
 
     init() {
-        store.persistence.restore()
+        $state.persistence.restore()
     }
 }
 
@@ -1655,26 +1661,29 @@ extension LogInComponent {
 
     var observers : Void {
         login += {
-            store.persistence.save()
+            state.persistence.save()
         }
     }
 
 }
 ```
 
-#### <a name='ChoosingPersistedValues'></a>Choosing Persisted Values
+> ❗️ The `persistence` property of `@Store` projected value requires state to conform to `Codable` protocol.
 
-The store persistence heavily relies on the fact that `State` of the store always conforms to `AnyState` protocol, which requires `State` to be `Codable`. This allows any storage to immediately serialize data into some intermediate format to be stored in the storage. 
+#### Choosing persisted values
 
-Since `State` conforms to `Codable`, it is also easy to choose which values are going to be stored in the persistence via the `CodingKey` enumeration defined on the state:
+The store persistence requires that `State` conforms to `Codable` protocol. This allows any storage to immediately serialize data into some intermediate format to be stored in the storage. 
+
+It is easy to choose which values are going to be stored in the persistence via the `CodingKey` enumeration defined on the state:
 
 ```swift
 // LogIn+State.swift
 
 extension LogInComponent {
 
-    struct State : AnyState {
-        enum PersistenceKeys : CodingKey {
+    struct State : Codable, AnyState {
+
+        enum CodingKeys : CodingKey {
             case email
         }
     
@@ -1686,7 +1695,7 @@ extension LogInComponent {
 }
 ```
 
-`PersistenceKeys` defines the shape of persisted data—the `email` property will be persisted, but all other fields will not be persisted.
+`CodingKeys` defines the shape of persisted data—the `email` property will be persisted, but all other fields will not be persisted.
 
 ### <a name='IdentifiedReferencesviaRefandRefCollection'></a>Identified References via  `@Ref` and `@RefCollection`
 
@@ -1723,11 +1732,11 @@ struct Exhibition : Component {
     let specimenA : SpecimenComponent
     let specimenB : SpecimenComponent
 
-    @ObservedObject var store = PlainStore<State>()
+    @Store var state : State
 
     init() {
-        self.specimenA = SpecimenComponent(specimen: store.state.$specimen)
-        self.specimenB = SpecimenComponent(specimen: store.state.$specimen)
+        self.specimenA = SpecimenComponent(specimen: state.$specimen)
+        self.specimenB = SpecimenComponent(specimen: state.$specimen)
     }
 }
 
@@ -1747,7 +1756,7 @@ extension Exhibition : View {
 
     var body : some View {
         VStack {
-            Text("Welcome, we can show a '\(store.state.specimen.name)' today")
+            Text("Welcome, we can show a '\(state.specimen.name)' today")
             specimenA
             specimenB
         }
@@ -1756,7 +1765,7 @@ extension Exhibition : View {
 }
 ```
 
-Note how we pass `store.state.$specimen` into the children components instead of the value itself. The `$` notation allows us to obtain the `Referred` instance—a super-lightweight object that can be passed around and assigned to other `Ref` instances via the same `$` notation. 
+Note how we pass `state.$specimen` into the children components instead of the value itself. The `$` notation allows us to obtain the `Referred` instance—a super-lightweight object that can be passed around and assigned to other `Ref` instances via the same `$` notation. 
 
 It's time to define the underlying `SpecimenComponent`:
 
@@ -1765,10 +1774,10 @@ It's time to define the underlying `SpecimenComponent`:
 
 struct SpecimenComponent : Component {
 
-    @ObservedObject var store = PlainStore<State>()
+    @Store var state : State
 
     init(specimen : Referred<SpecimenModel>) {
-        self.store.state.$specimen = specimen
+        state.$specimen = specimen
     }
 
 }
@@ -1787,14 +1796,14 @@ extension SpecimenComponent : View {
 
     var body : some View {
         VStack {
-            TextField("Name", text: store.binding.specimen.name)
+            TextField("Name", text: $state.binding.specimen.name)
         }
     }
 
 }
 ```
 
-When we pass a `$specimen` to the constructor of our children components, we pass the `Referred` instance, which can be assigned to another `@Ref` object via `store.state.$specimen = specimen`. The `Referred` instance only carries the information necessary for the underlying `@Ref` property wrapper to hook up to the value by its identifier. 
+When we pass a `$specimen` to the constructor of our children components, we pass the `Referred` instance, which can be assigned to another `@Ref` object via `state.$specimen = specimen`. The `Referred` instance only carries the information necessary for the underlying `@Ref` property wrapper to hook up to the value by its identifier. 
 
 Now, when one of the text fields is updated in one of the components, all other values marked by `@Ref` will also be automatically updated, which ensures full synchronisation of the value across different components. 
 
@@ -1808,11 +1817,11 @@ struct Exhibition : Component {
     let specimenA : SpecimenComponent
     let specimenB : SpecimenComponent
 
-    @ObservedObject var store = PlainStore<State>()
+    @Store var state : State
 
     init() {
-        self.specimenA = SpecimenComponent(specimen: store.state.$specimens[0])
-        self.specimenB = SpecimenComponent(specimen: store.state.$specimens[1])
+        self.specimenA = SpecimenComponent(specimen: state.$specimens[0])
+        self.specimenB = SpecimenComponent(specimen: state.$specimens[1])
     }
 }
 
@@ -1839,7 +1848,7 @@ extension Exhibition : RoutableView {
 
     var routableBody : some View {
         VStack {
-            Text("Welcome, we can show '\(store.state.specimens[0].name)' and '\(store.state.specimens[1].name)' today")
+            Text("Welcome, we can show '\(state.specimens[0].name)' and '\(state.specimens[1].name)' today")
             specimenA
             specimenB
         }
@@ -1850,12 +1859,10 @@ extension Exhibition : RoutableView {
 
 Updating a particular specimen would update only the appropriate chunk text and leave the other one be.
 
-### <a name='DataManagement'></a>Data Management
+### Centralised versus decentralised state management
 
 On the one hand, Compose favours decentralised data storage: each component has its own store (one or many) that holds the component's state, validates it, and performs actions with the services.
 
 On the other hand, services can also have their own stores, making data available globally to all components. This enables developers to recreate familiar Redux-like storage solutions, where services encapsulate stores and actions on the stores, and views rely on the services' stores to display reactive, constantly changing data.
 
 Which way data is stored in a particular application is never specified by Compose itself—the pattern is chosen by the developer.
-
-
