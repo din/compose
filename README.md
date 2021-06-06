@@ -1186,6 +1186,13 @@ All instances of `DynamicComponent` manage their memory automatically. That mean
 
 While `DynamicComponent` allows only one component to be created, there are cases where it might be necessary to create any number of dynamic components. This might be useful, for example, to display infinite number of nested components. `InstanceComponent` works similarly to `DynamicComponent`, but allows having infinite number of components created instead. The `InstanceComponent` instance manages memory of all underlying components—all underlying components are automatically destroyed when they go out of scope.
 
+#### <a name='LifecycleEmitters'></a>Lifecycle Emitters
+
+`InstanceComponent` provides two lifecycle emitters:
+
+- `didCreate` is invoked as soon as one of instances was created. The UUID of created component is supplied via the emitter.
+- `didDestroy` is invoked as soon as one of instances was destroyed. The UUID of destroyed component is supplied via the emitter.
+
 ## <a name='Services'></a>Services
 
 `Service` is a `protocol` which is adopted by `struct` entities to create services.
