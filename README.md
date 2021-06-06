@@ -47,18 +47,18 @@ _Compose is still a work in progress. The framework is still alpha—feature set
 		* [Lifecycle Emitters](#LifecycleEmitters)
 	* [`InstanceComponent`](#InstanceComponent)
 * [Services](#Services)
-* [Store](#Stores)
-	* [State via  `AnyState`](#StateviaAnyState)
-	* [Validations via  `AnyValidation`](#ValidationsviaAnyValidation)
-		* [`Validator`](#Validator)
-		* [`ValidatorField`](#ValidatorField)
-		* [`ValidatorRule`](#ValidatorRule)
-	* [Statuses via  `AnyStatus`](#StatusesviaAnyStatus)
-		* [`AnyStatus` operators](#AnyStatusoperators)
-	* [Persistence via  `AnyPersistentStorage`](#PersistenceviaAnyPersistentStorage)
+* [`@Store` And State Management](#StoreAndStateManagement)
+	* [Validating State](#ValidatingState)
+		* [`Validation`](#Validation)
+		* [`Field`](#Field)
+		* [`ArrayField`](#ArrayField)
+		* [`Rule`](#Rule)
+	* [Tracking State Statuses](#TrackingStateStatuses)
+		* [`StatusSet` Operators](#StatusSetOperators)
+	* [Persisting State](#PersistingState)
 		* [Choosing Persisted Values](#ChoosingPersistedValues)
 	* [Identified References via  `@Ref` and `@RefCollection`](#IdentifiedReferencesviaRefandRefCollection)
-	* [Data Management](#DataManagement)
+	* [Centralised Versus Decentralised State Management](#CentralisedVersusDecentralisedStateManagement)
 
 <!-- vscode-markdown-toc-config
 	numbering=false
@@ -1252,7 +1252,7 @@ extension AuthComponent {
 
 As you can see, the `UserService` is available as `services.user` in the `AuthComponent` (and in all other components too).
 
-## <a name='Stores'></a>`@Store` and state management
+## <a name='StoreAndStateManagement'></a>`@Store` And State Management
 
 `@Store` is a property wrapper which is used inside components to manage state of a certain data shape represented by a structure conforming to `AnyState`. 
 
@@ -1368,7 +1368,7 @@ extension LogInComponent {
 }
 ```
 
-### Validating state
+### <a name='ValidatingState'></a>Validating State
 
 To reactively validate any state `struct`, one can define a validation as a computed property inside the state. For simple cases, validation can be expressed with Swift methods without any higher-level abstractions. For example, it's easy to check whether the state values are valid:
 
@@ -1457,7 +1457,7 @@ extension LogInComponent {
 
 The error messages will be accessible under `state.credentials.errors` as an array of error strings for all invalid fields.
 
-#### `Validation`
+#### <a name='Validation'></a>`Validation`
 
 Exposes the following properties:
 
@@ -1468,7 +1468,7 @@ All mentioned fields are automatically updated because `Validation` is always de
 
 `Validation` contains any number of `Field` instances via property builder.
 
-#### `Field`
+#### <a name='Field'></a>`Field`
 
 Points at a particular state value to be validated:
 
@@ -1480,7 +1480,7 @@ Field(firstName, rules: .nonEmpty)
 
 `Field` is created with specific set of `Rule` instances applied to the value to validate it.
 
-#### `ArrayField`
+#### <a name='ArrayField'></a>`ArrayField`
 
 Points at a particular array state value to be validated:
 
@@ -1496,7 +1496,7 @@ ArrayField(arrayToValidate,
 - `validIfEmpty` is a boolean value which indicates whether an empty array should produce valid result or not.
 - `path` is a keypath that points to a property on an element of an array to apply validation rules to.
 
-#### `Rule`
+#### <a name='Rule'></a>`Rule`
 
 Defines a particular rule to be executed on a field.
 
@@ -1509,7 +1509,7 @@ There are several predefined validators shipped with Compose:
 
 > ❗️ It's also possible to define a new rule by extending the `Rule` structure.
 
-### Tracking state statuses
+### <a name='TrackingStateStatuses'></a>Tracking State Statuses
 
 There are times where we have to notify user interface about certain progresses in the application. Doing network request, processing large amount of data usually result in some sort of loading indicators presented in the user interface. 
 
@@ -1598,7 +1598,7 @@ extension LogInComponent : View {
 
 > ❗️ The `StatusSet<Status>` is a typealias to `Set<AnyStatus>`. This means it is not possible to set the same status more than one time.
 
-#### `StatusSet` operators
+#### <a name='StatusSetOperators'></a>`StatusSet` Operators
 
 There are several operators defined to operate on any `StatusSet` instance:
 
@@ -1608,7 +1608,7 @@ There are several operators defined to operate on any `StatusSet` instance:
 - `~=` to check if the list of statuses contains a particular status.
 - `!~=` to check if the list of statuses doesn't contain a particular status.
 
-### Persisting state
+### <a name='PersistingState'></a>Persisting State
 
 It's useful to persist certain state to some kind of storage. The persistence can be used to store small chunks of data which can be retrieved at any time, even between launches of the application. 
 
@@ -1670,7 +1670,7 @@ extension LogInComponent {
 
 > ❗️ The `persistence` property of `@Store` projected value requires state to conform to `Codable` protocol.
 
-#### Choosing persisted values
+#### <a name='ChoosingPersistedValues'></a>Choosing Persisted Values
 
 The store persistence requires that `State` conforms to `Codable` protocol. This allows any storage to immediately serialize data into some intermediate format to be stored in the storage. 
 
@@ -1859,7 +1859,7 @@ extension Exhibition : RoutableView {
 
 Updating a particular specimen would update only the appropriate chunk text and leave the other one be.
 
-### Centralised versus decentralised state management
+### <a name='CentralisedVersusDecentralisedStateManagement'></a>Centralised Versus Decentralised State Management
 
 On the one hand, Compose favours decentralised data storage: each component has its own store (one or many) that holds the component's state, validates it, and performs actions with the services.
 
