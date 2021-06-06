@@ -46,6 +46,7 @@ _Compose is still a work in progress. The framework is still alpha—feature set
 	* [`DynamicComponent`](#DynamicComponent)
 		* [Lifecycle Emitters](#LifecycleEmitters)
 	* [`InstanceComponent`](#InstanceComponent)
+		* [Lifecycle Emitters](#LifecycleEmitters-1)
 * [Services](#Services)
 * [`@Store` And State Management](#StoreAndStateManagement)
 	* [Validating State](#ValidatingState)
@@ -1186,7 +1187,7 @@ All instances of `DynamicComponent` manage their memory automatically. That mean
 
 While `DynamicComponent` allows only one component to be created, there are cases where it might be necessary to create any number of dynamic components. This might be useful, for example, to display infinite number of nested components. `InstanceComponent` works similarly to `DynamicComponent`, but allows having infinite number of components created instead. The `InstanceComponent` instance manages memory of all underlying components—all underlying components are automatically destroyed when they go out of scope.
 
-#### <a name='LifecycleEmitters'></a>Lifecycle Emitters
+#### <a name='LifecycleEmitters-1'></a>Lifecycle Emitters
 
 `InstanceComponent` provides two lifecycle emitters:
 
