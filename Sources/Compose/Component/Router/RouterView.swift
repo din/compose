@@ -53,6 +53,44 @@ public struct RouterView<Content : View> : View, Identifiable {
                     .opacity(isTransitioning == true && isBeforeLast == false && isLast == false ? 0.0 : 1.0)
                     .allowsHitTesting(isTransitioning == false && route.id != routes.last?.id ? false : true)
             }
+            .gesture(
+                DragGesture(minimumDistance: 0.03, coordinateSpace: .global)
+                    .onChanged { value in
+                        guard canPerformTransition(value: value) else {
+                            return
+                        }
+                        
+                        isTransitioning = true
+                        interactiveTransitionOffset = max(value.translation.width, 0)
+                    }
+                    .onEnded { value in
+                        guard isTransitioning == true else {
+                            return
+                        }
+                        
+                        guard value.predictedEndTranslation.width > maxInteractiveTransitionOffset else {
+                            withAnimation(.easeOut(duration: 0.25)) {
+                                interactiveTransitionOffset = 0
+                            }
+                            
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.26) {
+                                isTransitioning = false
+                            }
+                            
+                            return
+                        }
+                        
+                        withAnimation(.easeOut(duration: 0.25)) {
+                            interactiveTransitionOffset = UIScreen.main.bounds.width
+                        }
+                        
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.26) {
+                            router.pop(animated: false)
+                            interactiveTransitionOffset = 0
+                            isTransitioning = false
+                        }
+                    }
+            )
 
             if isTransitioning == true || router.isPushing == true {
                 Rectangle()
@@ -63,44 +101,6 @@ public struct RouterView<Content : View> : View, Identifiable {
                     .animation(.none)
             }
         }
-        .gesture(
-            DragGesture(minimumDistance: 0.03, coordinateSpace: .global)
-                .onChanged { value in
-                    guard canPerformTransition(value: value) else {
-                        return
-                    }
-                    
-                    isTransitioning = true
-                    interactiveTransitionOffset = max(value.translation.width, 0)
-                }
-                .onEnded { value in
-                    guard isTransitioning == true else {
-                        return
-                    }
-                    
-                    guard value.predictedEndTranslation.width > maxInteractiveTransitionOffset else {
-                        withAnimation(.easeOut(duration: 0.25)) {
-                            interactiveTransitionOffset = 0
-                        }
-                        
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.26) {
-                            isTransitioning = false
-                        }
-                        
-                        return
-                    }
-                    
-                    withAnimation(.easeOut(duration: 0.25)) {
-                        interactiveTransitionOffset = UIScreen.main.bounds.width
-                    }
-                    
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.26) {
-                        router.pop(animated: false)
-                        interactiveTransitionOffset = 0
-                        isTransitioning = false
-                    }
-                }
-        )
     }
     
 }
@@ -131,7 +131,7 @@ extension RouterView {
         guard router.options.canTransition == true else {
             return false
         }
-        
+   
         guard router.paths.count > (content is EmptyView ? 1 : 0) else {
             return false
         }

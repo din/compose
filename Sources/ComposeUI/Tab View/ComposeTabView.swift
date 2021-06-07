@@ -29,7 +29,7 @@ public struct ComposeTabView : View {
     }
     
     public var body: some View {
-        VStack {
+        VStack(spacing: 0) {
             ZStack {
                 ForEach(items) { item in
                     item.view
@@ -37,7 +37,7 @@ public struct ComposeTabView : View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            
+
             tabBarBody
         }
         .onAppear {
@@ -79,7 +79,7 @@ extension ComposeTabView {
             }
             .padding(.horizontal, style.padding)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            
+
         }
         .padding(.top, 10)
         .frame(minHeight: style.height, maxHeight: style.height)
