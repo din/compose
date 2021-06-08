@@ -1,9 +1,13 @@
 import Foundation
 
 public struct Rule<T> {
- 
+
     public let id = UUID()
     public let validate : (T) -> Bool
+    
+    public init(validate: @escaping (T) -> Bool) {
+        self.validate = validate
+    }
     
 }
 
