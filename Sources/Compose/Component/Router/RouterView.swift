@@ -34,23 +34,17 @@ public struct RouterView<Content : View> : View, Identifiable {
                 .zIndex(1)
                 .offset(x: isTransitioning == false && routes.count > 0 ? startingSubviewTransitionOffset : 0)
                 .offset(x: isTransitioning == true && routes.count == 1 ? startingSubviewTransitionOffset * (1.0 - transitionProgress) : 0)
-                .opacity(isTransitioning == false && routes.count > 0 ? 0.0 : 1.0)
-                .opacity(isTransitioning == true && routes.count == 1 ? Double(transitionProgress) : 1.0)
                 .allowsHitTesting(isTransitioning == false && routes.count == 0)
        
             ForEach(routes) { route in
                 let isLast = route.id == routes.last?.id
-                let isBeforeLast = route.id == routes.dropLast().last?.id
-                
+          
                 route.view
                     .zIndex(route.zIndex)
                     .transition(.asymmetric(insertion: .identity, removal: .move(edge: .trailing)))
                     .offset(x: isTransitioning == false && isLast == false && routes.count > 0 ? startingSubviewTransitionOffset : 0)
                     .offset(x: isTransitioning == true && isLast == false ? startingSubviewTransitionOffset * (1.0 - transitionProgress) : 0)
                     .offset(x: isTransitioning == true && isLast == true ? interactiveTransitionOffset : 0)
-                    .opacity(isTransitioning == false && isLast == false ? 0.0 : 1.0)
-                    .opacity(isTransitioning == true && isBeforeLast == true ? Double(transitionProgress) : 1.0)
-                    .opacity(isTransitioning == true && isBeforeLast == false && isLast == false ? 0.0 : 1.0)
                     .allowsHitTesting(isTransitioning == false && route.id != routes.last?.id ? false : true)
             }
             .gesture(
