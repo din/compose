@@ -2,7 +2,10 @@ import SwiftUI
 
 struct ComposeScrollViewReader : UIViewRepresentable {
     
+    typealias OnReachedBottom = () -> Void
+    
     @Binding var startDraggingOffset : CGPoint
+    let onReachedBottom : OnReachedBottom?
 
     @State var isLoaded : Bool = false
     
@@ -31,7 +34,8 @@ struct ComposeScrollViewReader : UIViewRepresentable {
     }
     
     func makeCoordinator() -> Coordinator {
-        Coordinator(startDraggingOffset: $startDraggingOffset)
+        Coordinator(startDraggingOffset: $startDraggingOffset,
+                    onReachedBottom: onReachedBottom)
     }
     
 }
@@ -41,13 +45,33 @@ extension ComposeScrollViewReader {
     class Coordinator : NSObject, UIScrollViewDelegate {
         
         @Binding var startDraggingOffset : CGPoint
+        let onReachedBottom : OnReachedBottom?
+        
+        fileprivate var hasAlreadyReachedBottom: Bool = false
   
-        public init(startDraggingOffset : Binding<CGPoint>) {
+        public init(startDraggingOffset : Binding<CGPoint>,
+                    onReachedBottom : OnReachedBottom?) {
             self._startDraggingOffset = startDraggingOffset
+            self.onReachedBottom = onReachedBottom
         }
         
         func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
             startDraggingOffset = scrollView.contentOffset
+        }
+        
+        func scrollViewDidScroll(_ scrollView: UIScrollView) {
+            if (scrollView.contentSize.height - scrollView.contentOffset.y) <= scrollView.frame.size.height
+            {
+                if !hasAlreadyReachedBottom
+                {
+                    hasAlreadyReachedBottom = true
+                    onReachedBottom?()
+                }
+            }
+            else
+            {
+                hasAlreadyReachedBottom = false
+            }
         }
 
     }

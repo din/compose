@@ -19,7 +19,7 @@ public struct ComposeScrollView<Content : View> : View {
     
     private let showsIndicators : Bool
     private let onRefresh : RefreshHandler?
-    // private let onReachedBottom : CompletionHandler?
+     private let onReachedBottom : CompletionHandler?
     private let content : Content
     
     @State private var status : Status = .idle
@@ -28,11 +28,11 @@ public struct ComposeScrollView<Content : View> : View {
     
     public init(showsIndicators: Bool = false,
                 onRefresh : RefreshHandler? = nil,
-                // onReachedBottom : CompletionHandler? = nil,
+                onReachedBottom : CompletionHandler? = nil,
                 @ViewBuilder content: () -> Content) {
         self.showsIndicators = showsIndicators
         self.onRefresh = onRefresh
-        // self.onReachedBottom = onReachedBottom
+        self.onReachedBottom = onReachedBottom
         self.content = content()
     }
     
@@ -65,7 +65,7 @@ public struct ComposeScrollView<Content : View> : View {
                 .overlay(onRefresh != nil ? progressBody : nil, alignment: .top)
         }
         .background(ComposeScrollViewPositionIndicator(type: .fixed))
-        .background(ComposeScrollViewReader(startDraggingOffset: $startDraggingOffset))
+        .background(ComposeScrollViewReader(startDraggingOffset: $startDraggingOffset, onReachedBottom: onReachedBottom))
         .onPreferenceChange(ComposeScrollViewPositionIndicator.PositionPreferenceKey.self) { values in
             guard status != .loading, onRefresh != nil else {
                 return
