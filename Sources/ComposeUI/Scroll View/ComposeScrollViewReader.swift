@@ -60,7 +60,6 @@ extension ComposeScrollViewReader {
         }
         
         func scrollViewDidScroll(_ scrollView: UIScrollView) {
-            print(scrollView.contentSize.height - scrollView.contentOffset.y, "HEIGHT", scrollView.frame.size.height, "OFF", scrollView.contentOffset.y)
             if (scrollView.contentSize.height - scrollView.contentOffset.y) <= scrollView.frame.size.height
             {
                 if !hasAlreadyReachedBottom
