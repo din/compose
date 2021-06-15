@@ -25,10 +25,10 @@ struct ComposeScrollViewReader : UIViewRepresentable {
             
             isLoaded = true
             
-            guard let scrollView = container.subviews(ofType: UIScrollView.self).first else {
+            guard let scrollView = container.subviews(ofType: UIScrollView.self).last else {
                 return
             }
-
+            
             scrollView.delegate = context.coordinator
         }
     }
@@ -60,6 +60,7 @@ extension ComposeScrollViewReader {
         }
         
         func scrollViewDidScroll(_ scrollView: UIScrollView) {
+            print(scrollView.contentSize.height - scrollView.contentOffset.y, "HEIGHT", scrollView.frame.size.height, "OFF", scrollView.contentOffset.y)
             if (scrollView.contentSize.height - scrollView.contentOffset.y) <= scrollView.frame.size.height
             {
                 if !hasAlreadyReachedBottom
