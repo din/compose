@@ -3,7 +3,7 @@ import UIKit
 
 extension UIView {
     
-    func subviews<T:UIView>(ofType WhatType:T.Type) -> [T] {
+    func subviews<T : UIView>(ofType WhatType : T.Type) -> [T] {
         var result = self.subviews.compactMap {$0 as? T}
         
         for sub in self.subviews {
@@ -11,6 +11,20 @@ extension UIView {
         }
         
         return result
+    }
+    
+    func ancestor<T : UIView>(ofType type: T.Type) -> T? {
+        var superview = self.superview
+        
+        while let s = superview {
+            if let typed = s as? T {
+                return typed
+            }
+            
+            superview = s.superview
+        }
+        
+        return nil
     }
     
 }

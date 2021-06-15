@@ -11,6 +11,7 @@ public class StoreContainer<State : AnyState> : ObservableObject {
     internal var cancellables = Set<AnyCancellable>()
     
     fileprivate let storage : AnyPersistentStorage
+    fileprivate var persistStateChangesCancellable : AnyCancellable?
     
     public init(storage : AnyPersistentStorage = EmptyPersistentStorage()) {
         self.state = .init()
@@ -18,8 +19,8 @@ public class StoreContainer<State : AnyState> : ObservableObject {
         
         $state
             .removeDuplicates()
-            .sink { state in
-            self.willChange.send(state)
+            .sink { [weak self] state in
+            self?.willChange.send(state)
         }.store(in: &cancellables)
         
         let mirror = Mirror(reflecting: state)
@@ -64,6 +65,19 @@ extension StoreContainer {
 }
 
 extension StoreContainer where State : Codable {
+    
+    public func persistStateChanges() {
+        guard persistStateChangesCancellable == nil else {
+            return
+        }
+        
+        persistStateChangesCancellable = $state
+            .removeDuplicates()
+            .debounce(for: .seconds(0.5), scheduler: RunLoop.main)
+            .sink { [weak self] state in
+                self?.persistence.save()
+            }
+    }
     
     public var persistence : Persistence<State> {
         .init(storage: storage) {

@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct ComposeScrollViewReader : UIViewRepresentable {
     
@@ -10,25 +11,23 @@ struct ComposeScrollViewReader : UIViewRepresentable {
     @State var isLoaded : Bool = false
     
     func makeUIView(context: Context) -> some UIView {
-        UIView()
+        let view = UIView()
+        view.alpha = 0.0
+        return view
     }
     
     func updateUIView(_ uiView: UIViewType, context: Context) {
         DispatchQueue.main.async {
-            guard let container = uiView.superview?.superview else {
-                return
-            }
-            
             guard isLoaded == false else {
                 return
             }
             
-            isLoaded = true
-            
-            guard let scrollView = container.subviews(ofType: UIScrollView.self).last else {
+            guard let scrollView = uiView.ancestor(ofType: UIScrollView.self) else {
                 return
             }
             
+            isLoaded = true
+
             scrollView.delegate = context.coordinator
         }
     }

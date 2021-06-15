@@ -27,6 +27,20 @@ public struct RouterView<Content : View> : View, Identifiable {
     public init(@ViewBuilder content : () -> Content) {
         self.content = content()
     }
+    
+    fileprivate var routesBody : some View {
+        ForEach(routes) { route in
+            let isLast = route.id == routes.last?.id
+            
+            route.view
+                .zIndex(route.zIndex)
+                .transition(.asymmetric(insertion: .identity, removal: .move(edge: .trailing)))
+                .offset(x: isTransitioning == false && isLast == false && routes.count > 0 ? startingSubviewTransitionOffset : 0)
+                .offset(x: isTransitioning == true && isLast == false ? startingSubviewTransitionOffset * (1.0 - transitionProgress) : 0)
+                .offset(x: isTransitioning == true && isLast == true ? interactiveTransitionOffset : 0)
+                .allowsHitTesting(isTransitioning == false && route.id != routes.last?.id ? false : true)
+        }
+    }
 
     public var body: some View {
         ZStack(alignment: .top) {
@@ -36,55 +50,49 @@ public struct RouterView<Content : View> : View, Identifiable {
                 .offset(x: isTransitioning == true && routes.count == 1 ? startingSubviewTransitionOffset * (1.0 - transitionProgress) : 0)
                 .allowsHitTesting(isTransitioning == false && routes.count == 0)
        
-            ForEach(routes) { route in
-                let isLast = route.id == routes.last?.id
-          
-                route.view
-                    .zIndex(route.zIndex)
-                    .transition(.asymmetric(insertion: .identity, removal: .move(edge: .trailing)))
-                    .offset(x: isTransitioning == false && isLast == false && routes.count > 0 ? startingSubviewTransitionOffset : 0)
-                    .offset(x: isTransitioning == true && isLast == false ? startingSubviewTransitionOffset * (1.0 - transitionProgress) : 0)
-                    .offset(x: isTransitioning == true && isLast == true ? interactiveTransitionOffset : 0)
-                    .allowsHitTesting(isTransitioning == false && route.id != routes.last?.id ? false : true)
-            }
-            .gesture(
-                DragGesture(minimumDistance: 0.03, coordinateSpace: .global)
-                    .onChanged { value in
-                        guard canPerformTransition(value: value) else {
-                            return
+            #if os(iOS) || os(macOS)
+            routesBody
+                .gesture(
+                    DragGesture(minimumDistance: 0.03, coordinateSpace: .global)
+                        .onChanged { value in
+                            guard canPerformTransition(value: value) else {
+                                return
+                            }
+                            
+                            isTransitioning = true
+                            interactiveTransitionOffset = max(value.translation.width, 0)
                         }
-                        
-                        isTransitioning = true
-                        interactiveTransitionOffset = max(value.translation.width, 0)
-                    }
-                    .onEnded { value in
-                        guard isTransitioning == true else {
-                            return
-                        }
-                        
-                        guard value.predictedEndTranslation.width > maxInteractiveTransitionOffset else {
+                        .onEnded { value in
+                            guard isTransitioning == true else {
+                                return
+                            }
+                            
+                            guard value.predictedEndTranslation.width > maxInteractiveTransitionOffset else {
+                                withAnimation(.easeOut(duration: 0.25)) {
+                                    interactiveTransitionOffset = 0
+                                }
+                                
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.26) {
+                                    isTransitioning = false
+                                }
+                                
+                                return
+                            }
+                            
                             withAnimation(.easeOut(duration: 0.25)) {
-                                interactiveTransitionOffset = 0
+                                interactiveTransitionOffset = UIScreen.main.bounds.width
                             }
                             
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.26) {
+                                router.pop(animated: false)
+                                interactiveTransitionOffset = 0
                                 isTransitioning = false
                             }
-                            
-                            return
                         }
-                        
-                        withAnimation(.easeOut(duration: 0.25)) {
-                            interactiveTransitionOffset = UIScreen.main.bounds.width
-                        }
-                        
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.26) {
-                            router.pop(animated: false)
-                            interactiveTransitionOffset = 0
-                            isTransitioning = false
-                        }
-                    }
-            )
+                )
+            #else
+            routesBody
+            #endif
 
             if isTransitioning == true || router.isPushing == true {
                 Rectangle()
@@ -117,6 +125,7 @@ extension RouterView {
         )
     }
     
+    #if os(iOS) || os(macOS)
     fileprivate func canPerformTransition(value : DragGesture.Value) -> Bool {
         guard isTransitioning == false else {
             return true
@@ -140,5 +149,6 @@ extension RouterView {
         
         return true
     }
+    #endif
     
 }

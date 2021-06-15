@@ -1,6 +1,6 @@
 import Foundation
 
-public class Persistence<State : Codable> {
+public struct Persistence<State : Codable> {
     
     private unowned let storage : AnyPersistentStorage
     

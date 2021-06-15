@@ -53,8 +53,12 @@ public struct ComposeScrollView<Content : View> : View {
     
     public var body: some View {
         ScrollView(showsIndicators: showsIndicators) {
+            
             ComposeScrollViewPositionIndicator(type: .moving)
                 .frame(height: 0)
+                .overlay(
+                    ComposeScrollViewReader(startDraggingOffset: $startDraggingOffset, onReachedBottom: onReachedBottom)
+                )
             
             if status == .loading {
                 Color.clear
@@ -65,7 +69,6 @@ public struct ComposeScrollView<Content : View> : View {
                 .overlay(onRefresh != nil ? progressBody : nil, alignment: .top)
         }
         .background(ComposeScrollViewPositionIndicator(type: .fixed))
-        .background(ComposeScrollViewReader(startDraggingOffset: $startDraggingOffset, onReachedBottom: onReachedBottom))
         .onPreferenceChange(ComposeScrollViewPositionIndicator.PositionPreferenceKey.self) { values in
             guard status != .loading, onRefresh != nil else {
                 return

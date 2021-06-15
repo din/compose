@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 
+#if os(iOS) || os(macOS)
 extension View {
     
     public func onTapGesture(emitter: SignalEmitter) -> some View {
@@ -16,3 +17,4 @@ extension View {
     }
     
 }
+#endif
