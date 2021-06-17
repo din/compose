@@ -24,6 +24,7 @@ public final class Router : ObservableObject {
     internal let id = UUID()
     
     fileprivate let start : AnyKeyPath?
+    fileprivate var zIndex : Int64 = 0
     
     public init(start : AnyKeyPath, options : RouterOptions = .init()) {
         self.start = start
@@ -40,6 +41,8 @@ public final class Router : ObservableObject {
 extension Router {
     
     public func push(_ keyPath : AnyKeyPath, animated : Bool = true) {
+        zIndex += 1
+        
         guard let route = route(for: keyPath) else {
             return
         }
@@ -91,6 +94,8 @@ extension Router {
             return
         }
         
+        zIndex = 0
+        
         let change = { [weak self] in
             guard let self = self else {
                 return
@@ -115,6 +120,8 @@ extension Router {
     }
     
     public func replace(_ keyPath : AnyKeyPath, animated : Bool = false) {
+        zIndex = 0
+        
         guard let route = route(for: keyPath) else {
             return
         }
@@ -145,7 +152,7 @@ extension Router {
                                     .transition(.move(edge: .trailing))
                                     .environmentObject(self)),
                      path: keyPath,
-                     zIndex: Double(routes.count) + 1)
+                     zIndex: Double(zIndex))
     }
     
 }

@@ -49,11 +49,13 @@ public struct ComposeNavigationBar<LeftView : View, RightView : View> : View {
             .lineLimit(1)
             .offset(y: 2)
         
-            VStack {
-                Divider()
+            if style.shouldShowDivider == true {
+                VStack {
+                    Divider()
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                .padding(.horizontal, -style.horizontalPadding)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-            .padding(.horizontal, -style.horizontalPadding)
         }
         .font(.system(size: 16, weight: .semibold, design: .default))
         .frame(height: style.height)

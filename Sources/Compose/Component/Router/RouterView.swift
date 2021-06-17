@@ -13,6 +13,8 @@ public struct RouterView<Content : View> : View, Identifiable {
     @State private var interactiveTransitionOffset : CGFloat = 0.0
     @State private var isTransitioning : Bool = false
     
+    @GestureState private var offset : CGFloat = -1.0
+    
     ///Identifier on a router view allows us to switch between similar nested router views inside other router views.
     ///Without an identifiers, SwiftUI wouldn't replace a view inside a `ForEach` statement because they would be identical to SwiftUI.
     public let id = UUID()
@@ -53,7 +55,7 @@ public struct RouterView<Content : View> : View, Identifiable {
             #if os(iOS) || os(macOS)
             routesBody
                 .gesture(
-                    DragGesture(minimumDistance: 0.03, coordinateSpace: .global)
+                    DragGesture(minimumDistance: 0.01, coordinateSpace: .global)
                         .onChanged { value in
                             guard canPerformTransition(value: value) else {
                                 return
@@ -63,32 +65,17 @@ public struct RouterView<Content : View> : View, Identifiable {
                             interactiveTransitionOffset = max(value.translation.width, 0)
                         }
                         .onEnded { value in
-                            guard isTransitioning == true else {
-                                return
-                            }
-                            
-                            guard value.predictedEndTranslation.width > maxInteractiveTransitionOffset else {
-                                withAnimation(.easeOut(duration: 0.25)) {
-                                    interactiveTransitionOffset = 0
-                                }
-                                
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.26) {
-                                    isTransitioning = false
-                                }
-                                
-                                return
-                            }
-                            
-                            withAnimation(.easeOut(duration: 0.25)) {
-                                interactiveTransitionOffset = UIScreen.main.bounds.width
-                            }
-                            
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.26) {
-                                router.pop(animated: false)
-                                interactiveTransitionOffset = 0
-                                isTransitioning = false
-                            }
+                            finishTransition(value: value)
                         }
+                        .updating($offset, body: { value, state, transaction in
+                            state = value.location.x
+                            
+                            DispatchQueue.main.async {
+                                if offset == -1.0 {
+                                    finishTransition(value: value)
+                                }
+                            }
+                        })
                 )
             #else
             routesBody
@@ -148,6 +135,34 @@ extension RouterView {
         }
         
         return true
+    }
+    
+    fileprivate func finishTransition(value : DragGesture.Value) {
+        guard isTransitioning == true else {
+            return
+        }
+        
+        guard value.predictedEndTranslation.width > maxInteractiveTransitionOffset else {
+            withAnimation(.easeOut(duration: 0.25)) {
+                interactiveTransitionOffset = 0
+            }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.26) {
+                isTransitioning = false
+            }
+            
+            return
+        }
+        
+        withAnimation(.easeOut(duration: 0.25)) {
+            interactiveTransitionOffset = UIScreen.main.bounds.width
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.26) {
+            router.pop(animated: false)
+            interactiveTransitionOffset = 0
+            isTransitioning = false
+        }
     }
     #endif
     
