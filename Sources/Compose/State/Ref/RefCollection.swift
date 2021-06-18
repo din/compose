@@ -9,6 +9,7 @@ import Combine
         }
         set {
             self.value = newValue.map { Ref(wrappedValue: $0) }
+            objectWillChange.send()
         }
     }
     
