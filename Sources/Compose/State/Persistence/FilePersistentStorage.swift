@@ -10,9 +10,14 @@ public class FilePersistentStorage : AnyPersistentStorage {
         self.key = key
         self.url = FilePersistentStorage.Root.appendingPathComponent(key)
         
-        try? FileManager.default.createDirectory(at: FilePersistentStorage.Root,
-                                                 withIntermediateDirectories: true,
-                                                 attributes: nil)
+        do {
+            try FileManager.default.createDirectory(at: FilePersistentStorage.Root,
+                                                     withIntermediateDirectories: true,
+                                                     attributes: nil)
+        }
+        catch let error {
+            print("FilePersistentStorage: cannot create root directory. \(error.localizedDescription)")
+        }
     }
     
     public func save<State>(state: State) where State : Codable {

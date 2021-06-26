@@ -34,6 +34,7 @@ public struct RouterView<Content : View> : View, Identifiable {
         ForEach(routes) { route in
             let isLast = route.id == routes.last?.id
             
+            #if os(iOS) || os(macOS)
             route.view
                 .zIndex(route.zIndex)
                 .transition(.asymmetric(insertion: .identity, removal: .move(edge: .trailing)))
@@ -41,18 +42,22 @@ public struct RouterView<Content : View> : View, Identifiable {
                 .offset(x: isTransitioning == true && isLast == false ? startingSubviewTransitionOffset * (1.0 - transitionProgress) : 0)
                 .offset(x: isTransitioning == true && isLast == true ? interactiveTransitionOffset : 0)
                 .allowsHitTesting(isTransitioning == false && route.id != routes.last?.id ? false : true)
+            #else
+            route.view
+                .opacity(isLast == true ? 1.0 : 0.0)
+            #endif
         }
     }
 
     public var body: some View {
         ZStack(alignment: .top) {
+            #if os(iOS) || os(macOS)
             content
                 .zIndex(1)
                 .offset(x: isTransitioning == false && routes.count > 0 ? startingSubviewTransitionOffset : 0)
                 .offset(x: isTransitioning == true && routes.count == 1 ? startingSubviewTransitionOffset * (1.0 - transitionProgress) : 0)
                 .allowsHitTesting(isTransitioning == false && routes.count == 0)
-       
-            #if os(iOS) || os(macOS)
+            
             routesBody
                 .gesture(
                     DragGesture(minimumDistance: 0.01, coordinateSpace: .global)
@@ -78,6 +83,7 @@ public struct RouterView<Content : View> : View, Identifiable {
                         })
                 )
             #else
+            content
             routesBody
             #endif
 

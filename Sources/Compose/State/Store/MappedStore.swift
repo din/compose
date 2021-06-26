@@ -7,6 +7,10 @@ import SwiftUI
         container.state
     }
     
+    public var projectedValue : StoreContainer<State> {
+        container
+    }
+    
     fileprivate let keyPath : KeyPath<Target, StoreContainer<State>>
     
     @ObservedObject fileprivate var container = StoreContainer<State>()
