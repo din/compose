@@ -56,7 +56,7 @@ public struct ComposeAlertView : ComposeModal {
                         .font(.system(size: 15, weight: .regular, design: .rounded))
                         .lineLimit(nil)
                         .lineSpacing(3)
-                        .multilineTextAlignment(.leading)
+                        .multilineTextAlignment(.center)
                         .padding(.bottom, style.alertVerticalPadding)
                         .padding(.horizontal, style.alertHorizontalPadding)
                         .fixedSize(horizontal: false, vertical: true)
