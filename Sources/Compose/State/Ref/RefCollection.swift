@@ -19,8 +19,8 @@ import Combine
     
     fileprivate var value : [Ref<T>] = []
     
-    public init(wrappedValue : [T]) {
-        self.value = wrappedValue.map { Ref(wrappedValue: $0) }
+    public init() {
+        RefBag.shared.add(self)
     }
     
 }

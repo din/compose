@@ -47,20 +47,25 @@ extension Storage {
             observeChanges()
         }
     }
-    
+
     fileprivate let refId = UUID()
     
     private var value : T? = nil
     
     public init() {
+        RefBag.shared.add(self)
+        
         self.value = nil
     }
     
     public init(wrappedValue : T) {
+        RefBag.shared.add(self)
+        
         self.value = wrappedValue
         self.didChange.send(.init(senderId: refId, value: wrappedValue))
         
         observeChanges()
+        
     }
     
     fileprivate func observeChanges() {

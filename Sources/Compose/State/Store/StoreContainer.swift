@@ -6,16 +6,30 @@ public class StoreContainer<State : AnyState> : ObservableObject {
 
     public let willChange = ValueEmitter<State>()
 
-    @Published internal var state : State
+    @Published internal var state : State {
+        
+        didSet {
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else {
+                    return
+                }
+                
+                RefBag.shared.endMonitoring(with: self.updateRefs)
+            }
+        }
+        
+    }
     
     internal var cancellables = Set<AnyCancellable>()
+    fileprivate var persistStateChangesCancellable : AnyCancellable?
+    fileprivate var refCancellables = Set<AnyCancellable>()
     
     fileprivate let storage : AnyPersistentStorage
-    fileprivate var persistStateChangesCancellable : AnyCancellable?
+   
     
     public init(storage : AnyPersistentStorage = EmptyPersistentStorage()) {
-        self.state = .init()
         self.storage = storage
+        self.state = .init()
         
         $state
             .removeDuplicates()
@@ -23,21 +37,8 @@ public class StoreContainer<State : AnyState> : ObservableObject {
             self?.willChange.send(state)
         }.store(in: &cancellables)
         
-        let mirror = Mirror(reflecting: state)
-        
-        for child in mirror.children {
-            guard let value = child.value as? AnyRef else {
-                continue
-            }
-            
-            value.objectWillChange.sink { [weak self] in
-                guard let strongSelf = self else {
-                    return
-                }
-                
-                strongSelf.willChange.send(strongSelf.state)
-                strongSelf.objectWillChange.send()
-            }.store(in: &cancellables)
+        DispatchQueue.main.async { [unowned self] in
+            RefBag.shared.endMonitoring(with: self.updateRefs)
         }
     }
     
@@ -46,7 +47,19 @@ public class StoreContainer<State : AnyState> : ObservableObject {
     }
     
     deinit {
+        cancellables.forEach {
+            $0.cancel()
+        }
+        
+        refCancellables.forEach {
+            $0.cancel()
+        }
+        
+        persistStateChangesCancellable?.cancel()
+        
         cancellables.removeAll()
+        refCancellables.removeAll()
+        persistStateChangesCancellable = nil
     }
     
 }
@@ -84,6 +97,29 @@ extension StoreContainer where State : Codable {
             return self.state
         } set: { value in
             self.state = value
+        }
+    }
+    
+}
+
+extension StoreContainer {
+    
+    fileprivate func updateRefs(_ refs : [AnyRef]) {
+        refCancellables.forEach {
+            $0.cancel()
+        }
+        
+        refCancellables.removeAll()
+
+        for ref in refs {
+            ref.objectWillChange.sink { [weak self] in
+                guard let strongSelf = self else {
+                    return
+                }
+                
+                strongSelf.willChange.send(strongSelf.state)
+                strongSelf.objectWillChange.send()
+            }.store(in: &refCancellables)
         }
     }
     
