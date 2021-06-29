@@ -1,8 +1,8 @@
 import Foundation
 import Combine
 
-public protocol AnyRef {
+public protocol AnyRef : AnyObject {
 
     var objectWillChange : ObservableObjectPublisher { get }
-    
+  
 }

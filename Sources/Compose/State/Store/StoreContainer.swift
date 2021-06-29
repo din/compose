@@ -3,30 +3,23 @@ import Combine
 import SwiftUI
 
 public class StoreContainer<State : AnyState> : ObservableObject {
+    
+    struct RefStorage {
+        weak var ref : AnyRef?
+    }
 
     public let willChange = ValueEmitter<State>()
 
-    @Published internal var state : State {
-        
-        didSet {
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else {
-                    return
-                }
-                
-                RefBag.shared.endMonitoring(with: self.updateRefs)
-            }
-        }
-        
-    }
+    @Published internal var state : State
     
     internal var cancellables = Set<AnyCancellable>()
     fileprivate var persistStateChangesCancellable : AnyCancellable?
-    fileprivate var refCancellables = Set<AnyCancellable>()
+    
+    fileprivate var refs = [RefStorage]()
+    fileprivate var hasRefs : Bool = true
     
     fileprivate let storage : AnyPersistentStorage
    
-    
     public init(storage : AnyPersistentStorage = EmptyPersistentStorage()) {
         self.storage = storage
         self.state = .init()
@@ -34,12 +27,11 @@ public class StoreContainer<State : AnyState> : ObservableObject {
         $state
             .removeDuplicates()
             .sink { [weak self] state in
-            self?.willChange.send(state)
+                self?.willChange.send(state)
+                self?.updateRefs()
         }.store(in: &cancellables)
         
-        DispatchQueue.main.async { [unowned self] in
-            RefBag.shared.endMonitoring(with: self.updateRefs)
-        }
+        updateRefs()
     }
     
     public func invalidate() {
@@ -51,14 +43,9 @@ public class StoreContainer<State : AnyState> : ObservableObject {
             $0.cancel()
         }
         
-        refCancellables.forEach {
-            $0.cancel()
-        }
-        
         persistStateChangesCancellable?.cancel()
         
         cancellables.removeAll()
-        refCancellables.removeAll()
         persistStateChangesCancellable = nil
     }
     
@@ -104,22 +91,35 @@ extension StoreContainer where State : Codable {
 
 extension StoreContainer {
     
-    fileprivate func updateRefs(_ refs : [AnyRef]) {
-        refCancellables.forEach {
-            $0.cancel()
+    fileprivate func updateRefs() {
+        guard hasRefs == true && (refs.isEmpty == true || refs.contains(where: { $0.ref == nil })) else {
+            return
         }
         
-        refCancellables.removeAll()
+        refs.removeAll()
+        
+        let mirror = Mirror(reflecting: state)
 
-        for ref in refs {
-            ref.objectWillChange.sink { [weak self] in
+        for child in mirror.children {
+            guard let value = child.value as? AnyRef else {
+                continue
+            }
+            
+            refs.append(.init(ref: value))
+            
+            value.objectWillChange.sink { [weak self] in
                 guard let strongSelf = self else {
                     return
                 }
                 
                 strongSelf.willChange.send(strongSelf.state)
                 strongSelf.objectWillChange.send()
-            }.store(in: &refCancellables)
+            }.store(in: &cancellables)
+        }
+        
+        if refs.count == 0 {
+            self.hasRefs = false
+            return
         }
     }
     

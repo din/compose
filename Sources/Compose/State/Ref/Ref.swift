@@ -53,14 +53,10 @@ extension Storage {
     private var value : T? = nil
     
     public init() {
-        RefBag.shared.add(self)
-        
         self.value = nil
     }
     
     public init(wrappedValue : T) {
-        RefBag.shared.add(self)
-        
         self.value = wrappedValue
         self.didChange.send(.init(senderId: refId, value: wrappedValue))
         
