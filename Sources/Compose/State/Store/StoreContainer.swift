@@ -3,6 +3,10 @@ import Combine
 import SwiftUI
 
 public class StoreContainer<State : AnyState> : ObservableObject {
+    
+    struct RefStorage {
+        weak var ref : AnyRef?
+    }
 
     public let willChange = ValueEmitter<State>()
 
