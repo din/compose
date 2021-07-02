@@ -29,10 +29,7 @@ public struct DynamicComponent<T : Component> : Component {
     public init() {
         // Intentionally left blank
     }
-    
-    func destroy() {
-        storage.destroy()
-    }
+
 }
 
 extension DynamicComponent {

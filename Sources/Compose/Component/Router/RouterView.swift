@@ -16,7 +16,7 @@ public struct RouterView<Content : View> : View, Identifiable {
     @GestureState private var offset : CGFloat = -1.0
     
     ///Identifier on a router view allows us to switch between similar nested router views inside other router views.
-    ///Without an identifiers, SwiftUI woldn't replace a view inside a `ForEach` statement because they would be identical to SwiftUI.
+    ///Without identifiers, SwiftUI wouldn't replace a view inside a `ForEach` statement because they would be identical to SwiftUI.
     public let id = UUID()
     
     ///Default view contents.
