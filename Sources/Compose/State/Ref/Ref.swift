@@ -47,6 +47,8 @@ extension Storage {
             observeChanges()
         }
     }
+    
+    public var destroyedAction: (() -> Void)?
 
     fileprivate let refId = UUID()
     
@@ -62,6 +64,10 @@ extension Storage {
         
         observeChanges()
         
+    }
+    
+    deinit {
+        destroyedAction?()
     }
     
     fileprivate func observeChanges() {

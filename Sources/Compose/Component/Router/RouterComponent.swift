@@ -9,7 +9,7 @@ extension RouterComponent {
     
     public var view: AnyView {
         return AnyView(
-            lifecycle(RouterView().environmentObject(router))
+            lifecycle(RouterView(router))
         )
     }
     
@@ -19,7 +19,7 @@ extension RouterComponent where Self : View {
     
     public var view: AnyView {
         return AnyView(
-            lifecycle(self.environmentObject(router))
+            lifecycle(self)
         )
     }
     

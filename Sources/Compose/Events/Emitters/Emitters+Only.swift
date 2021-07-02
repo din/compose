@@ -5,10 +5,11 @@ extension Emitters {
     
     public struct Only<Upstream : Emitter> : Emitter where Upstream.Value : Equatable {
         
-        public let id = UUID()
+        public let id : UUID
         public let publisher: AnyPublisher<Void, Never>
         
         public init(emitter : Upstream, value : Upstream.Value) {
+            self.id = emitter.id
             self.publisher = emitter.publisher
                 .filter({ currentValue in
                     currentValue == value

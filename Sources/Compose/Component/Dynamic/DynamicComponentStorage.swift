@@ -5,9 +5,12 @@ final class DynamicComponentStorage<T : Component> {
     
     var component : T? = nil
     
-    fileprivate var cancellables = Set<AnyCancellable>()
-    fileprivate weak var router : Router? = nil
+    let didCreate = SignalEmitter()
+    let didDestroy = SignalEmitter()
     
+    fileprivate var cancellables = Set<AnyCancellable>()
+    fileprivate var bindableObjects = NSPointerArray.weakObjects()
+
     var isCreated : Bool {
         component != nil
     }
@@ -17,22 +20,42 @@ final class DynamicComponentStorage<T : Component> {
     }
     
     func create(allocator : () -> T) {
-        ObservationBag.shared.beginMonitoring { cancellable in
+        let monitoringId = ObservationBag.shared.beginMonitoring{ cancellable in
             self.cancellables.insert(cancellable)
         }
+    
+        var component = allocator()
         
-        let component = allocator().bind()
+        ObservationBag.shared.addOwner(component.id, for: didCreate.id)
+        ObservationBag.shared.addOwner(component.id, for: didDestroy.id)
+
+        var result = BindingResult()
+        component = component.bind(&result)
+        bindableObjects = result.bindableObjects
         
         self.component = component
-        self.router = (component as? RouterComponent)?.router
 
-        ObservationBag.shared.endMonitoring()
+        ObservationBag.shared.endMonitoring(key: monitoringId)
     }
     
     func destroy() {
-        router?.target = nil
-        self.component = nil
+        bindableObjects.allObjects.forEach {
+            ($0 as? BindableObject)?.unbind()
+        }
+
+        for i in 0..<bindableObjects.count {
+            bindableObjects.removePointer(at: i)
+        }
         
+        if let id = component?.id {
+            ObservationBag.shared.remove(forOwner: id)
+        }
+        
+        ObservationBag.shared.remove(for: didCreate.id)
+        ObservationBag.shared.remove(for: didDestroy.id)
+                
+        self.component = nil
+     
         DispatchQueue.main.async { [weak self] in
             self?.cancellables.forEach {
                 $0.cancel()

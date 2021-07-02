@@ -4,7 +4,7 @@ import Combine
 public struct SignalEmitter : Emitter {
     
     public let id = UUID()
-    
+
     public var publisher: AnyPublisher<Void, Never> {
         subject
             .eraseToAnyPublisher()

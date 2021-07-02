@@ -5,10 +5,11 @@ extension Emitters {
     
     public struct IgnoreOutput<Upstream : Emitter> : Emitter {
         
-        public let id = UUID()
+        public let id : UUID
         public var publisher: AnyPublisher<Void, Never>
         
         public init(emitter : Upstream) {
+            self.id = emitter.id
             self.publisher = emitter.publisher
                 .map { _ in
                     Void()

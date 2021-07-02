@@ -3,10 +3,13 @@ import Combine
 
 final class InstanceComponentStorage<T : Component> {
     
+    let didCreate = ValueEmitter<UUID>()
+    let didDestroy = ValueEmitter<UUID>()
+    
     var components = [UUID : T]()
     fileprivate var cancellables = [UUID : Set<AnyCancellable>]()
-    fileprivate var routers = NSMapTable<NSString, Router>(keyOptions: .copyIn,
-                                                           valueOptions: .weakMemory)
+    fileprivate var bindableObjects = NSMapTable<NSString, NSPointerArray>(keyOptions: .copyIn,
+                                                                           valueOptions: .strongMemory)
     
     var currentId : UUID? = nil
     
@@ -18,17 +21,19 @@ final class InstanceComponentStorage<T : Component> {
     func create(allocator : () -> T) -> UUID {
         let component = allocator()
         
-        ObservationBag.shared.beginMonitoring { cancellable in
+        let monitoringId = ObservationBag.shared.beginMonitoring { cancellable in
             self.cancellables[component.id]?.insert(cancellable)
         }
         
+        var result = BindingResult()
+        
         cancellables[component.id] = []
-        components[component.id] = component.bind()
+        components[component.id] = component.bind(&result)
         currentId = component.id
         
-        routers.setObject((component as? RouterComponent)?.router, forKey: component.id.uuidString as NSString)
+        bindableObjects.setObject(result.bindableObjects, forKey: component.id.uuidString as NSString)
         
-        ObservationBag.shared.endMonitoring()
+        ObservationBag.shared.endMonitoring(key: monitoringId)
         
         return component.id
     }
@@ -36,8 +41,20 @@ final class InstanceComponentStorage<T : Component> {
     func destroy(id : UUID) {
         components[id] = nil
         
-        routers.object(forKey: id.uuidString as NSString)?.target = nil
-        routers.removeObject(forKey: id.uuidString as NSString)
+        if let objects = bindableObjects.object(forKey: id.uuidString as NSString) {
+
+            objects.allObjects.forEach {
+                ($0 as? BindableObject)?.unbind()
+            }
+            
+            for i in 0..<objects.count {
+                objects.removePointer(at: i)
+            }
+        }
+        
+        bindableObjects.removeObject(forKey: id.uuidString as NSString)
+        
+        ObservationBag.shared.remove(forOwner: id)
         
         DispatchQueue.main.async { [weak self] in
             self?.cancellables[id]?.forEach {
@@ -54,5 +71,8 @@ final class InstanceComponentStorage<T : Component> {
         ids.forEach {
             destroy(id: $0)
         }
+        
+        ObservationBag.shared.remove(for: didCreate.id)
+        ObservationBag.shared.remove(for: didDestroy.id)
     }
 }

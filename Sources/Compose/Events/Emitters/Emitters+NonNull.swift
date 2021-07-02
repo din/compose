@@ -5,10 +5,11 @@ extension Emitters {
     
     public struct NonNull<Upstream : Emitter> : Emitter where Upstream.Value : OptionalValue {
         
-        public let id = UUID()
+        public let id : UUID
         public let publisher: AnyPublisher<Upstream.Value.Wrapped, Never>
         
         public init(emitter : Upstream) {
+            self.id = emitter.id
             self.publisher = emitter.publisher
                 .compactMap { (currentValue : Upstream.Value?) in
                     currentValue as? Upstream.Value.Wrapped

@@ -5,12 +5,13 @@ extension Emitters {
     
     public struct Debounce<Upstream : Emitter, SelectedScheduler : Scheduler> : Emitter {
         
-        public let id = UUID()
+        public let id : UUID
         public var publisher: AnyPublisher<Upstream.Value, Never>
         
         public init(emitter : Upstream,
                     interval : SelectedScheduler.SchedulerTimeType.Stride,
                     scheduler : SelectedScheduler) {
+            self.id = emitter.id
             self.publisher = emitter.publisher
                 .debounce(for: interval, scheduler: scheduler)
                 .eraseToAnyPublisher()

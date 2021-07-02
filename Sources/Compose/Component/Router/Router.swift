@@ -148,25 +148,30 @@ extension Router {
         }
         
         return Route(id: component.id,
-                     view: AnyView(component.view
-                                    .transition(.move(edge: .trailing))
-                                    .environmentObject(self)),
+                     view: AnyView(component.view.transition(.move(edge: .trailing))),
                      path: keyPath,
                      zIndex: Double(zIndex))
     }
     
 }
 
-extension Router : Bindable {
+extension Router : BindableObject {
     
     public func bind<C : Component>(to component: C) {
         self.target = component
 
-        Storage.shared.setValue(self, at: Storage.RouterObjectKey(id: \C.self))
-        
         if let start = start {
             replace(start)
         }
+    }
+    
+    public func unbind() {
+        self.target = nil
+        self.routes.removeAll()
+        
+        ObservationBag.shared.remove(for: didPush.id)
+        ObservationBag.shared.remove(for: didPop.id)
+        ObservationBag.shared.remove(for: didReplace.id)
     }
     
 }

@@ -4,7 +4,7 @@ public final class Services {
     
     public static let all = Services()
     
-    internal var services = [String : Service]()
+    internal var services = [ObjectIdentifier : Service]()
     
     private init() {
         
@@ -12,7 +12,7 @@ public final class Services {
     
     public subscript<K : Service>(key: K.Type) -> K {
         get {
-            if let someService = services[K.Name] {
+            if let someService = services[ObjectIdentifier(K.self)] {
                 if let service = someService as? K {
                     return service
                 }
@@ -22,18 +22,22 @@ public final class Services {
             }
             else {
                 let service = K.init()
-                services[K.Name] = service
+                services[ObjectIdentifier(K.self)] = service
                 
                 return service
             }
         }
         set {
-            services[K.Name] = newValue
+            services[ObjectIdentifier(K.self)] = newValue
         }
     }
+
+}
+
+extension Service {
     
-    public func bind<K : Service>(_ serviceType : K.Type) {
-        _ = self[K]
+    public var services : Services {
+        Services.all
     }
     
 }

@@ -3,10 +3,6 @@ import Combine
 import SwiftUI
 
 public class StoreContainer<State : AnyState> : ObservableObject {
-    
-    struct RefStorage {
-        weak var ref : AnyRef?
-    }
 
     public let willChange = ValueEmitter<State>()
 
@@ -14,9 +10,6 @@ public class StoreContainer<State : AnyState> : ObservableObject {
     
     internal var cancellables = Set<AnyCancellable>()
     fileprivate var persistStateChangesCancellable : AnyCancellable?
-    
-    fileprivate var refs = [RefStorage]()
-    fileprivate var hasRefs : Bool = true
     
     fileprivate let storage : AnyPersistentStorage
    
@@ -28,7 +21,6 @@ public class StoreContainer<State : AnyState> : ObservableObject {
             .removeDuplicates()
             .sink { [weak self] state in
                 self?.willChange.send(state)
-                self?.updateRefs()
         }.store(in: &cancellables)
         
         updateRefs()
@@ -43,9 +35,9 @@ public class StoreContainer<State : AnyState> : ObservableObject {
             $0.cancel()
         }
         
-        persistStateChangesCancellable?.cancel()
-        
         cancellables.removeAll()
+        
+        persistStateChangesCancellable?.cancel()
         persistStateChangesCancellable = nil
     }
     
@@ -92,20 +84,18 @@ extension StoreContainer where State : Codable {
 extension StoreContainer {
     
     fileprivate func updateRefs() {
-        guard hasRefs == true && (refs.isEmpty == true || refs.contains(where: { $0.ref == nil })) else {
-            return
-        }
-        
-        refs.removeAll()
-        
         let mirror = Mirror(reflecting: state)
 
         for child in mirror.children {
             guard let value = child.value as? AnyRef else {
                 continue
             }
-            
-            refs.append(.init(ref: value))
+
+            value.destroyedAction = { [weak self] in
+                DispatchQueue.main.async {
+                    self?.updateRefs()
+                }
+            }
             
             value.objectWillChange.sink { [weak self] in
                 guard let strongSelf = self else {
@@ -115,11 +105,6 @@ extension StoreContainer {
                 strongSelf.willChange.send(strongSelf.state)
                 strongSelf.objectWillChange.send()
             }.store(in: &cancellables)
-        }
-        
-        if refs.count == 0 {
-            self.hasRefs = false
-            return
         }
     }
     

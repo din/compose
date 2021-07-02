@@ -5,16 +5,18 @@ extension Emitters {
     
     public struct DropUntil<Upstream : Emitter> : Emitter  {
         
-        public let id = UUID()
+        public let id : UUID
         public let publisher: AnyPublisher<Upstream.Value, Never>
         
         public init<OtherEmitter : Emitter>(emitter : Upstream, otherEmitter : OtherEmitter) {
+            self.id = emitter.id
             self.publisher = emitter.publisher
                 .drop(untilOutputFrom: otherEmitter.publisher)
                 .eraseToAnyPublisher()
         }
         
         public init<OtherPublisher : Publisher>(emitter : Upstream, otherPublisher : OtherPublisher) where OtherPublisher.Failure == Never {
+            self.id = emitter.id
             self.publisher = emitter.publisher
                 .drop(untilOutputFrom: otherPublisher)
                 .eraseToAnyPublisher()

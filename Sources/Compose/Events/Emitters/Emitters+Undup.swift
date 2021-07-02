@@ -5,10 +5,11 @@ extension Emitters {
   
     public struct Undup<Upstream : Emitter> : Emitter where Upstream.Value : Equatable {
         
-        public let id = UUID()
+        public let id : UUID
         public let publisher: AnyPublisher<Upstream.Value, Never>
         
         public init(emitter : Upstream) {
+            self.id = emitter.id
             self.publisher = emitter.publisher
                 .removeDuplicates()
                 .eraseToAnyPublisher()

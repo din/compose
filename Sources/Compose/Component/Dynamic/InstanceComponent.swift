@@ -6,11 +6,16 @@ public struct InstanceComponent<T : Component> : Component {
     
     let storage = InstanceComponentStorage<T>()
     
-    public let didCreate = ValueEmitter<UUID>()
-    public let didDestroy = ValueEmitter<UUID>()
-    
     public var observers: Void {
         None
+    }
+    
+    public var didCreate : ValueEmitter<UUID> {
+        storage.didCreate
+    }
+    
+    public var didDestroy : ValueEmitter<UUID> {
+        storage.didDestroy
     }
     
     public var component : T? {

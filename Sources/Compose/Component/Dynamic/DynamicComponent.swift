@@ -5,12 +5,17 @@ import SwiftUI
 public struct DynamicComponent<T : Component> : Component {
     
     let storage = DynamicComponentStorage<T>()
-
-    public let didCreate = SignalEmitter()
-    public let didDestroy = SignalEmitter()
     
     public var observers: Void {
         None
+    }
+    
+    public var didCreate : SignalEmitter {
+        storage.didCreate
+    }
+    
+    public var didDestroy : SignalEmitter {
+        storage.didDestroy
     }
     
     public var component : T? {
@@ -23,6 +28,10 @@ public struct DynamicComponent<T : Component> : Component {
     
     public init() {
         // Intentionally left blank
+    }
+    
+    func destroy() {
+        storage.destroy()
     }
 }
 
