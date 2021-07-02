@@ -8,10 +8,11 @@ extension Emitters {
     
     public struct MapErrorToNilEmitter<Upstream : Emitter, Value, Error> : Emitter where Upstream.Value == Result<Value, Error> {
         
-        public let id = UUID()
+        public let id : UUID
         public let publisher: AnyPublisher<Value?, Never>
         
         public init(emitter : Upstream) {
+            self.id = emitter.id
             self.publisher = emitter.publisher
                 .flatMap { output -> AnyPublisher<Value?, Never> in
                     switch output {

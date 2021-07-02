@@ -4,7 +4,7 @@ import Combine
 public class TimerEmitter : Emitter {
     
     public let id = UUID()
-    
+
     public var publisher: AnyPublisher<Date, Never> {
         timerPublisher.eraseToAnyPublisher()
     }
@@ -34,4 +34,3 @@ public class TimerEmitter : Emitter {
     }
     
 }
-

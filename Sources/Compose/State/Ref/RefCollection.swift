@@ -23,11 +23,17 @@ import Combine
         value.map { Referred(id: $0.wrappedValue.id) }
     }
     
+    public var destroyedAction: (() -> Void)?
+    
     fileprivate var value : [Ref<T>] = []
     fileprivate var cancellables = Set<AnyCancellable>()
     
     public init() {
         
+    }
+    
+    deinit {
+        destroyedAction?()
     }
 
 }

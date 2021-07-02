@@ -11,7 +11,7 @@ public struct ValueEmitter<Value> : Emitter {
     }
 
     public let id = UUID()
-    
+
     public var publisher: AnyPublisher<Value, Never> {
         subject
             .eraseToAnyPublisher()
@@ -48,7 +48,7 @@ extension ValueEmitter {
             handler(value, oldValue)
         }
         
-        ObservationBag.shared.add(cancellable)
+        ObservationBag.shared.add(cancellable, for: id)
          
         return cancellable
     }

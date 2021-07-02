@@ -7,39 +7,67 @@ final class ObservationBag {
     
     static let shared = ObservationBag()
     
-    var cancellables = Set<AnyCancellable>()
-    var namedCancellables = [AnyHashable : AnyCancellable]()
+    var cancellables = [AnyHashable : Set<AnyCancellable>]()
+    var owners = [AnyHashable : [AnyHashable]]()
+    var monitors = [AnyHashable : Monitor]()
     
-    var monitor : Monitor? = nil
-    
-    func add(_ cancellable : AnyCancellable) {
-        cancellables.insert(cancellable)
-        monitor?(cancellable)
+    func add(_ cancellable : AnyCancellable, for identifier : AnyHashable) {
+        if cancellables[identifier] == nil {
+            cancellables[identifier] = .init()
+        }
+        
+        cancellables[identifier]?.insert(cancellable)
+        
+        monitors.values.forEach {
+            $0(cancellable)
+        }
     }
     
-    func remove(_ cancellable : AnyCancellable) {
-        cancellables.remove(cancellable)
+    func remove(for identifier : AnyHashable) {
+        cancellables[identifier]?.forEach {
+            $0.cancel()
+        }
+        
+        cancellables[identifier] = nil
     }
     
-    func add(_ cancellable : AnyCancellable, for key : AnyHashable) {
-        namedCancellables[key] = cancellable
-        monitor?(cancellable)
-    }
-    
-    func remove(for key : AnyHashable) {
-        namedCancellables[key]?.cancel()
-        namedCancellables[key] = nil
+    func remove(forOwner identifier : AnyHashable) {
+        guard let ids = owners[identifier] else {
+            return
+        }
+        
+        for id in ids {
+            remove(for: id)
+        }
+        
+        owners[identifier] = nil
     }
     
 }
 
 extension ObservationBag {
     
-    func beginMonitoring(with monitor : @escaping Monitor) {
-        self.monitor = monitor
+    func addOwner(_ ownerId : AnyHashable, for id : AnyHashable) {
+        if owners[ownerId] == nil {
+            owners[ownerId] = .init()
+        }
+        
+        owners[ownerId]?.append(id)
     }
     
-    func endMonitoring() {
-        self.monitor = nil
+}
+
+extension ObservationBag {
+    
+    func beginMonitoring(with monitor : @escaping Monitor) -> AnyHashable {
+        let key = UUID()
+        
+        self.monitors[key] = monitor
+        
+        return key
+    }
+    
+    func endMonitoring(key : AnyHashable) {
+        self.monitors[key] = nil
     }
 }

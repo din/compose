@@ -8,7 +8,7 @@ public struct RouterView<Content : View> : View, Identifiable {
     let maxInteractiveTransitionOffset : CGFloat = UIScreen.main.bounds.width / 2.0
     let startingSubviewTransitionOffset : CGFloat = -90
     
-    @EnvironmentObject var router : Router
+    @ObservedObject var router : Router
     
     @State private var interactiveTransitionOffset : CGFloat = 0.0
     @State private var isTransitioning : Bool = false
@@ -16,7 +16,7 @@ public struct RouterView<Content : View> : View, Identifiable {
     @GestureState private var offset : CGFloat = -1.0
     
     ///Identifier on a router view allows us to switch between similar nested router views inside other router views.
-    ///Without an identifiers, SwiftUI wouldn't replace a view inside a `ForEach` statement because they would be identical to SwiftUI.
+    ///Without identifiers, SwiftUI wouldn't replace a view inside a `ForEach` statement because they would be identical to SwiftUI.
     public let id = UUID()
     
     ///Default view contents.
@@ -26,7 +26,8 @@ public struct RouterView<Content : View> : View, Identifiable {
         router.routes
     }
 
-    public init(@ViewBuilder content : () -> Content) {
+    public init(_ router : Router, @ViewBuilder content : () -> Content) {
+        self.router = router
         self.content = content()
     }
     
@@ -102,7 +103,8 @@ public struct RouterView<Content : View> : View, Identifiable {
 
 extension RouterView where Content == EmptyView {
     
-    public init() {
+    public init(_ router : Router) {
+        self.router = router
         self.content = EmptyView()
     }
     
