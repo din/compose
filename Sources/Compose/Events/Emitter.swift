@@ -4,10 +4,14 @@ import Combine
 infix operator !+=
 infix operator ~+=
 
-public protocol Emitter : Bindable {
-    associatedtype Value
+public protocol AnyEmitter {
     
     var id : UUID { get }
+    
+}
+
+public protocol Emitter : AnyEmitter, Bindable {
+    associatedtype Value
 
     var publisher : AnyPublisher<Value, Never> { get }
     

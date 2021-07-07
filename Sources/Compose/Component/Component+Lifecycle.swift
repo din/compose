@@ -32,9 +32,17 @@ extension Component {
         return view
             .onAppear {
                 didAppear.send()
+                
+                Introspection.shared.updateDescriptor(for: self) {
+                    $0?.isVisible = true
+                }
             }
             .onDisappear {
                 didDisappear.send()
+                
+                Introspection.shared.updateDescriptor(for: self) {
+                    $0?.isVisible = false
+                }
             }
     }
     

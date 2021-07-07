@@ -8,9 +8,7 @@ final class InstanceComponentStorage<T : Component> {
     
     var components = [UUID : T]()
     fileprivate var cancellables = [UUID : Set<AnyCancellable>]()
-    fileprivate var bindableObjects = NSMapTable<NSString, NSPointerArray>(keyOptions: .copyIn,
-                                                                           valueOptions: .strongMemory)
-    
+
     var currentId : UUID? = nil
     
     deinit {
@@ -25,14 +23,10 @@ final class InstanceComponentStorage<T : Component> {
             self.cancellables[component.id]?.insert(cancellable)
         }
         
-        var result = BindingResult()
-        
         cancellables[component.id] = []
-        components[component.id] = component.bind(&result)
+        components[component.id] = component.bind()
         currentId = component.id
-        
-        bindableObjects.setObject(result.bindableObjects, forKey: component.id.uuidString as NSString)
-        
+  
         ObservationBag.shared.endMonitoring(key: monitoringId)
         
         return component.id
@@ -41,20 +35,9 @@ final class InstanceComponentStorage<T : Component> {
     func destroy(id : UUID) {
         components[id] = nil
         
-        if let objects = bindableObjects.object(forKey: id.uuidString as NSString) {
-
-            objects.allObjects.forEach {
-                ($0 as? BindableObject)?.unbind()
-            }
-            
-            for i in 0..<objects.count {
-                objects.removePointer(at: i)
-            }
-        }
-        
-        bindableObjects.removeObject(forKey: id.uuidString as NSString)
-        
         ObservationBag.shared.remove(forOwner: id)
+       
+        Introspection.shared.unregister(id)
         
         DispatchQueue.main.async { [weak self] in
             self?.cancellables[id]?.forEach {

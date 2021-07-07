@@ -1,14 +1,19 @@
 import Foundation
 
+public protocol Bindable {
+    
+    func bind<C : Component>(to component : C)
+
+}
+
 extension Component {
     
     @discardableResult
     public func bind() -> Self {
-        var result = BindingResult()
-        return bind(&result)
-    }
+        /* Storing lifecycle for the component in the component descriptor */
+        
+        Introspection.shared.register(self)
 
-    func bind(_ result : inout BindingResult) -> Self {
         /* Binding all children and wrapped values */
         
         let mirror = Mirror(reflecting: self)
@@ -18,11 +23,27 @@ extension Component {
                 (value as? Component)?.bind()
             }
             
+            /* if let component = value as? Component {
+                component.bind()
+                
+                if let name = name {
+                    Introspection.shared.updateDescriptor(for: self) {
+                        $0?.add(component: component, for: name)
+                    }
+                }
+            }
+            
+            if let name = name, let emitter = value as? AnyEmitter {
+                Introspection.shared.updateDescriptor(for: self) {
+                    $0?.add(emitter: emitter, for: name)
+                }
+            } */
+            
+            /* Binding bindables */
+            
             if let value = value as? Bindable {
                 value.bind(to: self)
             }
-            
-            /* Binding bindables */
 
             if let name = name, name.hasPrefix("_") {
                 let wrapperMirror = Mirror(reflecting: value)
@@ -30,12 +51,12 @@ extension Component {
                 for (_, wrappedValue) in wrapperMirror.children {
                     if let wrappedValue = wrappedValue as? Bindable {
                         wrappedValue.bind(to: self)
-
                     }
                     
-                    //Storing class-based bindables
-                    if let wrappedValue = wrappedValue as? BindableObject {
-                        result.bindableObjects.addPointer(Unmanaged.passUnretained(wrappedValue as AnyObject).toOpaque())
+                    if let router = wrappedValue as? Router {
+                        Introspection.shared.updateDescriptor(for: self) {
+                            $0?.add(router: router, for: name)
+                        }
                     }
                 }
             }

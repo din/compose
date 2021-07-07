@@ -5,6 +5,8 @@ public protocol Component {
     
     static var auxiliaryBindableKeyPaths : [AnyKeyPath] { get }
     
+    var type : Component.Type { get }
+    
     var id : UUID { get }
     
     var observers : Void { get }
@@ -23,8 +25,8 @@ extension Component {
 
 extension Component {
     
-    static var Name : String {
-        return String(describing: self)
+    public var type : Component.Type {
+        return Self.self
     }
     
 }

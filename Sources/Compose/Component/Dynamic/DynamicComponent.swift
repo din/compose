@@ -1,10 +1,18 @@
 import Foundation
 import SwiftUI
 
+protocol AnyDynamicComponent {
+    
+}
+
 @dynamicMemberLookup
-public struct DynamicComponent<T : Component> : Component {
+public struct DynamicComponent<T : Component> : Component, AnyDynamicComponent {
     
     let storage = DynamicComponentStorage<T>()
+    
+    public var type: Component.Type {
+        T.self
+    }
     
     public var observers: Void {
         None
@@ -40,8 +48,12 @@ extension DynamicComponent {
             return
         }
         
-        storage.create(allocator: allocator)
+        let id = storage.create(allocator: allocator)
         didCreate.send()
+        
+        Introspection.shared.updateDescriptor(for: self) {
+            $0?.add(component: id)
+        }
     }
     
     public subscript<V>(dynamicMember keyPath : KeyPath<T, V>) -> V {
@@ -62,9 +74,19 @@ extension DynamicComponent : View {
         }
         
         return component.view
+            .onAppear {
+                Introspection.shared.updateDescriptor(for: self) {
+                    $0?.isVisible = true
+                }
+            }
             .onDisappear {
                 storage.destroy()
                 didDestroy.send()
+                
+                Introspection.shared.updateDescriptor(for: self) {
+                    $0?.isVisible = false
+                    $0?.remove(component: id)
+                }
             }
     }
     

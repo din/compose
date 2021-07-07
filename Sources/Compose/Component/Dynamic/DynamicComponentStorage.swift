@@ -9,7 +9,6 @@ final class DynamicComponentStorage<T : Component> {
     let didDestroy = SignalEmitter()
     
     fileprivate var cancellables = Set<AnyCancellable>()
-    fileprivate var bindableObjects = NSPointerArray.weakObjects()
 
     var isCreated : Bool {
         component != nil
@@ -17,43 +16,35 @@ final class DynamicComponentStorage<T : Component> {
     
     deinit {
         destroy()
+        
+        ObservationBag.shared.remove(for: didCreate.id)
+        ObservationBag.shared.remove(for: didDestroy.id)
     }
     
-    func create(allocator : () -> T) {
+    @discardableResult
+    func create(allocator : () -> T) -> UUID {
         let monitoringId = ObservationBag.shared.beginMonitoring{ cancellable in
             self.cancellables.insert(cancellable)
         }
     
-        var component = allocator()
-        
-        ObservationBag.shared.addOwner(component.id, for: didCreate.id)
-        ObservationBag.shared.addOwner(component.id, for: didDestroy.id)
-
-        var result = BindingResult()
-        component = component.bind(&result)
-        bindableObjects = result.bindableObjects
-        
+        let component = allocator().bind()
         self.component = component
 
         ObservationBag.shared.endMonitoring(key: monitoringId)
+        
+        return component.id
     }
     
-    func destroy() {
-        bindableObjects.allObjects.forEach {
-            ($0 as? BindableObject)?.unbind()
+    @discardableResult
+    func destroy() -> UUID? {
+        guard let id = component?.id else {
+            return nil
         }
-
-        for i in 0..<bindableObjects.count {
-            bindableObjects.removePointer(at: i)
-        }
+    
+        Introspection.shared.unregister(id)
         
-        if let id = component?.id {
-            ObservationBag.shared.remove(forOwner: id)
-        }
-        
-        ObservationBag.shared.remove(for: didCreate.id)
-        ObservationBag.shared.remove(for: didDestroy.id)
-                
+        ObservationBag.shared.remove(forOwner: id)
+     
         self.component = nil
      
         DispatchQueue.main.async { [weak self] in
@@ -63,5 +54,7 @@ final class DynamicComponentStorage<T : Component> {
             
             self?.cancellables.removeAll()
         }
+        
+        return id
     }
 }

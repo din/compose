@@ -155,7 +155,7 @@ extension Router {
     
 }
 
-extension Router : BindableObject {
+extension Router : Bindable {
     
     public func bind<C : Component>(to component: C) {
         self.target = component
@@ -163,15 +163,6 @@ extension Router : BindableObject {
         if let start = start {
             replace(start)
         }
-    }
-    
-    public func unbind() {
-        self.target = nil
-        self.routes.removeAll()
-        
-        ObservationBag.shared.remove(for: didPush.id)
-        ObservationBag.shared.remove(for: didPop.id)
-        ObservationBag.shared.remove(for: didReplace.id)
     }
     
 }

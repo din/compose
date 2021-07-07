@@ -1,10 +1,18 @@
 import Foundation
 import SwiftUI
 
+protocol AnyInstanceComponent {
+    
+}
+
 @dynamicMemberLookup
 public struct InstanceComponent<T : Component> : Component {
     
     let storage = InstanceComponentStorage<T>()
+    
+    public var type: Component.Type {
+        T.self
+    }
     
     public var observers: Void {
         None
@@ -29,7 +37,7 @@ public struct InstanceComponent<T : Component> : Component {
     public var id : UUID {
         storage.currentId ?? UUID()
     }
-    
+
     public init() {
         // Intentionally left blank
     }
@@ -37,9 +45,23 @@ public struct InstanceComponent<T : Component> : Component {
 
 extension InstanceComponent {
     
+    var componentId : UUID? {
+        Storage.shared.value(at: Storage.ComponentIdentifierKey(id: String(describing: self))) as? UUID
+    }
+    
+}
+
+extension InstanceComponent {
+    
     public func add(_ allocator : () -> T) {
         let id = storage.create(allocator: allocator)
         didCreate.send(id)
+        
+        if let componentId = componentId {
+            Introspection.shared.updateDescriptor(for: componentId) {
+                $0?.add(component: id)
+            }
+        }
     }
     
     public subscript<V>(dynamicMember keyPath : KeyPath<T, V>) -> V {
@@ -60,9 +82,24 @@ extension InstanceComponent : View {
         }
         
         return component.view
+            .onAppear {
+                
+                if let componentId = componentId {
+                    Introspection.shared.updateDescriptor(for: componentId) {
+                        $0?.isVisible = storage.components.count > 0
+                    }
+                }
+            }
             .onDisappear {
                 storage.destroy(id: id)
                 didDestroy.send(id)
+                
+                if let componentId = componentId {
+                    Introspection.shared.updateDescriptor(for: componentId) {
+                        $0?.isVisible = storage.components.count == 0
+                        $0?.remove(component: id)
+                    }
+                }
             }
     }
     
