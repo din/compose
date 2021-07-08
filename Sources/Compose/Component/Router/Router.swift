@@ -148,7 +148,7 @@ extension Router {
         }
         
         return Route(id: component.id,
-                     view: AnyView(component.view.transition(.move(edge: .trailing))),
+                     view: AnyView(component.view),
                      path: keyPath,
                      zIndex: Double(zIndex))
     }

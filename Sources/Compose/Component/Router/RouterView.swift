@@ -36,13 +36,16 @@ public struct RouterView<Content : View> : View, Identifiable {
             let isLast = route.id == routes.last?.id
             
             #if os(iOS) || os(macOS)
-            route.view
-                .zIndex(route.zIndex)
-                .transition(.asymmetric(insertion: .identity, removal: .move(edge: .trailing)))
-                .offset(x: isTransitioning == false && isLast == false && routes.count > 0 ? startingSubviewTransitionOffset : 0)
-                .offset(x: isTransitioning == true && isLast == false ? startingSubviewTransitionOffset * (1.0 - transitionProgress) : 0)
-                .offset(x: isTransitioning == true && isLast == true ? interactiveTransitionOffset : 0)
-                .allowsHitTesting(isTransitioning == false && route.id != routes.last?.id ? false : true)
+            RouteContainerView {
+                route.view
+            }
+            .transition(.move(edge: .trailing))
+            .zIndex(route.zIndex)
+            .transition(.asymmetric(insertion: .identity, removal: .move(edge: .trailing)))
+            .offset(x: isTransitioning == false && isLast == false && routes.count > 0 ? startingSubviewTransitionOffset : 0)
+            .offset(x: isTransitioning == true && isLast == false ? startingSubviewTransitionOffset * (1.0 - transitionProgress) : 0)
+            .offset(x: isTransitioning == true && isLast == true ? interactiveTransitionOffset : 0)
+            .allowsHitTesting(isTransitioning == false && route.id != routes.last?.id ? false : true)
             #else
             route.view
                 .opacity(isLast == true ? 1.0 : 0.0)
