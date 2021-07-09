@@ -79,12 +79,15 @@ public struct RouterView<Content : View> : View, Identifiable {
             RouterPanGestureReader { state in
                 switch state.gestureState {
                 
-                case .changed:
+                case .began:
                     guard canPerformTransition(state: state) else {
+                        state.gesture.state = .cancelled
                         return
                     }
-                
+
                     isTransitioning = true
+            
+                case .changed:
                     interactiveTransitionOffset = max(state.translation.x, 0)
                 
                 case .ended, .cancelled, .failed:
@@ -123,25 +126,25 @@ extension RouterView {
     #if os(iOS) || os(macOS)
     fileprivate func canPerformTransition(state : RouterPanGestureReader.State) -> Bool {
         guard isTransitioning == false else {
-            return true
+            return false
         }
-        
+
         guard router.options.canTransition == true else {
             return false
         }
-   
+
         guard router.paths.count > (content is EmptyView ? 1 : 0) else {
             return false
         }
-        
-        guard abs(state.translation.x) > abs(state.translation.y) else {
+
+        guard abs(state.velocity.x) > abs(state.velocity.y) else {
             return false
         }
-        
-        guard state.startLocation.x <= 40 else {
+
+        guard state.startLocation.x <= 55 else {
             return false
         }
-        
+
         return true
     }
     

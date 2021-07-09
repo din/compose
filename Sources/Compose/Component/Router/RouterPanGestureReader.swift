@@ -5,7 +5,9 @@ import UIKit
 struct RouterPanGestureReader : UIViewRepresentable {
     
     struct State {
+        let gesture : UIPanGestureRecognizer
         let gestureState : UIPanGestureRecognizer.State
+        let velocity : CGPoint
         let translation : CGPoint
         let predictedEndTranslation : CGPoint
         let startLocation : CGPoint
@@ -56,8 +58,12 @@ extension RouterPanGestureReader {
             self.action = action
         }
         
+        func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+            return gestureRecognizer.location(in: gestureRecognizer.view).x <= 55
+        }
+        
         func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-            true
+            otherGestureRecognizer.view is UIScrollView == false
         }
         
         @objc fileprivate func handlePan(_ recognizer : UIPanGestureRecognizer) {
@@ -69,7 +75,9 @@ extension RouterPanGestureReader {
                 startLocation = location
             }
             
-            action(.init(gestureState: recognizer.state,
+            action(.init(gesture: recognizer,
+                         gestureState: recognizer.state,
+                         velocity: velocity,
                          translation: translation,
                          predictedEndTranslation: .init(x: translation.x + velocity.x, y: translation.y + velocity.y),
                          startLocation: startLocation))
