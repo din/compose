@@ -23,21 +23,17 @@ extension Component {
                 (value as? Component)?.bind()
             }
             
-            /* if let component = value as? Component {
-                component.bind()
-                
-                if let name = name {
-                    Introspection.shared.updateDescriptor(for: self) {
-                        $0?.add(component: component, for: name)
-                    }
+            /* if let name = name, let component = value as? Component {
+                Introspection.shared.updateDescriptor(for: self) {
+                    $0?.add(component: component, for: name)
                 }
-            }
+            }*/
             
-            if let name = name, let emitter = value as? AnyEmitter {
+            /*if let name = name, let emitter = value as? AnyEmitter {
                 Introspection.shared.updateDescriptor(for: self) {
                     $0?.add(emitter: emitter, for: name)
                 }
-            } */
+            }*/
             
             /* Binding bindables */
             

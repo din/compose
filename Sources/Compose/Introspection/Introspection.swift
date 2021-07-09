@@ -118,4 +118,8 @@ extension Introspection {
         update(&componentDescriptors[id])
     }
     
+    func descriptor(for id : UUID) -> ComponentDescriptor? {
+        componentDescriptors[id]
+    }
+    
 }

@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 import simd
 import Combine
+import UIKit
 
 public struct RouterView<Content : View> : View, Identifiable {
     
@@ -9,11 +10,9 @@ public struct RouterView<Content : View> : View, Identifiable {
     let startingSubviewTransitionOffset : CGFloat = -90
     
     @ObservedObject var router : Router
-    
+
     @State private var interactiveTransitionOffset : CGFloat = 0.0
     @State private var isTransitioning : Bool = false
-    
-    @GestureState private var offset : CGFloat = -1.0
     
     ///Identifier on a router view allows us to switch between similar nested router views inside other router views.
     ///Without identifiers, SwiftUI wouldn't replace a view inside a `ForEach` statement because they would be identical to SwiftUI.
@@ -36,16 +35,15 @@ public struct RouterView<Content : View> : View, Identifiable {
             let isLast = route.id == routes.last?.id
             
             #if os(iOS) || os(macOS)
-            RouteContainerView {
-                route.view
-            }
-            .transition(.move(edge: .trailing))
-            .zIndex(route.zIndex)
-            .transition(.asymmetric(insertion: .identity, removal: .move(edge: .trailing)))
-            .offset(x: isTransitioning == false && isLast == false && routes.count > 0 ? startingSubviewTransitionOffset : 0)
-            .offset(x: isTransitioning == true && isLast == false ? startingSubviewTransitionOffset * (1.0 - transitionProgress) : 0)
-            .offset(x: isTransitioning == true && isLast == true ? interactiveTransitionOffset : 0)
-            .allowsHitTesting(isTransitioning == false && route.id != routes.last?.id ? false : true)
+            route.view
+                .routerScope(router.options.scopesAnimations)
+                .transition(.move(edge: .trailing))
+                .zIndex(route.zIndex)
+                .transition(.asymmetric(insertion: .identity, removal: .move(edge: .trailing)))
+                .offset(x: isTransitioning == false && isLast == false && routes.count > 0 ? startingSubviewTransitionOffset : 0)
+                .offset(x: isTransitioning == true && isLast == false ? startingSubviewTransitionOffset * (1.0 - transitionProgress) : 0)
+                .offset(x: isTransitioning == true && isLast == true ? interactiveTransitionOffset : 0)
+                .allowsHitTesting(isTransitioning == false && route.id != routes.last?.id ? false : true)
             #else
             route.view
                 .opacity(isLast == true ? 1.0 : 0.0)
@@ -63,29 +61,7 @@ public struct RouterView<Content : View> : View, Identifiable {
                 .allowsHitTesting(isTransitioning == false && routes.count == 0)
             
             routesBody
-                .gesture(
-                    DragGesture(minimumDistance: 0.01, coordinateSpace: .global)
-                        .onChanged { value in
-                            guard canPerformTransition(value: value) else {
-                                return
-                            }
-                            
-                            isTransitioning = true
-                            interactiveTransitionOffset = max(value.translation.width, 0)
-                        }
-                        .onEnded { value in
-                            finishTransition(value: value)
-                        }
-                        .updating($offset, body: { value, state, transaction in
-                            state = value.location.x
-                            
-                            DispatchQueue.main.async {
-                                if offset == -1.0 {
-                                    finishTransition(value: value)
-                                }
-                            }
-                        })
-                )
+         
             #else
             content
             routesBody
@@ -99,6 +75,27 @@ public struct RouterView<Content : View> : View, Identifiable {
                     .zIndex(1005.0)
                     .animation(.none)
             }
+            
+            RouterPanGestureReader { state in
+                switch state.gestureState {
+                
+                case .changed:
+                    guard canPerformTransition(state: state) else {
+                        return
+                    }
+                
+                    isTransitioning = true
+                    interactiveTransitionOffset = max(state.translation.x, 0)
+                
+                case .ended, .cancelled, .failed:
+                    finishTransition(state: state)
+                    
+                default:
+                    break
+                    
+                }
+            }
+            .frame(width: 0, height: 0)
         }
     }
     
@@ -124,7 +121,7 @@ extension RouterView {
     }
     
     #if os(iOS) || os(macOS)
-    fileprivate func canPerformTransition(value : DragGesture.Value) -> Bool {
+    fileprivate func canPerformTransition(state : RouterPanGestureReader.State) -> Bool {
         guard isTransitioning == false else {
             return true
         }
@@ -137,23 +134,23 @@ extension RouterView {
             return false
         }
         
-        guard abs(value.translation.width) > abs(value.translation.height) else {
+        guard abs(state.translation.x) > abs(state.translation.y) else {
             return false
         }
         
-        guard value.startLocation.x <= 40 else {
+        guard state.startLocation.x <= 40 else {
             return false
         }
         
         return true
     }
     
-    fileprivate func finishTransition(value : DragGesture.Value) {
+    fileprivate func finishTransition(state : RouterPanGestureReader.State) {
         guard isTransitioning == true else {
             return
         }
         
-        guard value.predictedEndTranslation.width > maxInteractiveTransitionOffset else {
+        guard state.predictedEndTranslation.x > maxInteractiveTransitionOffset else {
             withAnimation(.easeOut(duration: 0.25)) {
                 interactiveTransitionOffset = 0
             }

@@ -2,7 +2,6 @@ import Foundation
 import Combine
 import SwiftUI
 
-public typealias CallbackEmitter = ValueEmitter<() -> Void>
 
 public struct ValueEmitter<Value> : Emitter {
     
