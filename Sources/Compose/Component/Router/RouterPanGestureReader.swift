@@ -13,10 +13,11 @@ struct RouterPanGestureReader : UIViewRepresentable {
         let startLocation : CGPoint
     }
     
+    @Binding var isInteractiveGestureEnabled : Bool
     let action : (State) -> Void
     
-    @SwiftUI.State var isLoaded : Bool = false
-    
+    @SwiftUI.State fileprivate var isLoaded : Bool = false
+
     func makeUIView(context: Context) -> some UIView {
         let view = UIView()
         view.alpha = 0.0
@@ -25,6 +26,8 @@ struct RouterPanGestureReader : UIViewRepresentable {
     }
     
     func updateUIView(_ uiView: UIViewType, context: Context) {
+        context.coordinator.recognizer?.isEnabled = isInteractiveGestureEnabled
+        
         DispatchQueue.main.async {
             guard isLoaded == false else {
                 return
@@ -32,11 +35,13 @@ struct RouterPanGestureReader : UIViewRepresentable {
             
             isLoaded = true
             
-            let gesture = UIPanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handlePan(_:)))
-            gesture.delegate = context.coordinator
-
-            if uiView.superview?.superview?.gestureRecognizers?.contains(gesture) == false {
-                uiView.superview?.superview?.addGestureRecognizer(gesture)
+            let recognizer = UIPanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handlePan(_:)))
+            recognizer.delegate = context.coordinator
+   
+            context.coordinator.recognizer = recognizer
+            
+            if uiView.superview?.superview?.gestureRecognizers?.contains(recognizer) == false {
+                uiView.superview?.superview?.addGestureRecognizer(recognizer)
             }
         }
     }
@@ -51,6 +56,8 @@ extension RouterPanGestureReader {
     
     class Coordinator : NSObject, UIGestureRecognizerDelegate {
         
+        weak var recognizer : UIPanGestureRecognizer? = nil
+        
         private let action : (State) -> Void
         private var startLocation : CGPoint = .zero
         
@@ -63,7 +70,7 @@ extension RouterPanGestureReader {
         }
         
         func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-            otherGestureRecognizer.view is UIScrollView == false
+            false
         }
         
         @objc fileprivate func handlePan(_ recognizer : UIPanGestureRecognizer) {

@@ -33,7 +33,6 @@ public struct ComposeTabBarView : View {
                 
                 ForEach(items) { item in
                     item.itemContent
-                        .opacity(item.id == selectedItemId ? 1.0 : 0.4)
                         .foregroundColor(item.id == selectedItemId ? style.tintColor : style.foregroundColor)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .contentShape(Rectangle())

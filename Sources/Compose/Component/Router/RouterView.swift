@@ -43,7 +43,7 @@ public struct RouterView<Content : View> : View, Identifiable {
                 .offset(x: isTransitioning == false && isLast == false && routes.count > 0 ? startingSubviewTransitionOffset : 0)
                 .offset(x: isTransitioning == true && isLast == false ? startingSubviewTransitionOffset * (1.0 - transitionProgress) : 0)
                 .offset(x: isTransitioning == true && isLast == true ? interactiveTransitionOffset : 0)
-                .allowsHitTesting(isTransitioning == false && route.id != routes.last?.id ? false : true)
+                .allowsHitTesting(isTransitioning == false && isLast == false ? false : true)
             #else
             route.view
                 .opacity(isLast == true ? 1.0 : 0.0)
@@ -61,7 +61,7 @@ public struct RouterView<Content : View> : View, Identifiable {
                 .allowsHitTesting(isTransitioning == false && routes.count == 0)
             
             routesBody
-         
+            
             #else
             content
             routesBody
@@ -75,30 +75,10 @@ public struct RouterView<Content : View> : View, Identifiable {
                     .zIndex(1005.0)
                     .animation(.none)
             }
-            
-            RouterPanGestureReader { state in
-                switch state.gestureState {
-                
-                case .began:
-                    guard canPerformTransition(state: state) else {
-                        state.gesture.state = .cancelled
-                        return
-                    }
-
-                    isTransitioning = true
-            
-                case .changed:
-                    interactiveTransitionOffset = max(state.translation.x, 0)
-                
-                case .ended, .cancelled, .failed:
-                    finishTransition(state: state)
-                    
-                default:
-                    break
-                    
-                }
-            }
-            .frame(width: 0, height: 0)
+      
+            RouterPanGestureReader(isInteractiveGestureEnabled: .init(get: { router.paths.count > (content is EmptyView ? 1 : 0) }, set: { _ in }),
+                                   action: handleTransition)
+                .frame(width: 0, height: 0)
         }
     }
     
@@ -124,19 +104,38 @@ extension RouterView {
     }
     
     #if os(iOS) || os(macOS)
+    func handleTransition(state : RouterPanGestureReader.State) {
+        switch state.gestureState {
+    
+        case .began:
+            guard canPerformTransition(state: state) else {
+                state.gesture.state = .cancelled
+                return
+            }
+            
+            isTransitioning = true
+            
+        case .changed:
+            interactiveTransitionOffset = max(state.translation.x, 0)
+            
+        case .ended, .cancelled, .failed:
+            finishTransition(state: state)
+            
+        default:
+            break
+            
+        }
+    }
+    
     fileprivate func canPerformTransition(state : RouterPanGestureReader.State) -> Bool {
         guard isTransitioning == false else {
             return false
         }
-
+ 
         guard router.options.canTransition == true else {
             return false
         }
-
-        guard router.paths.count > (content is EmptyView ? 1 : 0) else {
-            return false
-        }
-
+        
         guard abs(state.velocity.x) > abs(state.velocity.y) else {
             return false
         }
