@@ -10,38 +10,14 @@ final public class ComposeModalManager : ObservableObject {
     fileprivate var window : ComposeModalWindow? = nil
 
     public init(_ wrapper : @escaping ((ComposeModalContainerView) -> AnyView) = { view in AnyView(view) }) {
-        NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: .main) { [weak self] _ in
-            guard let self = self else {
-                return
-            }
-            
-            guard self.window == nil else {
-                return
-            }
-            
-            guard let windowScene = UIApplication.shared
-                    .connectedScenes
-                    .first as? UIWindowScene else {
-                return
-            }
-            
-            let rootView = wrapper(ComposeModalContainerView())
-                .environmentObject(self)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(ComposeModalWindow.PassthroughView())
-                .transformEnvironment(\.composeAlertViewStyle) { value in
-                    value = .init()
-                }
-            
-            let window = ComposeModalWindow(windowScene: windowScene)
-            window.windowLevel = .alert
-            window.rootViewController = UIHostingController(rootView: rootView)
-            window.makeKeyAndVisible()
-            window.isUserInteractionEnabled = false
-            window.backgroundColor = UIColor.clear
-            window.rootViewController?.view.backgroundColor = .clear
-            
-            self.window = window
+        attachWindow(wrapper)
+        
+        NotificationCenter.default.addObserver(forName: UIApplication.didFinishLaunchingNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.attachWindow(wrapper)
+        }
+        
+        NotificationCenter.default.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.attachWindow(wrapper)
         }
     }
     
@@ -67,6 +43,40 @@ final public class ComposeModalManager : ObservableObject {
             }
         }
         
+    }
+    
+}
+
+extension ComposeModalManager {
+    
+    fileprivate func attachWindow(_ wrapper : @escaping ((ComposeModalContainerView) -> AnyView)) {
+        guard window == nil else {
+            return
+        }
+        
+        guard let windowScene = UIApplication.shared
+                .connectedScenes
+                .first as? UIWindowScene else {
+            return
+        }
+        
+        let rootView = wrapper(ComposeModalContainerView())
+            .environmentObject(self)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(ComposeModalWindow.PassthroughView())
+            .transformEnvironment(\.composeAlertViewStyle) { value in
+                value = .init()
+            }
+        
+        let window = ComposeModalWindow(windowScene: windowScene)
+        window.windowLevel = .alert
+        window.rootViewController = UIHostingController(rootView: rootView)
+        window.makeKeyAndVisible()
+        window.isUserInteractionEnabled = false
+        window.backgroundColor = UIColor.clear
+        window.rootViewController?.view.backgroundColor = .clear
+        
+        self.window = window
     }
     
 }
