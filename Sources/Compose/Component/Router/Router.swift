@@ -15,6 +15,8 @@ public final class Router : ObservableObject {
     public let didPop = ValueEmitter<AnyKeyPath>()
     public let didReplace = ValueEmitter<AnyKeyPath>()
     
+    @Published public var isInteractiveTransitionEnabled : Bool = true
+    
     public var target : Component?
     internal let options : RouterOptions
 

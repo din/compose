@@ -131,8 +131,8 @@ extension RouterView {
         guard isTransitioning == false else {
             return false
         }
- 
-        guard router.options.canTransition == true else {
+
+        guard router.isInteractiveTransitionEnabled == true else {
             return false
         }
         
