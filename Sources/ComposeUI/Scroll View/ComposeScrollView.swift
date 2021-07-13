@@ -17,19 +17,22 @@ public struct ComposeScrollView<Content : View> : View {
     
     @Environment(\.composeScrollViewStyle) var style
     
+    private let axes : Axis.Set
     private let showsIndicators : Bool
     private let onRefresh : RefreshHandler?
-     private let onReachedBottom : CompletionHandler?
+    private let onReachedBottom : CompletionHandler?
     private let content : Content
     
     @State private var status : Status = .idle
     @State private var progress : Double = 0
     @State private var startDraggingOffset : CGPoint = .zero
     
-    public init(showsIndicators: Bool = false,
+    public init(_ axes : Axis.Set = .vertical,
+                showsIndicators: Bool = false,
                 onRefresh : RefreshHandler? = nil,
                 onReachedBottom : CompletionHandler? = nil,
                 @ViewBuilder content: () -> Content) {
+        self.axes = axes
         self.showsIndicators = showsIndicators
         self.onRefresh = onRefresh
         self.onReachedBottom = onReachedBottom
@@ -52,7 +55,7 @@ public struct ComposeScrollView<Content : View> : View {
     }
     
     public var body: some View {
-        ScrollView(showsIndicators: showsIndicators) {
+        ScrollView(axes, showsIndicators: showsIndicators) {
             
             ComposeScrollViewPositionIndicator(type: .moving)
                 .frame(height: 0)
