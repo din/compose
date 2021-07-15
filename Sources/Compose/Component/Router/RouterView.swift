@@ -2,12 +2,17 @@ import Foundation
 import SwiftUI
 import simd
 import Combine
+
+#if os(iOS)
 import UIKit
+#endif
 
 public struct RouterView<Content : View> : View, Identifiable {
     
+    #if os(iOS)
     let maxInteractiveTransitionOffset : CGFloat = UIScreen.main.bounds.width / 2.0
     let startingSubviewTransitionOffset : CGFloat = -90
+    #endif
     
     @ObservedObject var router : Router
 
@@ -34,7 +39,7 @@ public struct RouterView<Content : View> : View, Identifiable {
         ForEach(routes) { route in
             let isLast = route.id == routes.last?.id
             
-            #if os(iOS) || os(macOS)
+            #if os(iOS)
             route.view
                 .routerScope(router.options.scopesAnimations)
                 .transition(.move(edge: .trailing))
@@ -53,7 +58,7 @@ public struct RouterView<Content : View> : View, Identifiable {
 
     public var body: some View {
         ZStack(alignment: .top) {
-            #if os(iOS) || os(macOS)
+            #if os(iOS)
             content
                 .zIndex(1)
                 .offset(x: isTransitioning == false && routes.count > 0 ? startingSubviewTransitionOffset : 0)
@@ -76,9 +81,11 @@ public struct RouterView<Content : View> : View, Identifiable {
                     .animation(.none)
             }
       
-            RouterPanGestureReader(isInteractiveGestureEnabled: .init(get: { router.paths.count > (content is EmptyView ? 1 : 0) }, set: { _ in }),
+            #if os(iOS)
+            RouterPanGestureReader(isInteractiveGestureEnabled: .init(get: { router.isInteractiveTransitionEnabled == true && router.paths.count > (content is EmptyView ? 1 : 0) }, set: { _ in }),
                                    action: handleTransition)
                 .frame(width: 0, height: 0)
+            #endif
         }
     }
     
@@ -95,6 +102,7 @@ extension RouterView where Content == EmptyView {
 
 extension RouterView {
     
+    #if os(iOS)
     fileprivate var transitionProgress : CGFloat {
         CGFloat(
             simd_clamp(
@@ -103,7 +111,6 @@ extension RouterView {
         )
     }
     
-    #if os(iOS) || os(macOS)
     func handleTransition(state : RouterPanGestureReader.State) {
         switch state.gestureState {
     
