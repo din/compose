@@ -16,6 +16,8 @@ extension Component {
 
         /* Binding all children and wrapped values */
         
+        let bindingStartTime = CFAbsoluteTimeGetCurrent()
+        
         let mirror = Mirror(reflecting: self)
     
         for (name, value) in mirror.children {
@@ -23,17 +25,13 @@ extension Component {
                 (value as? Component)?.bind()
             }
             
-            /* if let name = name, let component = value as? Component {
+             if let name = name {
                 Introspection.shared.updateDescriptor(for: self) {
-                    $0?.add(component: component, for: name)
+                    $0?.add(component: value as? Component, for: name)
+                    $0?.add(emitter: value as? AnyEmitter, for: name)
+                    $0?.add(store: value as? AnyStore, for: name)
                 }
-            }*/
-            
-            /*if let name = name, let emitter = value as? AnyEmitter {
-                Introspection.shared.updateDescriptor(for: self) {
-                    $0?.add(emitter: emitter, for: name)
-                }
-            }*/
+            }
             
             /* Binding bindables */
             
@@ -58,6 +56,8 @@ extension Component {
             }
             
         }
+        
+        let observingStartTime = CFAbsoluteTimeGetCurrent()
 
         _ = self.observers
         
@@ -65,6 +65,16 @@ extension Component {
             _ = self[keyPath: keyPath]
         }
      
+        Introspection.shared.updateDescriptor(for: self) {
+            $0?.createdAtTime = bindingStartTime
+            $0?.bindingTime = CFAbsoluteTimeGetCurrent() - bindingStartTime
+            $0?.observingTime = CFAbsoluteTimeGetCurrent() - observingStartTime
+            
+            //TODO: refactor observers gathering.
+            let observers = $0?.emitters.values.compactMap { ObservationBag.shared.cancellables[$0] }.flatMap { $0 } ?? []
+            $0?.observers = observers.map { _ in UUID() }
+        }
+        
         return self
     }
     

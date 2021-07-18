@@ -1,9 +1,9 @@
 import Foundation
 import MultipeerConnectivity
 
-let IntrospectionClientServiceName = "compose-client"
+public let IntrospectionClientServiceName = "compose-client"
 
-class IntrospectionClient : NSObject {
+class IntrospectionClient : NSObject, ObservableObject {
     
     ///Internal identifier of a client
     fileprivate let discoveryInfo = [
@@ -11,7 +11,11 @@ class IntrospectionClient : NSObject {
     ]
     
     ///Current peer identifier.
-    fileprivate let peerIdentifier = MCPeerID(displayName: UIDevice.current.name)
+    #if os(iOS)
+    fileprivate let peerIdentifier = MCPeerID(displayName: Bundle.main.infoDictionary?[kCFBundleNameKey as String] as? String ?? UIDevice.current.name)
+    #else
+    fileprivate let peerIdentifier = MCPeerID(displayName: Bundle.main.infoDictionary?[kCFBundleNameKey as String] as? String ?? Host.current().localizedName ?? "Mac")
+    #endif
     
     ///Currently active session.
     fileprivate let session : MCSession
@@ -19,7 +23,7 @@ class IntrospectionClient : NSObject {
     ///Service advertiser to let Compose  know about this device.
     fileprivate let advertiser : MCNearbyServiceAdvertiser
     
-    fileprivate(set) var connectionState : ConnectionState = .disconnected
+    @Published fileprivate(set) var connectionState : ConnectionState = .disconnected
     
     override init() {
         self.advertiser = MCNearbyServiceAdvertiser(peer: peerIdentifier,
@@ -50,6 +54,10 @@ extension IntrospectionClient {
     
     func send(_ data : Data) throws {
         guard session.connectedPeers.count > 0 else {
+            return
+        }
+        
+        guard connectionState == .connected else {
             return
         }
         

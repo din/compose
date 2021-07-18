@@ -40,22 +40,40 @@ extension Introspection {
     fileprivate func advertise() {
         client = IntrospectionClient()
         
-        $componentDescriptors
-            .receive(on: DispatchQueue.global())
-            .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
-            .sink { [unowned self] _ in
-                do {
-                    let descriptor = AppDescriptor(name: Bundle.main.infoDictionary?[kCFBundleNameKey as String] as? String ?? "Untitled App",
-                                                   startupComponentId: self.startupComponentId,
-                                                   components: self.componentDescriptors)
-                    
-                    try client?.send(descriptor)
+        client?.$connectionState
+            .sink { [unowned self] state in
+                guard state == .connected else {
+                    return
                 }
-                catch let error {
-                    print("[Introspection] Error advertising introspection changes: \(error)")
+                
+                DispatchQueue.main.async {
+                    self.advertiseAppDescriptor()
                 }
             }
             .store(in: &cancellables)
+        
+        $componentDescriptors
+            .receive(on: DispatchQueue.global())
+            .debounce(for: .milliseconds(200), scheduler: DispatchQueue.global())
+            .sink { [unowned self] _ in
+                print("[Introspection] Advertising data")
+                
+                self.advertiseAppDescriptor()
+            }
+            .store(in: &cancellables)
+    }
+    
+    fileprivate func advertiseAppDescriptor() {
+        do {
+            let descriptor = AppDescriptor(name: Bundle.main.infoDictionary?[kCFBundleNameKey as String] as? String ?? "Untitled App",
+                                           startupComponentId: self.startupComponentId,
+                                           components: self.componentDescriptors)
+            
+            try client?.send(descriptor)
+        }
+        catch let error {
+            print("[Introspection] Error advertising introspection changes: \(error)")
+        }
     }
     
 }
@@ -68,11 +86,8 @@ extension Introspection {
         
         switch component {
         
-        case is AnyDynamicComponent:
-            lifecycle = .dynamic
-            
-        case is AnyInstanceComponent:
-            lifecycle = .instance
+        case is AnyDynamicComponent, is AnyInstanceComponent:
+            lifecycle = .container
             
         default:
             break
@@ -80,8 +95,8 @@ extension Introspection {
         }
         
         componentDescriptors[component.id] = ComponentDescriptor(id: component.id,
-                                                                 lifecycle: lifecycle,
-                                                                 name: String(describing: component.type))
+                                                                 name: String(describing: component.type),
+                                                                 lifecycle: lifecycle)
         
         if component is StartupComponent {
             startupComponentId = component.id
@@ -94,7 +109,7 @@ extension Introspection {
             return
         }
         
-        let enumerator = descriptor.routers.objectEnumerator()
+        let enumerator = descriptor.routerObjects.objectEnumerator()
         
         while let router = enumerator?.nextObject() as? Router {
             router.target = nil

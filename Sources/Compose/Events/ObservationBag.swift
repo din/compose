@@ -8,7 +8,7 @@ final class ObservationBag {
     static let shared = ObservationBag()
     
     var cancellables = [AnyHashable : Set<AnyCancellable>]()
-    var owners = [AnyHashable : [AnyHashable]]()
+    var owners = [AnyHashable : [UUID]]()
     var monitors = [AnyHashable : Monitor]()
     
     func add(_ cancellable : AnyCancellable, for identifier : AnyHashable) {
@@ -47,7 +47,7 @@ final class ObservationBag {
 
 extension ObservationBag {
     
-    func addOwner(_ ownerId : AnyHashable, for id : AnyHashable) {
+    func addOwner(_ ownerId : AnyHashable, for id : UUID) {
         if owners[ownerId] == nil {
             owners[ownerId] = .init()
         }

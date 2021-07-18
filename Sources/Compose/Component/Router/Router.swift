@@ -149,7 +149,7 @@ extension Router {
             return nil
         }
         
-        return Route(id: component.id,
+        return Route(id: (component as? AnyInstanceComponent)?.instanceId ?? component.id,
                      view: AnyView(component.view),
                      path: keyPath,
                      zIndex: Double(zIndex))

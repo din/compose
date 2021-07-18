@@ -8,7 +8,7 @@ protocol AnyDynamicComponent {
 @dynamicMemberLookup
 public struct DynamicComponent<T : Component> : Component, AnyDynamicComponent {
     
-    let storage = DynamicComponentStorage<T>()
+    public let id = UUID()
     
     public var type: Component.Type {
         T.self
@@ -34,6 +34,8 @@ public struct DynamicComponent<T : Component> : Component, AnyDynamicComponent {
         storage.isCreated
     }
     
+    let storage = DynamicComponentStorage<T>()
+    
     public init() {
         // Intentionally left blank
     }
@@ -53,6 +55,10 @@ extension DynamicComponent {
         
         Introspection.shared.updateDescriptor(for: self) {
             $0?.add(component: id)
+        }
+        
+        Introspection.shared.updateDescriptor(for: id) {
+            $0?.lifecycle = .dynamic
         }
     }
     
@@ -80,12 +86,15 @@ extension DynamicComponent : View {
                 }
             }
             .onDisappear {
-                storage.destroy()
+                let id = storage.destroy()
                 didDestroy.send()
                 
                 Introspection.shared.updateDescriptor(for: self) {
                     $0?.isVisible = false
-                    $0?.remove(component: id)
+                    
+                    if let id = id {
+                        $0?.remove(component: id)
+                    }
                 }
             }
     }

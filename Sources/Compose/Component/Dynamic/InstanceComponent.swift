@@ -3,12 +3,14 @@ import SwiftUI
 
 protocol AnyInstanceComponent {
     
+    var instanceId : UUID { get }
+    
 }
 
 @dynamicMemberLookup
-public struct InstanceComponent<T : Component> : Component {
+public struct InstanceComponent<T : Component> : Component, AnyInstanceComponent {
     
-    let storage = InstanceComponentStorage<T>()
+    public let id = UUID()
     
     public var type: Component.Type {
         T.self
@@ -34,21 +36,16 @@ public struct InstanceComponent<T : Component> : Component {
         storage.components.isEmpty
     }
 
-    public var id : UUID {
+    public var instanceId : UUID {
         storage.currentId ?? UUID()
     }
+    
+    let storage = InstanceComponentStorage<T>()
 
     public init() {
         // Intentionally left blank
     }
-}
 
-extension InstanceComponent {
-    
-    var componentId : UUID? {
-        Storage.shared.value(at: Storage.ComponentIdentifierKey(id: String(describing: self))) as? UUID
-    }
-    
 }
 
 extension InstanceComponent {
@@ -57,10 +54,12 @@ extension InstanceComponent {
         let id = storage.create(allocator: allocator)
         didCreate.send(id)
         
-        if let componentId = componentId {
-            Introspection.shared.updateDescriptor(for: componentId) {
-                $0?.add(component: id)
-            }
+        Introspection.shared.updateDescriptor(for: self.id) {
+            $0?.add(component: id)
+        }
+
+        Introspection.shared.updateDescriptor(for: id) {
+            $0?.lifecycle = .instance
         }
     }
     
@@ -83,22 +82,17 @@ extension InstanceComponent : View {
         
         return component.view
             .onAppear {
-                
-                if let componentId = componentId {
-                    Introspection.shared.updateDescriptor(for: componentId) {
-                        $0?.isVisible = storage.components.count > 0
-                    }
+                Introspection.shared.updateDescriptor(for: self.id) {
+                    $0?.isVisible = storage.components.count > 0
                 }
             }
             .onDisappear {
                 storage.destroy(id: id)
                 didDestroy.send(id)
                 
-                if let componentId = componentId {
-                    Introspection.shared.updateDescriptor(for: componentId) {
-                        $0?.isVisible = storage.components.count == 0
-                        $0?.remove(component: id)
-                    }
+                Introspection.shared.updateDescriptor(for: self.id) {
+                    $0?.isVisible = storage.components.count == 0
+                    $0?.remove(component: id)
                 }
             }
     }
