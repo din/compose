@@ -48,6 +48,10 @@ extension Router {
         guard let route = route(for: keyPath) else {
             return
         }
+
+        Introspection.shared.updateDescriptor(for: route.id) {
+            $0?.runtimeEnclosingRouter = self
+        }
   
         guard animated == true else {
             self.routes.append(route)
@@ -149,7 +153,7 @@ extension Router {
             return nil
         }
         
-        return Route(id: (component as? AnyInstanceComponent)?.instanceId ?? component.id,
+        return Route(id: (component as? AnyContainerComponent)?.containeeId ?? component.id,
                      view: AnyView(component.view),
                      path: keyPath,
                      zIndex: Double(zIndex))

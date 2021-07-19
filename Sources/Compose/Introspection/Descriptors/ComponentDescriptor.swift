@@ -1,6 +1,10 @@
 import Foundation
 
 public struct ComponentDescriptor : Codable, Equatable {
+
+    public static func == (lhs: ComponentDescriptor, rhs: ComponentDescriptor) -> Bool {
+        lhs.id == rhs.id
+    }
     
     enum CodingKeys : CodingKey {
         case id,
@@ -56,11 +60,7 @@ public struct ComponentDescriptor : Codable, Equatable {
     ///Observers and their respective emitters.
     ///TODO: move to emitters descriptor.
     public var observers = [UUID]()
-    
-    ///Router object instances.
-    ///TODO: to be moved to router descriptors.
-    fileprivate(set) var routerObjects = NSMapTable<NSString, Router>.strongToWeakObjects()
-    
+
     ///Component binding time.
     public var bindingTime : CFTimeInterval = 0
     
@@ -69,11 +69,19 @@ public struct ComponentDescriptor : Codable, Equatable {
     
     ///Component lifetime.
     public var createdAtTime : CFTimeInterval = 0
+
+    /* Runtime non-codable objects */
+
+    ///Router object instances defined inside the component.
+    fileprivate(set) var runtimeRouterObjects = NSMapTable<NSString, Router>.strongToWeakObjects()
+
+    ///Enclosing router for this component.
+    weak var runtimeEnclosingRouter : Router? = nil
     
     ///Adds router for a specified router name defined by the user.
     mutating func add(router : Router, for name : String) {
         routers[name] = router.id
-        routerObjects.setObject(router, forKey: name as NSString)
+        runtimeRouterObjects.setObject(router, forKey: name as NSString)
     }
     
     ///Adds an emitter.

@@ -1,12 +1,8 @@
 import Foundation
 import SwiftUI
 
-protocol AnyDynamicComponent {
-    
-}
-
 @dynamicMemberLookup
-public struct DynamicComponent<T : Component> : Component, AnyDynamicComponent {
+public struct DynamicComponent<T : Component> : Component, AnyContainerComponent {
     
     public let id = UUID()
     
@@ -32,6 +28,10 @@ public struct DynamicComponent<T : Component> : Component, AnyDynamicComponent {
     
     public var isCreated : Bool {
         storage.isCreated
+    }
+
+    public var containeeId: UUID {
+        storage.component?.id ?? UUID()
     }
     
     let storage = DynamicComponentStorage<T>()

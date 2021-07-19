@@ -18,6 +18,9 @@ public class Introspection {
     
     ///All components registered for the introspection.
     @Published fileprivate var componentDescriptors = [UUID : ComponentDescriptor]()
+
+    ///Router descriptors
+    @Published fileprivate var routerDescriptors = [UUID : RouterDescriptor]()
         
     ///Managing cancellables in here.
     fileprivate var cancellables = Set<AnyCancellable>()
@@ -86,7 +89,7 @@ extension Introspection {
         
         switch component {
         
-        case is AnyDynamicComponent, is AnyInstanceComponent:
+        case is AnyContainerComponent:
             lifecycle = .container
             
         default:
@@ -109,7 +112,7 @@ extension Introspection {
             return
         }
         
-        let enumerator = descriptor.routerObjects.objectEnumerator()
+        let enumerator = descriptor.runtimeRouterObjects.objectEnumerator()
         
         while let router = enumerator?.nextObject() as? Router {
             router.target = nil
