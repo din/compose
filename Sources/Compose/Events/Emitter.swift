@@ -22,23 +22,13 @@ extension Emitter {
     
     @discardableResult
     public func observe(handler : @escaping (Value) -> Void) -> AnyCancellable {
-        let cancellable = publisher.sink { value in
-            handler(value)
-        }
+        let observer = Observer(action: handler)
+        let cancellable = AnyCancellable(observer)
         
-        ObservationBag.shared.add(cancellable, for: id)
-    
-        return cancellable
-    }
-    
-    @discardableResult
-    public func observeOnce(handler : @escaping (Value) -> Void) -> AnyCancellable {
-        let cancellable = publisher.first().sink { value in
-            handler(value)
-        }
+        publisher.subscribe(observer)
 
         ObservationBag.shared.add(cancellable, for: id)
-        
+    
         return cancellable
     }
     
@@ -57,6 +47,10 @@ extension Emitter {
     
     public func bind<C>(to component: C) where C : Component {
         ObservationBag.shared.addOwner(component.id, for: id)
+        
+        if Introspection.shared.isEnabled == true {
+            Introspection.shared.register(emitter: self)
+        }
     }
     
 }

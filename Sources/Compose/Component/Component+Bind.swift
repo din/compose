@@ -12,7 +12,7 @@ extension Component {
     public func bind() -> Self {
         /* Storing lifecycle for the component in the component descriptor */
         
-        Introspection.shared.register(self)
+        Introspection.shared.register(component: self)
 
         /* Binding all children and wrapped values */
         
@@ -25,8 +25,8 @@ extension Component {
                 (value as? Component)?.bind()
             }
             
-             if let name = name {
-                Introspection.shared.updateDescriptor(for: self) {
+            if Introspection.shared.isEnabled == true, let name = name {
+                Introspection.shared.updateDescriptor(forComponent: self) {
                     $0?.add(component: value as? Component, for: name)
                     $0?.add(emitter: value as? AnyEmitter, for: name)
                     $0?.add(store: value as? AnyStore, for: name)
@@ -48,7 +48,7 @@ extension Component {
                     }
                     
                     if let router = wrappedValue as? Router {
-                        Introspection.shared.updateDescriptor(for: self) {
+                        Introspection.shared.updateDescriptor(forComponent: self) {
                             $0?.add(router: router, for: name)
                         }
                     }
@@ -59,20 +59,26 @@ extension Component {
         
         let observingStartTime = CFAbsoluteTimeGetCurrent()
 
+        if Introspection.shared.isEnabled == true {
+           
+        }
+        
         _ = self.observers
         
         for keyPath in Self.auxiliaryBindableKeyPaths {
             _ = self[keyPath: keyPath]
         }
      
-        Introspection.shared.updateDescriptor(for: self) {
-            $0?.createdAtTime = bindingStartTime
-            $0?.bindingTime = CFAbsoluteTimeGetCurrent() - bindingStartTime
-            $0?.observingTime = CFAbsoluteTimeGetCurrent() - observingStartTime
-            
-            //TODO: refactor observers gathering.
-            let observers = $0?.emitters.values.compactMap { ObservationBag.shared.cancellables[$0] }.flatMap { $0 } ?? []
-            $0?.observers = observers.map { _ in UUID() }
+        if Introspection.shared.isEnabled == true {
+            Introspection.shared.updateDescriptor(forComponent: self) {
+                $0?.createdAtTime = bindingStartTime
+                $0?.bindingTime = CFAbsoluteTimeGetCurrent() - bindingStartTime
+                $0?.observingTime = CFAbsoluteTimeGetCurrent() - observingStartTime
+                
+                //TODO: refactor observers gathering.
+                let observers = $0?.emitters.values.compactMap { ObservationBag.shared.cancellables[$0] }.flatMap { $0 } ?? []
+                $0?.observers = observers.map { _ in UUID() }
+            }
         }
         
         return self

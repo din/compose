@@ -23,13 +23,13 @@ extension EnclosingRouter {
                 return nil
             }
 
-            return Introspection.shared.descriptor(for: id)?.runtimeEnclosingRouter
+            return Introspection.shared.descriptor(forComponent: id)?.runtimeEnclosingRouter
         }
 
         fileprivate var componentId : UUID? = nil
 
         public func push<T : Component, V>(_ keyPath : KeyPath<T, V>, animated : Bool = true) {
-            guard let id = componentId, let descriptor = Introspection.shared.descriptor(for: id) else {
+            guard let id = componentId, let descriptor = Introspection.shared.descriptor(forComponent: id) else {
                 return
             }
 

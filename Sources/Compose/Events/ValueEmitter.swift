@@ -31,6 +31,13 @@ public struct ValueEmitter<Value> : Emitter {
     public func send(_ value : Value) {
         storage.lastValue = value
         subject.send(value)
+        
+        if Introspection.shared.isEnabled == true {
+            Introspection.shared.updateDescriptor(forEmitter: self) {
+                $0?.fireTime = CFAbsoluteTimeGetCurrent()
+                $0?.valueDescription = String(describing: value)
+            }
+        }
     }
     
 }

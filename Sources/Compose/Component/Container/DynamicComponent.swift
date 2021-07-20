@@ -53,12 +53,14 @@ extension DynamicComponent {
         let id = storage.create(allocator: allocator)
         didCreate.send()
         
-        Introspection.shared.updateDescriptor(for: self) {
-            $0?.add(component: id)
-        }
-        
-        Introspection.shared.updateDescriptor(for: id) {
-            $0?.lifecycle = .dynamic
+        if Introspection.shared.isEnabled == true {
+            Introspection.shared.updateDescriptor(forComponent: self) {
+                $0?.add(component: id)
+            }
+            
+            Introspection.shared.updateDescriptor(forComponent: id) {
+                $0?.lifecycle = .dynamic
+            }
         }
     }
     
@@ -81,19 +83,23 @@ extension DynamicComponent : View {
         
         return component.view
             .onAppear {
-                Introspection.shared.updateDescriptor(for: self) {
-                    $0?.isVisible = true
+                if Introspection.shared.isEnabled == true {
+                    Introspection.shared.updateDescriptor(forComponent: self) {
+                        $0?.isVisible = true
+                    }
                 }
             }
             .onDisappear {
                 let id = storage.destroy()
                 didDestroy.send()
                 
-                Introspection.shared.updateDescriptor(for: self) {
-                    $0?.isVisible = false
-                    
-                    if let id = id {
-                        $0?.remove(component: id)
+                if Introspection.shared.isEnabled == true {
+                    Introspection.shared.updateDescriptor(forComponent: self) {
+                        $0?.isVisible = false
+                        
+                        if let id = id {
+                            $0?.remove(component: id)
+                        }
                     }
                 }
             }

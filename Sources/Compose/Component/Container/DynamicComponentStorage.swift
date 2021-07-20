@@ -41,7 +41,7 @@ final class DynamicComponentStorage<T : Component> {
             return nil
         }
     
-        Introspection.shared.unregister(id)
+        Introspection.shared.unregister(component: id)
         
         ObservationBag.shared.remove(forOwner: id)
      

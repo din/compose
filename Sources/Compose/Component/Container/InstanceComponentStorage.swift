@@ -37,7 +37,7 @@ final class InstanceComponentStorage<T : Component> {
         
         ObservationBag.shared.remove(forOwner: id)
        
-        Introspection.shared.unregister(id)
+        Introspection.shared.unregister(component: id)
         
         DispatchQueue.main.async { [weak self] in
             self?.cancellables[id]?.forEach {

@@ -1,14 +1,14 @@
 import Foundation
 import Combine
 
-public class Introspection {
+public class Introspection : ObservableObject {
     
     ///Shared introspection instnace.
     static let shared = Introspection()
     
     ///Whether the introspection as a whole is enabled or not.
     ///Introspection can only be enabled in DEBUG builds.
-    fileprivate var isEnabled = false
+    fileprivate(set) var isEnabled = false
     
     ///Client to send changes to.
     fileprivate var client : IntrospectionClient? = nil
@@ -17,11 +17,32 @@ public class Introspection {
     fileprivate var startupComponentId : UUID = UUID()
     
     ///All components registered for the introspection.
-    @Published fileprivate var componentDescriptors = [UUID : ComponentDescriptor]()
-
-    ///Router descriptors
-    @Published fileprivate var routerDescriptors = [UUID : RouterDescriptor]()
+    fileprivate var componentDescriptors = [UUID : ComponentDescriptor]() {
         
+        didSet {
+            objectWillChange.send()
+        }
+        
+    }
+
+    ///Emitter descriptors.
+    fileprivate var emitterDescriptors = [UUID : EmitterDescriptor]() {
+        
+        didSet {
+            objectWillChange.send()
+        }
+        
+    }
+    
+    ///Observer descriptors.
+    fileprivate var observerDescriptors = [UUID : ObserverDescriptor]() {
+        
+        didSet {
+            objectWillChange.send()
+        }
+        
+    }
+    
     ///Managing cancellables in here.
     fileprivate var cancellables = Set<AnyCancellable>()
     
@@ -55,7 +76,7 @@ extension Introspection {
             }
             .store(in: &cancellables)
         
-        $componentDescriptors
+        objectWillChange
             .receive(on: DispatchQueue.global())
             .debounce(for: .milliseconds(200), scheduler: DispatchQueue.global())
             .sink { [unowned self] _ in
@@ -70,7 +91,8 @@ extension Introspection {
         do {
             let descriptor = AppDescriptor(name: Bundle.main.infoDictionary?[kCFBundleNameKey as String] as? String ?? "Untitled App",
                                            startupComponentId: self.startupComponentId,
-                                           components: self.componentDescriptors)
+                                           components: self.componentDescriptors,
+                                           emitters: self.emitterDescriptors)
             
             try client?.send(descriptor)
         }
@@ -84,7 +106,7 @@ extension Introspection {
 extension Introspection {
     
     ///Registers a component with the introspection.
-    func register(_ component : Component) {
+    func register(component : Component) {
         var lifecycle : ComponentDescriptor.Lifecycle = .static
         
         switch component {
@@ -107,7 +129,7 @@ extension Introspection {
     }
     
     ///Unregisters a component and removes it from the introspection.
-    func unregister(_ id : UUID) {
+    func unregister(component id : UUID) {
         guard let descriptor = componentDescriptors[id] else {
             return
         }
@@ -122,22 +144,52 @@ extension Introspection {
             ObservationBag.shared.remove(for: router.didPop.id)
             ObservationBag.shared.remove(for: router.didReplace.id)
         }
+        
+        descriptor.emitters.values.forEach {
+            unregister(emitter: $0)
+        }
+    }
+    
+    func updateDescriptor(forComponent component : Component, update : (inout ComponentDescriptor?) -> Void) {
+        update(&componentDescriptors[component.id])
+    }
+    
+    func updateDescriptor(forComponent id : UUID, update : (inout ComponentDescriptor?) -> Void) {
+        update(&componentDescriptors[id])
+    }
+    
+    func descriptor(forComponent id : UUID) -> ComponentDescriptor? {
+        componentDescriptors[id]
     }
     
 }
 
 extension Introspection {
     
-    func updateDescriptor(for component : Component, update : (inout ComponentDescriptor?) -> Void) {
-        update(&componentDescriptors[component.id])
+    func register<E : Emitter>(emitter : E) {
+        emitterDescriptors[emitter.id] = EmitterDescriptor(id: emitter.id,
+                                                           description: String(describing: E.Value.self),
+                                                           valueDescription: "")
     }
     
-    func updateDescriptor(for id : UUID, update : (inout ComponentDescriptor?) -> Void) {
-        update(&componentDescriptors[id])
+    func unregister(emitter id : UUID) {
+        emitterDescriptors[id] = nil
     }
     
-    func descriptor(for id : UUID) -> ComponentDescriptor? {
-        componentDescriptors[id]
+    func updateDescriptor(forEmitter emitter : AnyEmitter, update : (inout EmitterDescriptor?) -> Void) {
+        update(&emitterDescriptors[emitter.id])
+    }
+    
+}
+
+extension Introspection {
+    
+    func register(observer : AnyObserver) {
+        observerDescriptors[observer.id] = ObserverDescriptor(componentId: <#T##UUID?#>, modifiers: <#T##[String]#>)
+    }
+    
+    func unregister(observer id : UUID) {
+        
     }
     
 }

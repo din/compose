@@ -49,7 +49,7 @@ extension Router {
             return
         }
 
-        Introspection.shared.updateDescriptor(for: route.id) {
+        Introspection.shared.updateDescriptor(forComponent: route.id) {
             $0?.runtimeEnclosingRouter = self
         }
   
