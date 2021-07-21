@@ -149,7 +149,7 @@ extension Router {
     
     fileprivate func route(for keyPath : AnyKeyPath) -> Route? {
         guard let component = target[keyPath: keyPath] as? Component else {
-            print("[Router] Unable to find component under keypath: '\(keyPath)'.")
+            print("[Compose] Router is unable to find component under keypath: '\(keyPath)'.")
             return nil
         }
         

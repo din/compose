@@ -46,7 +46,7 @@ extension DynamicComponent {
     
     public func create(_ allocator : () -> T) {
         guard isCreated == false else {
-            print("[DynamicComponent] Warning: trying to create component \(T.self) more than one time")
+            print("[Compose] Warning: trying to create dynamic component \(T.self) more than one time")
             return
         }
         
@@ -66,7 +66,7 @@ extension DynamicComponent {
     
     public subscript<V>(dynamicMember keyPath : KeyPath<T, V>) -> V {
         guard storage.component != nil else {
-            fatalError("[DynamicComponent] Attempting to get property of \(T.self) without creating it first.")
+            fatalError("[Compose] Attempting to get property of dynamic component \(T.self) without creating it first.")
         }
         
         return storage.component![keyPath: keyPath]
@@ -78,7 +78,7 @@ extension DynamicComponent : View {
     
     public var body: some View {
         guard let component = storage.component else {
-            fatalError("[DynamicComponent] Component \(T.self) must be set before accessing it.")
+            fatalError("[Compose] Dynamic component \(T.self) must be set before accessing it.")
         }
         
         return component.view

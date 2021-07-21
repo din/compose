@@ -47,7 +47,7 @@ extension EnclosingRouter {
             }
 
             guard let path = enclosingPath.appending(path: path) else {
-                print("[EnclosingRouter] Invalid keypath to push to the router.")
+                print("[Compose] Invalid keypath to push to the enclosing router.")
                 return
             }
             

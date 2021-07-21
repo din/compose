@@ -39,7 +39,7 @@ class IntrospectionClient : NSObject, ObservableObject {
         self.advertiser.delegate = self
         self.advertiser.startAdvertisingPeer()
         
-        print("[IntrospectionClient] Introspection client is ready.")
+        print("[Compose] Introspection client is ready.")
     }
     
 }
@@ -70,7 +70,7 @@ extension IntrospectionClient : MCNearbyServiceAdvertiserDelegate {
     
     func advertiser(_ advertiser: MCNearbyServiceAdvertiser,
                     didNotStartAdvertisingPeer error: Error) {
-        print("[IntrospectionClient] Error while advertising remote rendering client: \(error)")
+        print("[Compose] Error while advertising remote rendering client: \(error)")
     }
     
     func advertiser(_ advertiser: MCNearbyServiceAdvertiser,
@@ -78,7 +78,7 @@ extension IntrospectionClient : MCNearbyServiceAdvertiserDelegate {
                     withContext context: Data?,
                     invitationHandler: @escaping (Bool, MCSession?) -> Void) {
         invitationHandler(true, session)
-        print("[IntrospectionClient] Introspection session initiated.")
+        print("[Compose] Introspection session initiated.")
     }
     
 }
@@ -101,14 +101,14 @@ extension IntrospectionClient : MCSessionDelegate {
         switch state {
         
         case .notConnected:
-            print("[IntrospectionClient] Not connected to server")
+            print("[Compose] Not connected to server")
             self.connectionState = .disconnected
             
         case .connecting:
-            print("[IntrospectionClient] Connecting to server")
+            print("[Compose] Connecting to server")
             
         case .connected:
-            print("[IntrospectionClient] Connected to server")
+            print("[Compose] Connected to server")
             self.connectionState = .connected
             
         default:

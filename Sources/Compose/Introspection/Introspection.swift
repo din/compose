@@ -1,14 +1,26 @@
 import Foundation
 import Combine
 
-public class Introspection : ObservableObject {
+public class Introspection {
     
     ///Shared introspection instnace.
-    static let shared = Introspection()
+    public static let shared = Introspection()
     
     ///Whether the introspection as a whole is enabled or not.
     ///Introspection can only be enabled in DEBUG builds.
-    fileprivate(set) var isEnabled = false
+    public var isEnabled = false {
+        
+        didSet {
+            if isEnabled == true {
+                advertise()
+            }
+        }
+        
+    }
+    
+    ///Whether component allocation/deallocation tracking is enabled or disabled.
+    ///When enabled, all component logs are printed out in Xcode.
+    public var isComponentAllocationTrackingEnabled = false
     
     ///Client to send changes to.
     fileprivate var client : IntrospectionClient? = nil
@@ -46,22 +58,19 @@ public class Introspection : ObservableObject {
     ///Managing cancellables in here.
     fileprivate var cancellables = Set<AnyCancellable>()
     
+    ///Sending out events.
+    let objectWillChange = PassthroughSubject<Void, Never>()
+    
 }
 
 extension Introspection {
     
-    ///Enables introspection for the whole app.
-    ///Works ony for builds made in DEBUG mode.
-    public static func enable() {
-        #if DEBUG
-        shared.isEnabled = true
-        #endif
-        
-        shared.advertise()
-    }
-    
     ///Launchs the client to  advertise changes to the app.
     fileprivate func advertise() {
+        guard client == nil else {
+            return
+        }
+        
         client = IntrospectionClient()
         
         client?.$connectionState
@@ -79,9 +88,7 @@ extension Introspection {
         objectWillChange
             .receive(on: DispatchQueue.global())
             .debounce(for: .milliseconds(200), scheduler: DispatchQueue.global())
-            .sink { [unowned self] _ in
-                print("[Introspection] Advertising data")
-                
+            .sink { [unowned self] _ in                
                 self.advertiseAppDescriptor()
             }
             .store(in: &cancellables)
@@ -97,7 +104,7 @@ extension Introspection {
             try client?.send(descriptor)
         }
         catch let error {
-            print("[Introspection] Error advertising introspection changes: \(error)")
+            print("[Compose] Error advertising introspection changes: \(error)")
         }
     }
     
