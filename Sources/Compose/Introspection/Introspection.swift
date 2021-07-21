@@ -173,7 +173,15 @@ extension Introspection {
     }
     
     func unregister(emitter id : UUID) {
+        guard let descriptor = emitterDescriptors[id] else {
+            return
+        }
+        
         emitterDescriptors[id] = nil
+        
+        descriptor.observers.forEach {
+            unregister(observer: $0.id)
+        }
     }
     
     func updateDescriptor(forEmitter emitter : AnyEmitter, update : (inout EmitterDescriptor?) -> Void) {
@@ -184,8 +192,10 @@ extension Introspection {
 
 extension Introspection {
     
-    func register(observer : AnyObserver) {
-        observerDescriptors[observer.id] = ObserverDescriptor(componentId: <#T##UUID?#>, modifiers: <#T##[String]#>)
+    func register(observer : AnyObserver, for componentId : UUID) {
+        observerDescriptors[observer.id] = ObserverDescriptor(id: UUID(),
+                                                              componentId: componentId,
+                                                              modifiers: [])
     }
     
     func unregister(observer id : UUID) {
