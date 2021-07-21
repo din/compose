@@ -8,6 +8,7 @@ public class Introspection {
     
     ///Whether the introspection as a whole is enabled or not.
     ///Introspection can only be enabled in DEBUG builds.
+    #if DEBUG
     public var isEnabled = false {
         
         didSet {
@@ -17,10 +18,17 @@ public class Introspection {
         }
         
     }
+    #else
+    public let isEnabled = false
+    #endif
     
     ///Whether component allocation/deallocation tracking is enabled or disabled.
     ///When enabled, all component logs are printed out in Xcode.
+    #if DEBUG
     public var isComponentAllocationTrackingEnabled = false
+    #else
+    public let isComponentAllocationTrackingEnabled = false
+    #endif
     
     ///Client to send changes to.
     fileprivate var client : IntrospectionClient? = nil
@@ -206,7 +214,7 @@ extension Introspection {
     }
     
     func unregister(observer id : UUID) {
-        
+        observerDescriptors[id] = nil
     }
     
 }
