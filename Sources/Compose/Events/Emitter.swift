@@ -1,9 +1,6 @@
 import Foundation
 import Combine
 
-infix operator !+=
-infix operator ~+=
-
 public protocol AnyEmitter {
     
     var id : UUID { get }
@@ -16,7 +13,6 @@ public protocol Emitter : AnyEmitter, Bindable {
     var publisher : AnyPublisher<Value, Never> { get }
     
     func observe(handler : @escaping (Value) -> Void) -> AnyCancellable
-    func observeOnce(handler : @escaping (Value) -> Void) -> AnyCancellable
 }
 
 extension Emitter {
@@ -32,26 +28,6 @@ extension Emitter {
         return cancellable
     }
     
-    @discardableResult
-    public func observeOnce(handler : @escaping (Value) -> Void) -> AnyCancellable {
-        var cancellable : AnyCancellable? = nil
-
-        cancellable = publisher.sink { value in
-            handler(value)
-            
-            if let cancellable = cancellable {
-                ObservationBag.shared.remove(for: id)
-                cancellable.cancel()
-            }
-        }
-        
-        if let cancellable = cancellable {
-            ObservationBag.shared.add(cancellable, for: id)
-        }
-        
-        return cancellable ?? AnyCancellable({ })
-    }
-    
 }
 
 extension Emitter {
@@ -61,11 +37,6 @@ extension Emitter {
         return lhs.observe(handler: rhs)
     }
 
-    @discardableResult
-    public static func !+=(lhs : Self, rhs : @escaping (Value) -> Void) -> AnyCancellable {
-        return lhs.observeOnce(handler: rhs)
-    }
-    
 }
 
 extension Emitter {
