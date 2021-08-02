@@ -7,7 +7,7 @@ final class InstanceComponentStorage<T : Component> {
     let didDestroy = ValueEmitter<UUID>()
     
     var components = [UUID : T]()
-    fileprivate var cancellables = [UUID : Set<AnyCancellable>]()
+    fileprivate var observers = [UUID : [AnyObserver]]()
 
     var currentId : UUID? = nil
     
@@ -20,10 +20,10 @@ final class InstanceComponentStorage<T : Component> {
         let component = allocator()
         
         let monitoringId = ObservationBag.shared.beginMonitoring { cancellable in
-            self.cancellables[component.id]?.insert(cancellable)
+            self.observers[component.id]?.append(cancellable)
         }
         
-        cancellables[component.id] = []
+        observers[component.id] = []
         components[component.id] = component.bind()
         currentId = component.id
   
@@ -37,14 +37,27 @@ final class InstanceComponentStorage<T : Component> {
         
         ObservationBag.shared.remove(forOwner: id)
        
-        Introspection.shared.unregister(component: id)
+        let enumerator = RouterStorage.storage(forComponent: id)?.registered.objectEnumerator()
+        
+        while let router = enumerator?.nextObject() as? Router {
+            router.target = nil
+            router.routes.removeAll()
+            
+            ObservationBag.shared.remove(for: router.didPush.id)
+            ObservationBag.shared.remove(for: router.didPop.id)
+            ObservationBag.shared.remove(for: router.didReplace.id)
+        }
         
         DispatchQueue.main.async { [weak self] in
-            self?.cancellables[id]?.forEach {
+            self?.observers[id]?.forEach {
                 $0.cancel()
             }
             
-            self?.cancellables[id] = nil
+            self?.observers[id] = nil
+        }
+        
+        withIntrospection {
+            Introspection.shared.unregister(component: id)
         }
     }
     

@@ -25,48 +25,18 @@ extension Emitters.Merge {
     
     @discardableResult
     public func observe(handler: @escaping (Upstream.Value) -> Void) -> AnyCancellable {
-        let cancellable = publisher.sink { value in
-            handler(value)
-        }
+        let observer = Observer<Self, Upstream.Value>(action: handler)
+        publisher.subscribe(observer)
         
-        ObservationBag.shared.add(cancellable, for: id)
+        ObservationBag.shared.add(observer, for: id)
         
         for upstreamId in upstreamIds {
-            ObservationBag.shared.add(cancellable, for: upstreamId)
+            ObservationBag.shared.add(observer, for: upstreamId)
         }
         
-        return cancellable
+        return observer.cancellable
     }
-    
-    @discardableResult
-    public func observeOnce(handler : @escaping (Upstream.Value) -> Void) -> AnyCancellable {
-        var cancellable : AnyCancellable? = nil
-        
-        cancellable = publisher.sink { value in
-            handler(value)
-            
-            if let cancellable = cancellable {
-                ObservationBag.shared.remove(for: id)
-                
-                for upstreamId in upstreamIds {
-                    ObservationBag.shared.remove(for: upstreamId)
-                }
-                
-                cancellable.cancel()
-            }
-        }
-        
-        if let cancellable = cancellable {
-            ObservationBag.shared.add(cancellable, for: id)
-            
-            for upstreamId in upstreamIds {
-                ObservationBag.shared.add(cancellable, for: upstreamId)
-            }
-        }
-        
-        return cancellable ?? AnyCancellable({ })
-    }
-    
+  
 }
 
 extension Emitter {

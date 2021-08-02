@@ -20,13 +20,13 @@ public class TimerEmitter : Emitter {
     }
     
     public func start(_ handler : @escaping (Date) -> Void) {
-        let cancellable = self.timerPublisher
+        let observer = Observer<Self, Date>(action: handler)
+     
+        self.timerPublisher
             .autoconnect()
-            .sink { date in
-                handler(date)
-            }
+            .subscribe(observer)
         
-        ObservationBag.shared.add(cancellable, for: id)
+        ObservationBag.shared.add(observer, for: id)
     }
     
     public func stop() {

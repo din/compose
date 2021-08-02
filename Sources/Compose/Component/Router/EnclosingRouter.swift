@@ -22,36 +22,35 @@ extension EnclosingRouter {
             guard let id = componentId else {
                 return nil
             }
-
-            return Introspection.shared.descriptor(forComponent: id)?.runtimeEnclosingRouter
+            
+            return RouterStorage.storage(forComponent: id)?.enclosing
         }
 
         fileprivate var componentId : UUID? = nil
 
         public func push<T : Component, V>(_ keyPath : KeyPath<T, V>, animated : Bool = true) {
-            guard let id = componentId, let descriptor = Introspection.shared.descriptor(forComponent: id) else {
-                return
-            }
-
             guard let enclosingPath = router?.paths.last else {
                 return
             }
 
             var path : AnyKeyPath = keyPath
-
-            if descriptor.lifecycle == .dynamic {
+            
+            path = \DynamicComponent<T>.[dynamicMember: keyPath]
+        
+            if enclosingPath.appending(path: path) == nil {
                 path = \DynamicComponent<T>.[dynamicMember: keyPath]
             }
-            else if descriptor.lifecycle == .instance {
+            
+            if enclosingPath.appending(path: path) == nil {
                 path = \InstanceComponent<T>.[dynamicMember: keyPath]
             }
 
-            guard let path = enclosingPath.appending(path: path) else {
+            guard let fullPath = enclosingPath.appending(path: path) else {
                 print("[Compose] Invalid keypath to push to the enclosing router.")
                 return
             }
             
-            router?.push(path, animated: animated)
+            router?.push(fullPath, animated: animated)
         }
 
         public func pop(animated : Bool = true) {

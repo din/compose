@@ -1,6 +1,15 @@
 import Foundation
 import Combine
 
+@inlinable
+func withIntrospection(_ action : () -> Void) {
+    #if DEBUG
+    if Introspection.shared.isEnabled == true {
+        action()
+    }
+    #endif
+}
+
 public class Introspection {
     
     ///Shared introspection instnace.
@@ -32,30 +41,9 @@ public class Introspection {
     
     ///Client to send changes to.
     fileprivate var client : IntrospectionClient? = nil
-    
-    ///Startup component identifier.
-    fileprivate var startupComponentId : UUID = UUID()
-    
-    ///All components registered for the introspection.
-    fileprivate var componentDescriptors = [UUID : ComponentDescriptor]() {
-        
-        didSet {
-            objectWillChange.send()
-        }
-        
-    }
-
-    ///Emitter descriptors.
-    fileprivate var emitterDescriptors = [UUID : EmitterDescriptor]() {
-        
-        didSet {
-            objectWillChange.send()
-        }
-        
-    }
-    
-    ///Observer descriptors.
-    fileprivate var observerDescriptors = [UUID : ObserverDescriptor]() {
+     
+    ///App descriptor.
+    var app = AppDescriptor.empty {
         
         didSet {
             objectWillChange.send()
@@ -104,12 +92,7 @@ extension Introspection {
     
     fileprivate func advertiseAppDescriptor() {
         do {
-            let descriptor = AppDescriptor(name: Bundle.main.infoDictionary?[kCFBundleNameKey as String] as? String ?? "Untitled App",
-                                           startupComponentId: self.startupComponentId,
-                                           components: self.componentDescriptors,
-                                           emitters: self.emitterDescriptors)
-            
-            try client?.send(descriptor)
+            try client?.send(app)
         }
         catch let error {
             print("[Compose] Error advertising introspection changes: \(error)")
@@ -134,87 +117,114 @@ extension Introspection {
             
         }
         
-        componentDescriptors[component.id] = ComponentDescriptor(id: component.id,
-                                                                 name: String(describing: component.type),
-                                                                 lifecycle: lifecycle)
+        app.components[component.id] = ComponentDescriptor(id: component.id,
+                                                                name: String(describing: component.type),
+                                                                lifecycle: lifecycle)
         
         if component is StartupComponent {
-            startupComponentId = component.id
+            app.startupComponentId = component.id
         }
     }
     
     ///Unregisters a component and removes it from the introspection.
     func unregister(component id : UUID) {
-        guard let descriptor = componentDescriptors[id] else {
+        guard let descriptor = app.components[id] else {
             return
         }
         
-        let enumerator = descriptor.runtimeRouterObjects.objectEnumerator()
-        
-        while let router = enumerator?.nextObject() as? Router {
-            router.target = nil
-            router.routes.removeAll()
-        
-            ObservationBag.shared.remove(for: router.didPush.id)
-            ObservationBag.shared.remove(for: router.didPop.id)
-            ObservationBag.shared.remove(for: router.didReplace.id)
-        }
-        
-        descriptor.emitters.values.forEach {
+        descriptor.emitters.forEach {
             unregister(emitter: $0)
         }
     }
-    
-    func updateDescriptor(forComponent component : Component, update : (inout ComponentDescriptor?) -> Void) {
-        update(&componentDescriptors[component.id])
-    }
-    
+
     func updateDescriptor(forComponent id : UUID, update : (inout ComponentDescriptor?) -> Void) {
-        update(&componentDescriptors[id])
+        update(&app.components[id])
     }
     
     func descriptor(forComponent id : UUID) -> ComponentDescriptor? {
-        componentDescriptors[id]
+        app.components[id]
     }
     
 }
 
 extension Introspection {
     
-    func register<E : Emitter>(emitter : E) {
-        emitterDescriptors[emitter.id] = EmitterDescriptor(id: emitter.id,
-                                                           description: String(describing: E.Value.self),
-                                                           valueDescription: "")
+    func register(emitter : AnyEmitter, named name : String?) {
+        app.emitters[emitter.id] = EmitterDescriptor(id: emitter.id,
+                                                               name: name ?? "Unnamed",
+                                                               description: emitter.debugDescription,
+                                                               valueDescription: "")
     }
     
     func unregister(emitter id : UUID) {
-        guard let descriptor = emitterDescriptors[id] else {
+        guard let descriptor = app.emitters[id] else {
             return
         }
         
-        emitterDescriptors[id] = nil
+        app.emitters[id] = nil
         
         descriptor.observers.forEach {
-            unregister(observer: $0.id)
+            unregister(observer: $0)
         }
     }
     
-    func updateDescriptor(forEmitter emitter : AnyEmitter, update : (inout EmitterDescriptor?) -> Void) {
-        update(&emitterDescriptors[emitter.id])
+    func updateDescriptor(forEmitter id : UUID, update : (inout EmitterDescriptor?) -> Void) {
+        update(&app.emitters[id])
     }
     
 }
 
 extension Introspection {
     
-    func register(observer : AnyObserver, for componentId : UUID) {
-        observerDescriptors[observer.id] = ObserverDescriptor(id: UUID(),
-                                                              componentId: componentId,
-                                                              modifiers: [])
+    func register<O : Observer<E, V>, E : Emitter, V>(observer : O, emitterId : UUID) {
+        app.observers[observer.id] = ObserverDescriptor(id: observer.id,
+                                                                  description: String(describing: E.self),
+                                                                emitterId: emitterId)
     }
     
     func unregister(observer id : UUID) {
-        observerDescriptors[id] = nil
+        app.observers[id] = nil
+    }
+ 
+    func updateDescriptor(forObserver id : UUID, update : (inout ObserverDescriptor?) -> Void) {
+        update(&app.observers[id])
+    }
+    
+}
+
+extension Introspection {
+    
+    func register(store : AnyStore, named name : String?) {
+        app.stores[store.id] = StoreDescriptor(id: store.id,
+                                               name: name ?? "Unknown")
+    }
+    
+}
+
+extension Introspection {
+    
+    func register(router : Router, named name : String?) {
+        guard app.routers[router.id] == nil else {
+            return
+        }
+        
+        app.routers[router.id] = RouterDescriptor(id: router.id,
+                                                            name: name ?? "Unknown",
+                                                            hasDefaultContent: router.start == nil)
+        
+        app.routers[router.id]?.routes = router.routes.map { $0.id }
+    }
+    
+    func updateDescriptor(forRouter id : UUID, update : (inout RouterDescriptor?) -> Void) {
+        update(&app.routers[id])
+    }
+    
+}
+
+extension Introspection {
+    
+    func register<S : Service>(service : S) {
+        
     }
     
 }

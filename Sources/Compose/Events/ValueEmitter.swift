@@ -32,8 +32,8 @@ public struct ValueEmitter<Value> : Emitter {
         storage.lastValue = value
         subject.send(value)
         
-        if Introspection.shared.isEnabled == true {
-            Introspection.shared.updateDescriptor(forEmitter: self) {
+        withIntrospection {
+            Introspection.shared.updateDescriptor(forEmitter: self.id) {
                 $0?.fireTime = CFAbsoluteTimeGetCurrent()
                 $0?.valueDescription = String(describing: value)
             }
@@ -46,7 +46,7 @@ extension ValueEmitter {
  
     @discardableResult
     public func observeChange(handler : @escaping (Value, Value) -> Void) -> AnyCancellable {
-        let cancellable = publisher.sink { value in
+        let observer = Observer<Self, Value> { value in
             guard let oldValue = self.lastValue else {
                 return
             }
@@ -54,14 +54,14 @@ extension ValueEmitter {
             handler(value, oldValue)
         }
         
-        ObservationBag.shared.add(cancellable, for: id)
-         
-        return cancellable
+        ObservationBag.shared.add(observer, for: id)
+
+        return observer.cancellable
     }
     
     @discardableResult
     public static func ~+=(lhs : ValueEmitter, rhs : @escaping (Value, Value) -> Void) -> AnyCancellable {
-        return lhs.observeChange(handler: rhs)
+        lhs.observeChange(handler: rhs)
     }
     
 }

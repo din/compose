@@ -8,7 +8,7 @@ final class DynamicComponentStorage<T : Component> {
     let didCreate = SignalEmitter()
     let didDestroy = SignalEmitter()
     
-    fileprivate var cancellables = Set<AnyCancellable>()
+    fileprivate var observers = [AnyObserver]()
 
     var isCreated : Bool {
         component != nil
@@ -24,7 +24,7 @@ final class DynamicComponentStorage<T : Component> {
     @discardableResult
     func create(allocator : () -> T) -> UUID {
         let monitoringId = ObservationBag.shared.beginMonitoring{ cancellable in
-            self.cancellables.insert(cancellable)
+            self.observers.append(cancellable)
         }
     
         let component = allocator().bind()
@@ -40,19 +40,32 @@ final class DynamicComponentStorage<T : Component> {
         guard let id = component?.id else {
             return nil
         }
-    
-        Introspection.shared.unregister(component: id)
         
         ObservationBag.shared.remove(forOwner: id)
+        
+        let enumerator = RouterStorage.storage(forComponent: id)?.registered.objectEnumerator()
+        
+        while let router = enumerator?.nextObject() as? Router {
+            router.target = nil
+            router.routes.removeAll()
+            
+            ObservationBag.shared.remove(for: router.didPush.id)
+            ObservationBag.shared.remove(for: router.didPop.id)
+            ObservationBag.shared.remove(for: router.didReplace.id)
+        }
      
         self.component = nil
      
         DispatchQueue.main.async { [weak self] in
-            self?.cancellables.forEach {
+            self?.observers.forEach {
                 $0.cancel()
             }
             
-            self?.cancellables.removeAll()
+            self?.observers.removeAll()
+        }
+        
+        withIntrospection {
+            Introspection.shared.unregister(component: id)
         }
         
         return id

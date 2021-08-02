@@ -24,6 +24,10 @@ public final class Services {
                 let service = K.init()
                 services[ObjectIdentifier(K.self)] = service
                 
+                withIntrospection {
+                    Introspection.shared.register(service: service)
+                }
+                
                 return service
             }
         }

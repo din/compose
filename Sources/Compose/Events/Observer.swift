@@ -1,24 +1,29 @@
 import Foundation
 import Combine
 
-protocol AnyObserver {
+protocol AnyObserver : Cancellable {
     
     var id : UUID { get }
     
 }
 
-class Observer<Value> : Subscriber, Cancellable, AnyObserver {
+class Observer<Emitter, Value> : Subscriber, AnyObserver {
     typealias Input = Value
     typealias Failure = Never
     
     let id = UUID()
     let action : (Value) -> Void
     
+    var cancellable = AnyCancellable({})
+    
     fileprivate var subscription : Subscription? = nil
     
     init(action : @escaping (Value) -> Void) {
         self.action = action
         
+        self.cancellable = AnyCancellable { [weak self] in
+            self?.cancel()
+        }
     }
     
     deinit {
@@ -36,8 +41,6 @@ class Observer<Value> : Subscriber, Cancellable, AnyObserver {
     }
     
     func receive(completion: Subscribers.Completion<Never>) {
-        subscription?.cancel()
-        subscription = nil
     }
     
     func cancel() {

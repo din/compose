@@ -27,7 +27,7 @@ extension Emitter {
     
     @discardableResult
     public static func !+=(lhs : Self, rhs : @escaping (Value) -> Void) -> AnyCancellable {
-        return lhs.once().observe(handler: rhs)
+        lhs.once().observe(handler: rhs)
     }
     
 }

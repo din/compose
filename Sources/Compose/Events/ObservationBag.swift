@@ -3,35 +3,55 @@ import Combine
 
 final class ObservationBag {
     
-    typealias Monitor = (AnyCancellable) -> Void
+    typealias Monitor = (AnyObserver) -> Void
     
     static let shared = ObservationBag()
     
-    var cancellables = [AnyHashable : Set<AnyCancellable>]()
-    var owners = [AnyHashable : [UUID]]()
-    var monitors = [AnyHashable : Monitor]()
+    var observers = [UUID : [AnyObserver]]()
+    var owners = [UUID : [UUID]]()
+    var monitors = [UUID : Monitor]()
     
-    func add(_ cancellable : AnyCancellable, for identifier : AnyHashable) {
-        if cancellables[identifier] == nil {
-            cancellables[identifier] = .init()
+    func add<O : Observer<E, V>, V, E : Emitter>(_ observer : O, for identifier : UUID) {
+        if observers[identifier] == nil {
+            observers[identifier] = .init()
         }
+
+        observers[identifier]?.append(observer)
         
-        cancellables[identifier]?.insert(cancellable)
+        withIntrospection {
+            Introspection.shared.register(observer: observer, emitterId: identifier)
+            
+            Introspection.shared.updateDescriptor(forEmitter: identifier) {
+                $0?.observers.insert(observer.id)
+            }
+        }
         
         monitors.values.forEach {
-            $0(cancellable)
+            $0(observer)
         }
     }
     
-    func remove(for identifier : AnyHashable) {
-        cancellables[identifier]?.forEach {
-            $0.cancel()
+    func remove(for identifier : UUID) {
+        withIntrospection {
+            Introspection.shared.updateDescriptor(forEmitter: identifier) { descriptor in
+                observers[identifier]?.forEach { observer in
+                    descriptor?.observers.remove(observer.id)
+                }
+            }
+            
+            observers[identifier]?.forEach { observer in
+                Introspection.shared.unregister(observer: observer.id)
+            }
         }
         
-        cancellables[identifier] = nil
+        observers[identifier]?.forEach {
+            $0.cancel()
+        }
+
+        observers[identifier] = nil
     }
     
-    func remove(forOwner identifier : AnyHashable) {
+    func remove(forOwner identifier : UUID) {
         guard let ids = owners[identifier] else {
             return
         }
@@ -47,19 +67,25 @@ final class ObservationBag {
 
 extension ObservationBag {
     
-    func addOwner(_ ownerId : AnyHashable, for id : UUID) {
+    func addOwner(_ ownerId : UUID, for id : UUID) {
         if owners[ownerId] == nil {
             owners[ownerId] = .init()
         }
         
         owners[ownerId]?.append(id)
+
+        withIntrospection {
+            Introspection.shared.updateDescriptor(forEmitter: id) {
+                $0?.parentId = ownerId
+            }
+        }
     }
     
 }
 
 extension ObservationBag {
     
-    func beginMonitoring(with monitor : @escaping Monitor) -> AnyHashable {
+    func beginMonitoring(with monitor : @escaping Monitor) -> UUID {
         let key = UUID()
         
         self.monitors[key] = monitor
@@ -67,7 +93,7 @@ extension ObservationBag {
         return key
     }
     
-    func endMonitoring(key : AnyHashable) {
+    func endMonitoring(key : UUID) {
         self.monitors[key] = nil
     }
 }

@@ -1,6 +1,6 @@
 import Foundation
 
-public struct ComponentDescriptor : Codable, Equatable {
+public struct ComponentDescriptor : Codable, Equatable, Identifiable {
 
     public static func == (lhs: ComponentDescriptor, rhs: ComponentDescriptor) -> Bool {
         lhs.id == rhs.id
@@ -28,11 +28,6 @@ public struct ComponentDescriptor : Codable, Equatable {
         case instance
     }
 
-    public enum MemoryStatus {
-        case retained
-        case deinitialised
-    }
-    
     ///ID of bound component.
     public let id : UUID
         
@@ -46,16 +41,16 @@ public struct ComponentDescriptor : Codable, Equatable {
     public var isVisible : Bool = false
     
     ///All children components.
-    public fileprivate(set) var children = [String : UUID]()
+    public fileprivate(set) var children = Set<UUID>()
     
     ///Routers that exist in a bound component with respective declared names of these routers.
-    public fileprivate(set) var routers = [String : UUID]()
+    public fileprivate(set) var routers = Set<UUID>()
     
     ///Emitters and their respective names.
-    public fileprivate(set) var emitters = [String : UUID]()
+    public fileprivate(set) var emitters = Set<UUID>()
     
     ///Emitters and their respective names.
-    public fileprivate(set) var stores = [String : UUID]()
+    public fileprivate(set) var stores = Set<UUID>()
     
     ///Observers and their respective emitters.
     ///TODO: move to emitters descriptor.
@@ -72,41 +67,34 @@ public struct ComponentDescriptor : Codable, Equatable {
 
     /* Runtime non-codable objects */
 
-    ///Router object instances defined inside the component.
-    fileprivate(set) var runtimeRouterObjects = NSMapTable<NSString, Router>.strongToWeakObjects()
-
-    ///Enclosing router for this component.
-    weak var runtimeEnclosingRouter : Router? = nil
-    
     ///Adds router for a specified router name defined by the user.
-    mutating func add(router : Router, for name : String) {
-        routers[name] = router.id
-        runtimeRouterObjects.setObject(router, forKey: name as NSString)
+    mutating func add(router : Router) {
+        routers.insert(router.id)
     }
     
     ///Adds an emitter.
-    mutating func add(emitter : AnyEmitter?, for name : String) {
-        emitters[name] = emitter?.id
+    mutating func add(emitter : AnyEmitter) {
+        emitters.insert(emitter.id)
     }
     
     ///Adds a store.
-    mutating func add(store : AnyStore?, for name : String) {
-        stores[name] = store?.id
+    mutating func add(store : AnyStore) {
+        stores.insert(store.id)
     }
     
     ///Adds a child with specified name.
-    mutating func add(component : Component?, for name : String) {
-        children[name] = component?.id
+    mutating func add(component : Component) {
+        add(component: component.id)
     }
     
     ///Adds a child with specified name
     mutating func add(component id : UUID) {
-        children[id.uuidString] = id
+        children.insert(id)
     }
     
     ///Removes a child with specified name
     mutating func remove(component id : UUID) {
-        children[id.uuidString] = nil
+        children.remove(id)
     }
     
 }

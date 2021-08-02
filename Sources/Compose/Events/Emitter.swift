@@ -4,7 +4,7 @@ import Combine
 infix operator !+=
 infix operator ~+=
 
-public protocol AnyEmitter {
+public protocol AnyEmitter : CustomDebugStringConvertible {
     
     var id : UUID { get }
     
@@ -22,14 +22,17 @@ extension Emitter {
     
     @discardableResult
     public func observe(handler : @escaping (Value) -> Void) -> AnyCancellable {
-        let observer = Observer(action: handler)
-        let cancellable = AnyCancellable(observer)
-        
+        let observer = Observer<Self, Value>(action: handler)
+
         publisher.subscribe(observer)
 
-        ObservationBag.shared.add(cancellable, for: id)
+        ObservationBag.shared.add(observer, for: id)
     
-        return cancellable
+        return observer.cancellable
+    }
+    
+    public var debugDescription: String {
+        String(describing: Value.self)
     }
     
 }
@@ -38,7 +41,7 @@ extension Emitter {
     
     @discardableResult
     public static func +=(lhs : Self, rhs : @escaping (Value) -> Void) -> AnyCancellable {
-        return lhs.observe(handler: rhs)
+        lhs.observe(handler: rhs)
     }
     
 }
@@ -47,10 +50,6 @@ extension Emitter {
     
     public func bind<C>(to component: C) where C : Component {
         ObservationBag.shared.addOwner(component.id, for: id)
-        
-        if Introspection.shared.isEnabled == true {
-            Introspection.shared.register(emitter: self)
-        }
     }
     
 }

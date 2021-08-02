@@ -20,12 +20,23 @@ public final class Router : ObservableObject {
     public var target : Component?
     internal let options : RouterOptions
 
-    @Published internal var routes = [Route]()
+    @Published internal var routes = [Route]() {
+    
+        didSet {
+            withIntrospection {
+                Introspection.shared.updateDescriptor(forRouter: self.id) {
+                    $0?.routes = self.routes.map { $0.id }
+                }
+            }
+        }
+        
+    }
+    
     @Published internal var isPushing : Bool = false
 
     internal let id = UUID()
+    internal let start : AnyKeyPath?
     
-    fileprivate let start : AnyKeyPath?
     fileprivate var zIndex : Int64 = 0
     
     public init(start : AnyKeyPath, options : RouterOptions = .init()) {
@@ -48,11 +59,9 @@ extension Router {
         guard let route = route(for: keyPath) else {
             return
         }
-
-        Introspection.shared.updateDescriptor(forComponent: route.id) {
-            $0?.runtimeEnclosingRouter = self
-        }
-  
+        
+        RouterStorage.storage(forComponent: route.id)?.enclosing = self
+        
         guard animated == true else {
             self.routes.append(route)
             self.didPush.send(keyPath)
@@ -127,7 +136,7 @@ extension Router {
     
     public func replace(_ keyPath : AnyKeyPath, animated : Bool = false) {
         zIndex = 0
-        
+
         guard let route = route(for: keyPath) else {
             return
         }
@@ -169,6 +178,10 @@ extension Router : Bindable {
         if let start = start {
             replace(start)
         }
+        
+        RouterStorage.storage(forComponent: component.id)?
+            .registered
+            .setObject(self, forKey: self.id.uuidString as NSString)
     }
     
 }

@@ -1,20 +1,33 @@
 import Foundation
 
-public struct EmitterDescriptor : Codable, Equatable {
-    
+public struct EmitterDescriptor : Codable, Equatable, Identifiable {
+
     ///ID of an emitter.
-    let id : UUID
+    public let id : UUID
+    
+    ///Name of an emitter.
+    public let name : String
     
     ///Value type description.
-    let description : String
+    public let description : String
+    
+    ///Parent identifier for this emitter.
+    public var parentId : UUID? = nil
     
     ///Observers map.
-    var observers = [ObserverDescriptor]()
+    public var observers = Set<UUID>()
     
     ///Last changed time.
-    var fireTime : CFTimeInterval = .zero
+    public var fireTime : CFTimeInterval = .zero
     
     ///Last value description.
-    var valueDescription : String
+    public var valueDescription : String
+    
+    public init(id: UUID, name: String, description: String, valueDescription : String) {
+        self.id = id
+        self.name = name
+        self.description = description
+        self.valueDescription = valueDescription
+    }
     
 }

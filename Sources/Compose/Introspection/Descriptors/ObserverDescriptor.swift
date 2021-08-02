@@ -1,14 +1,24 @@
 import Foundation
 
-struct ObserverDescriptor : Codable, Equatable {
-    
+public struct ObserverDescriptor : Codable, Equatable, Identifiable {
+
     ///Observer descriptor ID.
-    let id : UUID
+    public let id : UUID
     
-    ///Component that contains the observer.
-    var componentId : UUID? = nil
+    ///Observer type description
+    public let description : String
     
-    ///Modifiers
-    var modifiers = [String]()
+    ///Emitter id to which this observer is subscribed to.
+    public let emitterId : UUID
+    
+    ///Parent id to which this observer belongs to.
+    public var parentId : UUID? = nil
+    
+    public init(id: UUID, description: String, emitterId: UUID) {
+        self.id = id
+        self.description = description
+        self.emitterId = emitterId
+    }
     
 }
+

@@ -1,14 +1,14 @@
 import Foundation
 import SwiftUI
 
+protocol AnyInstanceComponent {
+    //This protocol is intentionally left blank.
+}
+
 @dynamicMemberLookup
-public struct InstanceComponent<T : Component> : Component, AnyContainerComponent {
+public struct InstanceComponent<T : Component> : Component, AnyContainerComponent, AnyInstanceComponent {
     
     public let id = UUID()
-    
-    public var type: Component.Type {
-        T.self
-    }
     
     public var observers: Void {
         None
@@ -48,7 +48,7 @@ extension InstanceComponent {
         let id = storage.create(allocator: allocator)
         didCreate.send(id)
         
-        if Introspection.shared.isEnabled == true {
+        withIntrospection {
             Introspection.shared.updateDescriptor(forComponent: self.id) {
                 $0?.add(component: id)
             }
@@ -78,7 +78,7 @@ extension InstanceComponent : View {
         
         return component.view
             .onAppear {
-                if Introspection.shared.isEnabled == true {
+                withIntrospection {
                     Introspection.shared.updateDescriptor(forComponent: self.id) {
                         $0?.isVisible = storage.components.count > 0
                     }
@@ -88,7 +88,7 @@ extension InstanceComponent : View {
                 storage.destroy(id: id)
                 didDestroy.send(id)
                 
-                if Introspection.shared.isEnabled == true {
+                withIntrospection {
                     Introspection.shared.updateDescriptor(forComponent: self.id) {
                         $0?.isVisible = storage.components.count == 0
                         $0?.remove(component: id)
