@@ -6,9 +6,9 @@ protocol AnyInstanceComponent {
 }
 
 @dynamicMemberLookup
-public struct InstanceComponent<T : Component> : Component {
+public struct InstanceComponent<T : Component> : Component, AnyContainerComponent, AnyInstanceComponent {
     
-    let storage = InstanceComponentStorage<T>()
+    public let id = UUID()
     
     public var type: Component.Type {
         T.self
@@ -33,11 +33,13 @@ public struct InstanceComponent<T : Component> : Component {
     public var isEmpty : Bool {
         storage.components.isEmpty
     }
-
-    public var id : UUID {
+    
+    var containeeId: UUID {
         storage.currentId ?? UUID()
     }
 
+    let storage = InstanceComponentStorage<T>()
+    
     public init() {
         // Intentionally left blank
     }
@@ -77,30 +79,36 @@ extension InstanceComponent {
 extension InstanceComponent : View {
     
     public var body: some View {
-        guard let id = storage.currentId, let component = storage.components[id] else {
-            fatalError("[InstanceComponent] Component \(T.self) must be set before accessing it.")
+        if let id = storage.currentId, let component = storage.components[id] {
+            component.view
+                .onAppear {
+                    
+                    if let componentId = componentId {
+                        Introspection.shared.updateDescriptor(for: componentId) {
+                            $0?.isVisible = storage.components.count > 0
+                        }
+                    }
+                }
+                .onDisappear {
+                    storage.destroy(id: id)
+                    didDestroy.send(id)
+                    
+                    if let componentId = componentId {
+                        Introspection.shared.updateDescriptor(for: componentId) {
+                            $0?.isVisible = storage.components.count == 0
+                            $0?.remove(component: id)
+                        }
+                    }
+                }
         }
-        
-        return component.view
-            .onAppear {
-                
-                if let componentId = componentId {
-                    Introspection.shared.updateDescriptor(for: componentId) {
-                        $0?.isVisible = storage.components.count > 0
-                    }
-                }
-            }
-            .onDisappear {
-                storage.destroy(id: id)
-                didDestroy.send(id)
-                
-                if let componentId = componentId {
-                    Introspection.shared.updateDescriptor(for: componentId) {
-                        $0?.isVisible = storage.components.count == 0
-                        $0?.remove(component: id)
-                    }
-                }
-            }
+        else {
+            emptyBody
+        }
+    }
+    
+    private var emptyBody : some View {
+        print("[InstanceComponent] Warning component \(T.self) must be set before accessing it.")
+        return EmptyView()
     }
     
 }

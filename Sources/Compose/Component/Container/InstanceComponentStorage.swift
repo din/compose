@@ -37,7 +37,16 @@ final class InstanceComponentStorage<T : Component> {
         
         ObservationBag.shared.remove(forOwner: id)
        
-        Introspection.shared.unregister(id)
+        let enumerator = RouterStorage.storage(forComponent: id)?.registered.objectEnumerator()
+        
+        while let router = enumerator?.nextObject() as? Router {
+            router.target = nil
+            router.routes.removeAll()
+            
+            ObservationBag.shared.remove(for: router.didPush.id)
+            ObservationBag.shared.remove(for: router.didPop.id)
+            ObservationBag.shared.remove(for: router.didReplace.id)
+        }
         
         DispatchQueue.main.async { [weak self] in
             self?.cancellables[id]?.forEach {

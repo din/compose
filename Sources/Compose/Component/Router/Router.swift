@@ -24,8 +24,8 @@ public final class Router : ObservableObject {
     @Published internal var isPushing : Bool = false
 
     internal let id = UUID()
+    internal let start : AnyKeyPath?
     
-    fileprivate let start : AnyKeyPath?
     fileprivate var zIndex : Int64 = 0
     
     public init(start : AnyKeyPath, options : RouterOptions = .init()) {
@@ -48,6 +48,8 @@ extension Router {
         guard let route = route(for: keyPath) else {
             return
         }
+        
+        RouterStorage.storage(forComponent: route.id)?.enclosing = self
   
         guard animated == true else {
             self.routes.append(route)
@@ -149,7 +151,7 @@ extension Router {
             return nil
         }
         
-        return Route(id: component.id,
+        return Route(id: (component as? AnyContainerComponent)?.containeeId ?? component.id,
                      view: AnyView(component.view),
                      path: keyPath,
                      zIndex: Double(zIndex))
@@ -165,6 +167,10 @@ extension Router : Bindable {
         if let start = start {
             replace(start)
         }
+        
+        RouterStorage.storage(forComponent: component.id)?
+            .registered
+            .setObject(self, forKey: self.id.uuidString as NSString)
     }
     
 }

@@ -41,7 +41,16 @@ final class DynamicComponentStorage<T : Component> {
             return nil
         }
     
-        Introspection.shared.unregister(id)
+        let enumerator = RouterStorage.storage(forComponent: id)?.registered.objectEnumerator()
+        
+        while let router = enumerator?.nextObject() as? Router {
+            router.target = nil
+            router.routes.removeAll()
+            
+            ObservationBag.shared.remove(for: router.didPush.id)
+            ObservationBag.shared.remove(for: router.didPop.id)
+            ObservationBag.shared.remove(for: router.didReplace.id)
+        }
         
         ObservationBag.shared.remove(forOwner: id)
      

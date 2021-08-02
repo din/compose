@@ -6,9 +6,9 @@ protocol AnyDynamicComponent {
 }
 
 @dynamicMemberLookup
-public struct DynamicComponent<T : Component> : Component, AnyDynamicComponent {
+public struct DynamicComponent<T : Component> : Component, AnyContainerComponent, AnyDynamicComponent {
     
-    let storage = DynamicComponentStorage<T>()
+    public let id = UUID()
     
     public var type: Component.Type {
         T.self
@@ -33,6 +33,12 @@ public struct DynamicComponent<T : Component> : Component, AnyDynamicComponent {
     public var isCreated : Bool {
         storage.isCreated
     }
+    
+    var containeeId: UUID {
+        storage.component?.id ?? UUID()
+    }
+    
+    let storage = DynamicComponentStorage<T>()
     
     public init() {
         // Intentionally left blank
@@ -69,25 +75,31 @@ extension DynamicComponent {
 extension DynamicComponent : View {
     
     public var body: some View {
-        guard let component = storage.component else {
-            fatalError("[DynamicComponent] Component \(T.self) must be set before accessing it.")
+        if let component = storage.component {
+            component.view
+                .onAppear {
+                    Introspection.shared.updateDescriptor(for: self) {
+                        $0?.isVisible = true
+                    }
+                }
+                .onDisappear {
+                    storage.destroy()
+                    didDestroy.send()
+                    
+                    Introspection.shared.updateDescriptor(for: self) {
+                        $0?.isVisible = false
+                        $0?.remove(component: id)
+                    }
+                }
+            }
+        else {
+            emptyBody
         }
-        
-        return component.view
-            .onAppear {
-                Introspection.shared.updateDescriptor(for: self) {
-                    $0?.isVisible = true
-                }
-            }
-            .onDisappear {
-                storage.destroy()
-                didDestroy.send()
-                
-                Introspection.shared.updateDescriptor(for: self) {
-                    $0?.isVisible = false
-                    $0?.remove(component: id)
-                }
-            }
+    }
+    
+    private var emptyBody : some View {
+        print("[DynamicComponent] Warning: component \(T.self) must be set before accessing it.")
+        return EmptyView()
     }
     
 }
