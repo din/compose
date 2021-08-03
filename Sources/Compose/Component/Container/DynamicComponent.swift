@@ -99,7 +99,17 @@ extension DynamicComponent : View {
     
     private var emptyBody : some View {
         print("[DynamicComponent] Warning: component \(T.self) must be set before accessing it.")
+        
+        #if DEBUG
+        return VStack {
+            Text("Uninitialised dynamic component \(String(describing: T.self))")
+                .foregroundColor(Color.orange)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        #else
         return EmptyView()
+        #endif
     }
     
 }

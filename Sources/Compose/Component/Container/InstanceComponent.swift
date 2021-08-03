@@ -27,7 +27,11 @@ public struct InstanceComponent<T : Component> : Component, AnyContainerComponen
     }
     
     public var component : T? {
-        storage.components[id]
+        guard let id = storage.currentId else {
+            return nil
+        }
+        
+        return storage.components[id]
     }
     
     public var isEmpty : Bool {
@@ -47,22 +51,12 @@ public struct InstanceComponent<T : Component> : Component, AnyContainerComponen
 
 extension InstanceComponent {
     
-    var componentId : UUID? {
-        Storage.shared.value(at: Storage.ComponentIdentifierKey(id: String(describing: self))) as? UUID
-    }
-    
-}
-
-extension InstanceComponent {
-    
     public func add(_ allocator : () -> T) {
         let id = storage.create(allocator: allocator)
         didCreate.send(id)
         
-        if let componentId = componentId {
-            Introspection.shared.updateDescriptor(for: componentId) {
-                $0?.add(component: id)
-            }
+        Introspection.shared.updateDescriptor(for: self.id) {
+            $0?.add(component: id)
         }
     }
     
@@ -82,22 +76,17 @@ extension InstanceComponent : View {
         if let id = storage.currentId, let component = storage.components[id] {
             component.view
                 .onAppear {
-                    
-                    if let componentId = componentId {
-                        Introspection.shared.updateDescriptor(for: componentId) {
-                            $0?.isVisible = storage.components.count > 0
-                        }
+                    Introspection.shared.updateDescriptor(for: self.id) {
+                        $0?.isVisible = storage.components.count > 0
                     }
                 }
                 .onDisappear {
                     storage.destroy(id: id)
                     didDestroy.send(id)
                     
-                    if let componentId = componentId {
-                        Introspection.shared.updateDescriptor(for: componentId) {
-                            $0?.isVisible = storage.components.count == 0
-                            $0?.remove(component: id)
-                        }
+                    Introspection.shared.updateDescriptor(for: self.id) {
+                        $0?.isVisible = storage.components.count == 0
+                        $0?.remove(component: id)
                     }
                 }
         }
@@ -108,7 +97,17 @@ extension InstanceComponent : View {
     
     private var emptyBody : some View {
         print("[InstanceComponent] Warning component \(T.self) must be set before accessing it.")
+        
+        #if DEBUG
+        return VStack {
+            Text("Uninitialised instance component \(String(describing: T.self))")
+                .foregroundColor(Color.orange)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        #else
         return EmptyView()
+        #endif
     }
     
 }
