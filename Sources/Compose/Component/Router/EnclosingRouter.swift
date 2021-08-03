@@ -34,9 +34,7 @@ extension EnclosingRouter {
             }
             
             var path : AnyKeyPath = keyPath
-            
-            path = \DynamicComponent<T>.[dynamicMember: keyPath]
-            
+
             if enclosingPath.appending(path: path) == nil {
                 path = \DynamicComponent<T>.[dynamicMember: keyPath]
             }
