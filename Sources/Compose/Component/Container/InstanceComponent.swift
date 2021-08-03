@@ -68,6 +68,10 @@ extension InstanceComponent {
         return storage.components[id]![keyPath: keyPath]
     }
     
+    public func instance(for id : UUID) -> T? {
+        storage.components[id]
+    }
+    
 }
 
 extension InstanceComponent : View {
