@@ -3,10 +3,11 @@ import UIKit
 
 struct ComposeScrollViewReader : UIViewRepresentable {
     
-    typealias OnReachedBottom = () -> Void
+    typealias CompletionHandler = () -> Void
     
     @Binding var startDraggingOffset : CGPoint
-    let onReachedBottom : OnReachedBottom?
+    let onReachedBottom : CompletionHandler?
+    let onReachedTop : CompletionHandler?
 
     @State var isLoaded : Bool = false
     
@@ -34,7 +35,8 @@ struct ComposeScrollViewReader : UIViewRepresentable {
     
     func makeCoordinator() -> Coordinator {
         Coordinator(startDraggingOffset: $startDraggingOffset,
-                    onReachedBottom: onReachedBottom)
+                    onReachedBottom: onReachedBottom,
+                    onReachedTop: onReachedTop)
     }
     
 }
@@ -44,14 +46,19 @@ extension ComposeScrollViewReader {
     class Coordinator : NSObject, UIScrollViewDelegate {
         
         @Binding var startDraggingOffset : CGPoint
-        let onReachedBottom : OnReachedBottom?
+        
+        let onReachedBottom : CompletionHandler?
+        let onReachedTop : CompletionHandler?
         
         fileprivate var hasAlreadyReachedBottom: Bool = false
+        fileprivate var hasAlreadyReachedTop: Bool = true
   
         public init(startDraggingOffset : Binding<CGPoint>,
-                    onReachedBottom : OnReachedBottom?) {
+                    onReachedBottom : CompletionHandler?,
+                    onReachedTop : CompletionHandler?) {
             self._startDraggingOffset = startDraggingOffset
             self.onReachedBottom = onReachedBottom
+            self.onReachedTop = onReachedTop
         }
         
         func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
@@ -70,6 +77,19 @@ extension ComposeScrollViewReader {
             else
             {
                 hasAlreadyReachedBottom = false
+            }
+            
+            if scrollView.contentOffset.y <= 0
+            {
+                if !hasAlreadyReachedTop
+                {
+                    hasAlreadyReachedTop = true
+                    onReachedTop?()
+                }
+            }
+            else
+            {
+                hasAlreadyReachedTop = false
             }
         }
 
