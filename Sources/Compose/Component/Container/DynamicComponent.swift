@@ -2,13 +2,17 @@ import Foundation
 import SwiftUI
 
 protocol AnyDynamicComponent {
-    //This protocol is intentionally left blank.
+    
 }
 
 @dynamicMemberLookup
 public struct DynamicComponent<T : Component> : Component, AnyContainerComponent, AnyDynamicComponent {
     
     public let id = UUID()
+    
+    public var type: Component.Type {
+        T.self
+    }
     
     public var observers: Void {
         None
@@ -29,8 +33,8 @@ public struct DynamicComponent<T : Component> : Component, AnyContainerComponent
     public var isCreated : Bool {
         storage.isCreated
     }
-
-    public var containeeId: UUID {
+    
+    var containeeId: UUID {
         storage.component?.id ?? UUID()
     }
     
@@ -46,27 +50,21 @@ extension DynamicComponent {
     
     public func create(_ allocator : () -> T) {
         guard isCreated == false else {
-            print("[Compose] Warning: trying to create dynamic component \(T.self) more than one time")
+            print("[DynamicComponent] Warning: trying to create component \(T.self) more than one time")
             return
         }
         
         let id = storage.create(allocator: allocator)
         didCreate.send()
         
-        withIntrospection {
-            Introspection.shared.updateDescriptor(forComponent: self.id) {
-                $0?.add(component: id)
-            }
-            
-            Introspection.shared.updateDescriptor(forComponent: id) {
-                $0?.lifecycle = .dynamic
-            }
+        Introspection.shared.updateDescriptor(for: self) {
+            $0?.add(component: id)
         }
     }
     
     public subscript<V>(dynamicMember keyPath : KeyPath<T, V>) -> V {
         guard storage.component != nil else {
-            fatalError("[Compose] Attempting to get property of dynamic component \(T.self) without creating it first.")
+            fatalError("[DynamicComponent] Attempting to get property of \(T.self) without creating it first.")
         }
         
         return storage.component![keyPath: keyPath]
@@ -77,32 +75,45 @@ extension DynamicComponent {
 extension DynamicComponent : View {
     
     public var body: some View {
-        guard let component = storage.component else {
-            fatalError("[Compose] Dynamic component \(T.self) must be set before accessing it.")
-        }
-        
-        return component.view
-            .onAppear {
-                withIntrospection {
-                    Introspection.shared.updateDescriptor(forComponent: self.id) {
-                        $0?.isVisible = true
+        if let component = storage.component {
+            component.view
+                .onAppear {
+                    withIntrospection {
+                        Introspection.shared.updateDescriptor(for: self) {
+                            $0?.isVisible = true
+                        }
                     }
                 }
-            }
-            .onDisappear {
-                let id = storage.destroy()
-                didDestroy.send()
-                
-                withIntrospection {
-                    Introspection.shared.updateDescriptor(forComponent: self.id) {
-                        $0?.isVisible = false
-                        
-                        if let id = id {
+                .onDisappear {
+                    storage.destroy()
+                    didDestroy.send()
+                    
+                    withIntrospection {
+                        Introspection.shared.updateDescriptor(for: self) {
+                            $0?.isVisible = false
                             $0?.remove(component: id)
                         }
                     }
                 }
             }
+        else {
+            emptyBody
+        }
+    }
+    
+    private var emptyBody : some View {
+        print("[DynamicComponent] Warning: component \(T.self) must be set before accessing it.")
+        
+        #if DEBUG
+        return VStack {
+            Text("Uninitialised dynamic component \(String(describing: T.self))")
+                .foregroundColor(Color.orange)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        #else
+        return EmptyView()
+        #endif
     }
     
 }

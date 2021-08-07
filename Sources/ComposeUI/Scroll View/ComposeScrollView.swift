@@ -21,6 +21,7 @@ public struct ComposeScrollView<Content : View> : View {
     private let showsIndicators : Bool
     private let onRefresh : RefreshHandler?
     private let onReachedBottom : CompletionHandler?
+    private let onReachedTop : CompletionHandler?
     private let content : Content
     
     @State private var status : Status = .idle
@@ -31,11 +32,13 @@ public struct ComposeScrollView<Content : View> : View {
                 showsIndicators: Bool = false,
                 onRefresh : RefreshHandler? = nil,
                 onReachedBottom : CompletionHandler? = nil,
+                onReachedTop : CompletionHandler? = nil,
                 @ViewBuilder content: () -> Content) {
         self.axes = axes
         self.showsIndicators = showsIndicators
         self.onRefresh = onRefresh
         self.onReachedBottom = onReachedBottom
+        self.onReachedTop = onReachedTop
         self.content = content()
     }
     
@@ -60,7 +63,9 @@ public struct ComposeScrollView<Content : View> : View {
             ComposeScrollViewPositionIndicator(type: .moving)
                 .frame(height: 0)
                 .overlay(
-                    ComposeScrollViewReader(startDraggingOffset: $startDraggingOffset, onReachedBottom: onReachedBottom)
+                    ComposeScrollViewReader(startDraggingOffset: $startDraggingOffset,
+                                            onReachedBottom: onReachedBottom,
+                                            onReachedTop: onReachedTop)
                 )
             
             if status == .loading {

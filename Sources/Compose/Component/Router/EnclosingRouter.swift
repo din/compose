@@ -32,11 +32,9 @@ extension EnclosingRouter {
             guard let enclosingPath = router?.paths.last else {
                 return
             }
-
-            var path : AnyKeyPath = keyPath
             
-            path = \DynamicComponent<T>.[dynamicMember: keyPath]
-        
+            var path : AnyKeyPath = keyPath
+
             if enclosingPath.appending(path: path) == nil {
                 path = \DynamicComponent<T>.[dynamicMember: keyPath]
             }
@@ -44,7 +42,7 @@ extension EnclosingRouter {
             if enclosingPath.appending(path: path) == nil {
                 path = \InstanceComponent<T>.[dynamicMember: keyPath]
             }
-
+            
             guard let fullPath = enclosingPath.appending(path: path) else {
                 print("[Compose] Invalid keypath to push to the enclosing router.")
                 return
@@ -52,19 +50,19 @@ extension EnclosingRouter {
             
             router?.push(fullPath, animated: animated)
         }
-
+        
         public func pop(animated : Bool = true) {
             router?.pop(animated: animated)
         }
-
+        
     }
-
+    
 }
 
 extension EnclosingRouter : Bindable {
-
+    
     public func bind<C>(to component: C) where C : Component {
         router.componentId = component.id
     }
-
+    
 }

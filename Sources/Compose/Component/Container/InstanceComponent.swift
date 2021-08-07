@@ -23,19 +23,25 @@ public struct InstanceComponent<T : Component> : Component, AnyContainerComponen
     }
     
     public var component : T? {
-        storage.components[id]
+        guard let id = storage.currentId else {
+            return nil
+        }
+        
+        return storage.components[id]
     }
     
     public var isEmpty : Bool {
         storage.components.isEmpty
     }
-
-    public var containeeId: UUID {
+    
+    var containeeId: UUID {
         storage.currentId ?? UUID()
     }
     
     let storage = InstanceComponentStorage<T>()
 
+    let storage = InstanceComponentStorage<T>()
+    
     public init() {
         // Intentionally left blank
     }
@@ -67,34 +73,54 @@ extension InstanceComponent {
         return storage.components[id]![keyPath: keyPath]
     }
     
+    public func instance(for id : UUID) -> T? {
+        storage.components[id]
+    }
+    
 }
 
 extension InstanceComponent : View {
     
     public var body: some View {
-        guard let id = storage.currentId, let component = storage.components[id] else {
-            fatalError("[InstanceComponent] Component \(T.self) must be set before accessing it.")
+        if let id = storage.currentId, let component = storage.components[id] {
+            component.view
+                .onAppear {
+                    withIntrospection {
+                        Introspection.shared.updateDescriptor(for: self.id) {
+                            $0?.isVisible = storage.components.count > 0
+                        }
+                    }
+                }
+                .onDisappear {
+                    storage.destroy(id: id)
+                    didDestroy.send(id)
+                    
+                    withIntrospection {
+                        Introspection.shared.updateDescriptor(for: self.id) {
+                            $0?.isVisible = storage.components.count == 0
+                            $0?.remove(component: id)
+                        }
+                    }
+                }
         }
+        else {
+            emptyBody
+        }
+    }
+    
+    private var emptyBody : some View {
+        print("[InstanceComponent] Warning component \(T.self) must be set before accessing it.")
         
-        return component.view
-            .onAppear {
-                withIntrospection {
-                    Introspection.shared.updateDescriptor(forComponent: self.id) {
-                        $0?.isVisible = storage.components.count > 0
-                    }
-                }
-            }
-            .onDisappear {
-                storage.destroy(id: id)
-                didDestroy.send(id)
-                
-                withIntrospection {
-                    Introspection.shared.updateDescriptor(forComponent: self.id) {
-                        $0?.isVisible = storage.components.count == 0
-                        $0?.remove(component: id)
-                    }
-                }
-            }
+        #if DEBUG
+        return VStack {
+            Text("Uninitialised instance component \(String(describing: T.self))")
+                .foregroundColor(Color.orange)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        #else
+        return EmptyView()
+        #endif
     }
     
 }

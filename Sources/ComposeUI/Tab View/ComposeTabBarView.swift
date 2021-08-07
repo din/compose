@@ -37,10 +37,6 @@ public struct ComposeTabBarView : View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .contentShape(Rectangle())
                         .onTapGesture {
-                            guard item.id != selectedItemId else {
-                                return
-                            }
-                            
                             selectedItemId = item.id
                         }
                 }

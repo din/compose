@@ -141,6 +141,8 @@ extension Router {
             return
         }
         
+        RouterStorage.storage(forComponent: route.id)?.enclosing = self
+        
         let change = { [weak self] in
             self?.routes = [route]
             self?.didReplace.send(keyPath)

@@ -2,6 +2,7 @@ import Foundation
 import Combine
 import SwiftUI
 
+infix operator ~+=
 
 public struct ValueEmitter<Value> : Emitter {
     
