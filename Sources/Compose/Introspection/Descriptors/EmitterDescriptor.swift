@@ -12,7 +12,7 @@ public struct EmitterDescriptor : Codable, Equatable, Identifiable {
     public let description : String
     
     ///Parent identifier for this emitter.
-    public var parentId : UUID? = nil
+    public var componentId : UUID? = nil
     
     ///Observers map.
     public var observers = Set<UUID>()

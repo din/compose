@@ -54,7 +54,7 @@ public struct ComponentDescriptor : Codable, Equatable, Identifiable {
     
     ///Observers and their respective emitters.
     ///TODO: move to emitters descriptor.
-    public var observers = [UUID]()
+    public var observers = Set<UUID>()
 
     ///Component binding time.
     public var bindingTime : CFTimeInterval = 0

@@ -19,10 +19,15 @@ final class ObservationBag {
         observers[identifier]?.append(observer)
         
         withIntrospection {
-            Introspection.shared.register(observer: observer, emitterId: identifier)
+            Introspection.shared.register(observer: observer,
+                                          emitterId: identifier)
             
             Introspection.shared.updateDescriptor(forEmitter: identifier) {
                 $0?.observers.insert(observer.id)
+            }
+            
+            Introspection.shared.updateDescriptor(forObserver: observer.id) {
+                $0?.componentId = Introspection.shared.observationScope
             }
         }
         
@@ -32,18 +37,6 @@ final class ObservationBag {
     }
     
     func remove(for identifier : UUID) {
-        withIntrospection {
-            Introspection.shared.updateDescriptor(forEmitter: identifier) { descriptor in
-                observers[identifier]?.forEach { observer in
-                    descriptor?.observers.remove(observer.id)
-                }
-            }
-            
-            observers[identifier]?.forEach { observer in
-                Introspection.shared.unregister(observer: observer.id)
-            }
-        }
-        
         observers[identifier]?.forEach {
             $0.cancel()
         }
@@ -73,12 +66,6 @@ extension ObservationBag {
         }
         
         owners[ownerId]?.append(id)
-
-        withIntrospection {
-            Introspection.shared.updateDescriptor(forEmitter: id) {
-                $0?.parentId = ownerId
-            }
-        }
     }
     
 }

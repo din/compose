@@ -10,6 +10,10 @@ public struct InstanceComponent<T : Component> : Component, AnyContainerComponen
     
     public let id = UUID()
     
+    public var type: Component.Type {
+        T.self
+    }
+    
     public var observers: Void {
         None
     }
@@ -40,8 +44,6 @@ public struct InstanceComponent<T : Component> : Component, AnyContainerComponen
     
     let storage = InstanceComponentStorage<T>()
 
-    let storage = InstanceComponentStorage<T>()
-    
     public init() {
         // Intentionally left blank
     }
@@ -86,7 +88,7 @@ extension InstanceComponent : View {
             component.view
                 .onAppear {
                     withIntrospection {
-                        Introspection.shared.updateDescriptor(for: self.id) {
+                        Introspection.shared.updateDescriptor(forComponent: self.id) {
                             $0?.isVisible = storage.components.count > 0
                         }
                     }
@@ -96,7 +98,7 @@ extension InstanceComponent : View {
                     didDestroy.send(id)
                     
                     withIntrospection {
-                        Introspection.shared.updateDescriptor(for: self.id) {
+                        Introspection.shared.updateDescriptor(forComponent: self.id) {
                             $0?.isVisible = storage.components.count == 0
                             $0?.remove(component: id)
                         }

@@ -12,7 +12,10 @@ public struct ObserverDescriptor : Codable, Equatable, Identifiable {
     public let emitterId : UUID
     
     ///Parent id to which this observer belongs to.
-    public var parentId : UUID? = nil
+    public var componentId : UUID? = nil
+    
+    ///Children of the observer.
+    public var children = Set<UUID>()
     
     public init(id: UUID, description: String, emitterId: UUID) {
         self.id = id

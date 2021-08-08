@@ -6,6 +6,7 @@ public struct AppDescriptor : Codable, Equatable {
     
     public internal(set) var startupComponentId : UUID
     
+    
     public internal(set) var components : [UUID : ComponentDescriptor]
     public internal(set) var services : [UUID : ServiceDescriptor]
     public internal(set) var emitters : [UUID : EmitterDescriptor]

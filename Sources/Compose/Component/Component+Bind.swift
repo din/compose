@@ -77,22 +77,20 @@ extension Component {
             
         }
         
-        if Introspection.shared.isEnabled == true {
-            let observingStartTime = CFAbsoluteTimeGetCurrent()
-            
-            let monitoringId = ObservationBag.shared.beginMonitoring { observer in
-                Introspection.shared.updateDescriptor(forComponent: self.id) {
-                    $0?.observers.append(observer.id)
-                }
-                
-                Introspection.shared.updateDescriptor(forObserver: observer.id) {
-                    $0?.parentId = self.id
-                }
-            }
-            
-            bindObservers()
-            
-            ObservationBag.shared.endMonitoring(key: monitoringId)
+        let observingStartTime = CFAbsoluteTimeGetCurrent()
+        
+        withIntrospection {
+            Introspection.shared.pushObservationScope(id: self.id)
+        }
+        
+        _ = self.observers
+        
+        for keyPath in Self.auxiliaryBindableKeyPaths {
+            _ = self[keyPath: keyPath]
+        }
+        
+        withIntrospection {
+            Introspection.shared.popObservationScope(id: self.id)
             
             Introspection.shared.updateDescriptor(forComponent: self.id) {
                 $0?.createdAtTime = bindingStartTime
@@ -100,19 +98,8 @@ extension Component {
                 $0?.observingTime = CFAbsoluteTimeGetCurrent() - observingStartTime
             }
         }
-        else {
-            bindObservers()
-        }
 
         return self
     }
-    
-    fileprivate func bindObservers() {
-        _ = self.observers
-        
-        for keyPath in Self.auxiliaryBindableKeyPaths {
-            _ = self[keyPath: keyPath]
-        }
-    }
-    
+
 }

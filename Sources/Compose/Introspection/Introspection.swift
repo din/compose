@@ -51,11 +51,15 @@ public class Introspection {
         
     }
     
-    ///Managing cancellables in here.
-    fileprivate var cancellables = Set<AnyCancellable>()
+    ///Observation contrext.
+    var observationScopeIds = [UUID]()
     
     ///Sending out events.
     let objectWillChange = PassthroughSubject<Void, Never>()
+    
+    ///Managing cancellables in here.
+    fileprivate var cancellables = Set<AnyCancellable>()
+    
     
 }
 
@@ -176,18 +180,47 @@ extension Introspection {
 
 extension Introspection {
     
-    func register<O : Observer<E, V>, E : Emitter, V>(observer : O, emitterId : UUID) {
+    func register<O : Observer<E, V>, E : Emitter, V>(observer : O,
+                                                      emitterId : UUID) {
         app.observers[observer.id] = ObserverDescriptor(id: observer.id,
-                                                                  description: String(describing: E.self),
-                                                                emitterId: emitterId)
+                                                        description: String(describing: E.self),
+                                                        emitterId: emitterId)
     }
     
     func unregister(observer id : UUID) {
+        if let observer = app.observers[id] {
+            updateDescriptor(forEmitter: observer.emitterId) {
+                $0?.observers.remove(id)
+            }
+            
+            if let componentId = observer.componentId {
+                updateDescriptor(forComponent: componentId) {
+                    $0?.observers.remove(id)
+                }
+            }
+        }
+        
         app.observers[id] = nil
     }
  
     func updateDescriptor(forObserver id : UUID, update : (inout ObserverDescriptor?) -> Void) {
         update(&app.observers[id])
+    }
+    
+    func descriptor(forObserver id : UUID) -> ObserverDescriptor? {
+        app.observers[id]
+    }
+    
+    func pushObservationScope(id : UUID) {
+        observationScopeIds.append(id)
+    }
+    
+    func popObservationScope(id: UUID) {
+        observationScopeIds.removeLast()
+    }
+    
+    var observationScope : UUID {
+        observationScopeIds.last ?? UUID()
     }
     
 }

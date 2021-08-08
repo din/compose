@@ -36,14 +36,33 @@ class Observer<Emitter, Value> : Subscriber, AnyObserver {
     }
     
     func receive(_ input: Value) -> Subscribers.Demand {
-        action(input)
+        if Introspection.shared.isEnabled == true {
+            let monitorId = ObservationBag.shared.beginMonitoring { observer in
+                Introspection.shared.updateDescriptor(forObserver: self.id) {
+                    $0?.children.insert(observer.id)
+                }
+            }
+            
+            action(input)
+            
+            ObservationBag.shared.endMonitoring(key: monitorId)
+        }
+        else {
+            action(input)
+        }
+        
         return .none
     }
     
     func receive(completion: Subscribers.Completion<Never>) {
+        
     }
     
     func cancel() {
+        withIntrospection {
+            Introspection.shared.unregister(observer: id)
+        }
+        
         subscription?.cancel()
         subscription = nil
     }
