@@ -6,6 +6,8 @@ struct ComposeScrollViewReader : UIViewRepresentable {
     typealias CompletionHandler = () -> Void
     
     @Binding var startDraggingOffset : CGPoint
+    @Binding var scrollPosition : ComposeScrollPosition
+    
     let onReachedBottom : CompletionHandler?
     let onReachedTop : CompletionHandler?
 
@@ -35,6 +37,7 @@ struct ComposeScrollViewReader : UIViewRepresentable {
     
     func makeCoordinator() -> Coordinator {
         Coordinator(startDraggingOffset: $startDraggingOffset,
+                    scrollPosition: $scrollPosition,
                     onReachedBottom: onReachedBottom,
                     onReachedTop: onReachedTop)
     }
@@ -46,17 +49,17 @@ extension ComposeScrollViewReader {
     class Coordinator : NSObject, UIScrollViewDelegate {
         
         @Binding var startDraggingOffset : CGPoint
+        @Binding var scrollPosition : ComposeScrollPosition
         
         let onReachedBottom : CompletionHandler?
         let onReachedTop : CompletionHandler?
-        
-        fileprivate var hasAlreadyReachedBottom: Bool = false
-        fileprivate var hasAlreadyReachedTop: Bool = true
   
         public init(startDraggingOffset : Binding<CGPoint>,
+                    scrollPosition : Binding<ComposeScrollPosition>,
                     onReachedBottom : CompletionHandler?,
                     onReachedTop : CompletionHandler?) {
             self._startDraggingOffset = startDraggingOffset
+            self._scrollPosition = scrollPosition
             self.onReachedBottom = onReachedBottom
             self.onReachedTop = onReachedTop
         }
@@ -66,30 +69,29 @@ extension ComposeScrollViewReader {
         }
         
         func scrollViewDidScroll(_ scrollView: UIScrollView) {
-            if (scrollView.contentSize.height - scrollView.contentOffset.y) <= scrollView.frame.size.height
-            {
-                if !hasAlreadyReachedBottom
-                {
-                    hasAlreadyReachedBottom = true
-                    onReachedBottom?()
-                }
+            var nextScrollPosition: ComposeScrollPosition
+            
+            if scrollView.contentOffset.y <= 0 {
+                nextScrollPosition = .top
             }
-            else
-            {
-                hasAlreadyReachedBottom = false
+            else if (scrollView.contentSize.height - scrollView.contentOffset.y) <= scrollView.frame.size.height {
+                nextScrollPosition = .bottom
+            }
+            else {
+                nextScrollPosition = .middle
             }
             
-            if scrollView.contentOffset.y <= 0
-            {
-                if !hasAlreadyReachedTop
-                {
-                    hasAlreadyReachedTop = true
-                    onReachedTop?()
-                }
+            guard scrollPosition != nextScrollPosition else {
+                return
             }
-            else
-            {
-                hasAlreadyReachedTop = false
+            
+            scrollPosition = nextScrollPosition
+            
+            if scrollPosition == .bottom {
+                onReachedBottom?()
+            }
+            else if scrollPosition == .top {
+                onReachedTop?()
             }
         }
 
