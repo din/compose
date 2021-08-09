@@ -2,7 +2,10 @@ import Foundation
 import SwiftUI
 
 protocol AnyInstanceComponent {
-    //This protocol is intentionally left blank.
+    
+    var didCreate : ValueEmitter<UUID> { get }
+    var didDestroy : ValueEmitter<UUID> { get }
+    
 }
 
 @dynamicMemberLookup

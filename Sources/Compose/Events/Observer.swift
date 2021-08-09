@@ -37,9 +37,15 @@ class Observer<Emitter, Value> : Subscriber, AnyObserver {
     
     func receive(_ input: Value) -> Subscribers.Demand {
         if Introspection.shared.isEnabled == true {
-            let monitorId = ObservationBag.shared.beginMonitoring { observer in
+            let monitorId = ObservationBag.shared.beginMonitoring(isShallow: true) { observer in
                 Introspection.shared.updateDescriptor(forObserver: self.id) {
                     $0?.children.insert(observer.id)
+                }
+                
+                if let id = Introspection.shared.descriptor(forObserver: self.id)?.componentId {
+                    Introspection.shared.updateDescriptor(forObserver: observer.id) {
+                        $0?.componentId = id
+                    }
                 }
             }
             

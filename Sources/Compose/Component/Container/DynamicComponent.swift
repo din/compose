@@ -3,6 +3,9 @@ import SwiftUI
 
 protocol AnyDynamicComponent {
     
+    var didCreate : SignalEmitter { get }
+    var didDestroy : SignalEmitter { get }
+    
 }
 
 @dynamicMemberLookup

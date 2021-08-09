@@ -1,10 +1,6 @@
 import Foundation
 
-public struct ComponentDescriptor : Codable, Equatable, Identifiable {
-
-    public static func == (lhs: ComponentDescriptor, rhs: ComponentDescriptor) -> Bool {
-        lhs.id == rhs.id
-    }
+public struct ComponentDescriptor : Codable, Identifiable {
     
     enum CodingKeys : CodingKey {
         case id,
@@ -26,6 +22,7 @@ public struct ComponentDescriptor : Codable, Equatable, Identifiable {
         case container
         case `dynamic`
         case instance
+        case service
     }
 
     ///ID of bound component.
@@ -95,6 +92,14 @@ public struct ComponentDescriptor : Codable, Equatable, Identifiable {
     ///Removes a child with specified name
     mutating func remove(component id : UUID) {
         children.remove(id)
+    }
+    
+}
+
+extension ComponentDescriptor : Equatable {
+    
+    public static func == (lhs: ComponentDescriptor, rhs: ComponentDescriptor) -> Bool {
+        lhs.id == rhs.id
     }
     
 }

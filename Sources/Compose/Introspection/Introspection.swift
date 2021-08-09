@@ -51,15 +51,17 @@ public class Introspection {
         
     }
     
-    ///Observation contrext.
-    var observationScopeIds = [UUID]()
+    ///Observation scope contrext.
+    fileprivate var observationScopeIds = [UUID]()
+    
+    ///Services ids.
+    fileprivate var servicesIds = [ObjectIdentifier : UUID]()
     
     ///Sending out events.
     let objectWillChange = PassthroughSubject<Void, Never>()
     
     ///Managing cancellables in here.
     fileprivate var cancellables = Set<AnyCancellable>()
-    
     
 }
 
@@ -155,9 +157,9 @@ extension Introspection {
     
     func register(emitter : AnyEmitter, named name : String?) {
         app.emitters[emitter.id] = EmitterDescriptor(id: emitter.id,
-                                                               name: name ?? "Unnamed",
-                                                               description: emitter.debugDescription,
-                                                               valueDescription: "")
+                                                     name: name ?? "Unnamed",
+                                                     description: emitter.debugDescription,
+                                                     valueDescription: "")
     }
     
     func unregister(emitter id : UUID) {
@@ -215,11 +217,11 @@ extension Introspection {
         observationScopeIds.append(id)
     }
     
-    func popObservationScope(id: UUID) {
+    func popObservationScope() {
         observationScopeIds.removeLast()
     }
     
-    var observationScope : UUID {
+    var observationScopeId : UUID {
         observationScopeIds.last ?? UUID()
     }
     
@@ -257,7 +259,18 @@ extension Introspection {
 extension Introspection {
     
     func register<S : Service>(service : S) {
+        var id = UUID()
         
+        if let existingId = servicesIds[ObjectIdentifier(S.self)] {
+            id = existingId
+        }
+        else {
+            servicesIds[ObjectIdentifier(S.self)] = id
+        }
+        
+        app.components[id] = ComponentDescriptor(id: id,
+                                                 name: String(describing: S.self),
+                                                 lifecycle: .service)
     }
     
 }

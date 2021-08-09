@@ -14,6 +14,34 @@ extension Component {
         
         withIntrospection {
             Introspection.shared.register(component: self)
+            
+            var emitters = [String : AnyEmitter]()
+            
+            emitters["didAppear"] = self.didAppear
+            emitters["didDisappear"] = self.didDisappear
+            
+            if let component = self as? AnyDynamicComponent {
+                emitters["didCreate"] = component.didCreate
+                emitters["didDestroy"] = component.didDestroy
+            }
+            else if let component = self as? AnyInstanceComponent {
+                emitters["didCreate"] = component.didCreate
+                emitters["didDestroy"] = component.didDestroy
+            }
+            
+            emitters.forEach {
+                Introspection.shared.register(emitter: $0.value, named: $0.key)
+                
+                Introspection.shared.updateDescriptor(forEmitter: $0.value.id ) {
+                    $0?.componentId = self.id
+                }
+            }
+            
+            Introspection.shared.updateDescriptor(forComponent: self.id) { descriptor in
+                emitters.forEach {
+                    descriptor?.add(emitter: $0.value)
+                }
+            }
         }
 
         /* Binding all children and wrapped values */
@@ -90,7 +118,7 @@ extension Component {
         }
         
         withIntrospection {
-            Introspection.shared.popObservationScope(id: self.id)
+            Introspection.shared.popObservationScope()
             
             Introspection.shared.updateDescriptor(forComponent: self.id) {
                 $0?.createdAtTime = bindingStartTime
