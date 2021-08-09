@@ -7,7 +7,7 @@ public struct ComposeScrollView<Content : View> : View {
    
     public typealias CompletionHandler = () -> Void
     public typealias RefreshHandler = (@escaping CompletionHandler) -> Void
-        
+    
     private enum Status {
         case idle
         case dragging
