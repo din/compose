@@ -8,6 +8,12 @@ public struct ComposeScrollView<Content : View> : View {
     public typealias CompletionHandler = () -> Void
     public typealias RefreshHandler = (@escaping CompletionHandler) -> Void
     
+    public static enum ScrollPosition {
+        case top
+        case middle
+        case bottom
+    }
+    
     private enum Status {
         case idle
         case dragging
@@ -21,21 +27,28 @@ public struct ComposeScrollView<Content : View> : View {
     private let showsIndicators : Bool
     private let onRefresh : RefreshHandler?
     private let onReachedBottom : CompletionHandler?
+    private let onReachedTop : CompletionHandler?
     private let content : Content
     
     @State private var status : Status = .idle
     @State private var progress : Double = 0
     @State private var startDraggingOffset : CGPoint = .zero
     
+    @Binding var scrollPosition : ScrollPosition = .top
+    
     public init(_ axes : Axis.Set = .vertical,
                 showsIndicators: Bool = false,
                 onRefresh : RefreshHandler? = nil,
                 onReachedBottom : CompletionHandler? = nil,
+                onReachedTop : CompletionHandler? = nil,
+                scrollPosition : Binding<ScrollPosition> = .constant(.top)
                 @ViewBuilder content: () -> Content) {
         self.axes = axes
         self.showsIndicators = showsIndicators
         self.onRefresh = onRefresh
         self.onReachedBottom = onReachedBottom
+        self.onReachedTop = onReachedTop
+        self._scrollPosition = scrollPosition
         self.content = content()
     }
     
@@ -60,7 +73,10 @@ public struct ComposeScrollView<Content : View> : View {
             ComposeScrollViewPositionIndicator(type: .moving)
                 .frame(height: 0)
                 .overlay(
-                    ComposeScrollViewReader(startDraggingOffset: $startDraggingOffset, onReachedBottom: onReachedBottom)
+                    ComposeScrollViewReader(startDraggingOffset: $startDraggingOffset,
+                                            scrollPosition: $scrollPosition,
+                                            onReachedBottom: onReachedBottom,
+                                            onReachedTop: onReachedTop)
                 )
             
             if status == .loading {
