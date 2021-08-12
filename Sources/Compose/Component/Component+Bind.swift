@@ -34,6 +34,7 @@ extension Component {
                 
                 Introspection.shared.updateDescriptor(forEmitter: $0.value.id ) {
                     $0?.componentId = self.id
+                    $0?.isLifecycle = true
                 }
             }
             
@@ -64,9 +65,17 @@ extension Component {
                 }
                 
                 if let store = value as? AnyStore {
+                    let name = name?.replacingOccurrences(of: "_", with: "") ?? "state"
+                    
                     Introspection.shared.register(store: store, named: name)
                     Introspection.shared.updateDescriptor(forComponent: self.id) { descriptor in
                         descriptor?.add(store: store)
+                    }
+                    
+                    Introspection.shared.register(emitter: store.willChange, named: "\(name).willChange")
+                    
+                    Introspection.shared.updateDescriptor(forEmitter: store.willChange.id) {
+                        $0?.componentId = id
                     }
                 }
                 

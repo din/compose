@@ -14,6 +14,9 @@ public struct EmitterDescriptor : Codable, Equatable, Identifiable {
     ///Parent identifier for this emitter.
     public var componentId : UUID? = nil
     
+    ///Whether the emitter is lifecycle emitter or not.
+    public var isLifecycle = false
+    
     ///Observers map.
     public var observers = Set<UUID>()
     

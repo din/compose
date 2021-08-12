@@ -3,6 +3,10 @@ import SwiftUI
 
 @propertyWrapper public struct MappedStore<Target : Component, State : AnyState> : DynamicProperty, Bindable, AnyStore {
     
+    public var id : UUID {
+        container.id
+    }
+    
     public var wrappedValue : State {
         container.state
     }
@@ -11,11 +15,17 @@ import SwiftUI
         container
     }
     
+    var willChange: AnyEmitter {
+        container.willChange
+    }
+    
+    var isMapped: Bool {
+        true
+    }
+    
     fileprivate let keyPath : KeyPath<Target, StoreContainer<State>>
     
     @ObservedObject fileprivate var container = StoreContainer<State>()
-    
-    public let id = UUID()
     
     public init(for keyPath : KeyPath<Target, StoreContainer<State>>) {
         self.keyPath = keyPath

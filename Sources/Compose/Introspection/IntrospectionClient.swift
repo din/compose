@@ -1,5 +1,6 @@
 import Foundation
 import MultipeerConnectivity
+import Compression
 
 public let IntrospectionClientServiceName = "compose-client"
 
@@ -39,6 +40,21 @@ class IntrospectionClient : NSObject, ObservableObject {
         self.advertiser.delegate = self
         self.advertiser.startAdvertisingPeer()
         
+        #if os(iOS)
+        NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification,
+                                                object: nil,
+                                                queue: .main) { [unowned self] notification in
+            self.session.disconnect()
+            self.advertiser.stopAdvertisingPeer()
+         }
+        
+        NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification,
+                                               object: nil,
+                                               queue: .main) { [unowned self] notification in
+            self.advertiser.startAdvertisingPeer()
+        }
+        #endif
+        
         print("[Compose] Introspection client is ready.")
     }
     
@@ -47,8 +63,44 @@ class IntrospectionClient : NSObject, ObservableObject {
 extension IntrospectionClient {
     
     func send<T : Encodable>(_ value : T) throws {
+        guard session.connectedPeers.count > 0 else {
+            return
+        }
+        
+        guard connectionState == .connected else {
+            return
+        }
+
+        print("[Compose] Sending data...")
+        
         let encoder = PropertyListEncoder()
-        let data = try encoder.encode(value)
+        
+        let encodedData = try encoder.encode(value)
+        var data = Data()
+        
+        let outputFilter = try OutputFilter(.compress,
+                                            using: .lzfse) { compressedData -> Void in
+            if let compressedData = compressedData {
+                data.append(compressedData)
+            }
+        }
+        
+        var index = 0
+        let bufferSize = encodedData.count
+        
+        while true {
+            let rangeLength = min(256, bufferSize - index)
+            
+            let subdata = encodedData.subdata(in: index ..< index + rangeLength)
+            index += rangeLength
+            
+            try outputFilter.write(subdata)
+            
+            if (rangeLength == 0) {
+                break
+            }
+        }
+        
         try send(data)
     }
     

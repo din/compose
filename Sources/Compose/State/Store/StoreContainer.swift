@@ -3,11 +3,9 @@ import Combine
 import SwiftUI
 
 public class StoreContainer<State : AnyState> : ObservableObject {
-    
-    struct RefStorage {
-        weak var ref : AnyRef?
-    }
 
+    public let id = UUID()
+    
     public let willChange = ValueEmitter<State>()
 
     @Published internal var state : State
@@ -28,6 +26,33 @@ public class StoreContainer<State : AnyState> : ObservableObject {
         }.store(in: &cancellables)
         
         updateRefs()
+        
+        withIntrospection {
+            willChange.publisher.removeDuplicates().debounce(for: .seconds(0.5), scheduler: RunLoop.main).sink { [weak self] state in
+                guard let self = self else {
+                    return
+                }
+                
+                Introspection.shared.updateDescriptor(forStore: self.id) {
+                    $0?.update(to: self.state)
+                }
+            }.store(in: &cancellables)
+            
+            DispatchQueue.main.async {
+                Introspection.shared.updateDescriptor(forStore: self.id) {
+                    $0?.update(to: self.state)
+                }
+            }
+
+            guard storage is EmptyPersistentStorage == false else {
+                return
+            }
+            
+            Introspection.shared.updateDescriptor(forStore: self.id) {
+                let name = String(describing: type(of: storage))
+                $0?.persistence = StoreDescriptor.PersistenceDescriptor(name: name, key: storage.key)
+            }
+        }
     }
     
     public func invalidate() {

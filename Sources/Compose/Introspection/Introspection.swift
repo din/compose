@@ -41,24 +41,22 @@ public class Introspection {
     
     ///Client to send changes to.
     fileprivate var client : IntrospectionClient? = nil
+    
+    ///Queue to operate on.
+    fileprivate var queue : OperationQueue = {
+        let queue = OperationQueue()
+        queue.maxConcurrentOperationCount = 1
+        return queue
+    }()
      
     ///App descriptor.
-    var app = AppDescriptor.empty {
-        
-        didSet {
-            objectWillChange.send()
-        }
-        
-    }
+    let app = AppDescriptor()
     
     ///Observation scope contrext.
     fileprivate var observationScopeIds = [UUID]()
     
     ///Services ids.
     fileprivate var servicesIds = [ObjectIdentifier : UUID]()
-    
-    ///Sending out events.
-    let objectWillChange = PassthroughSubject<Void, Never>()
     
     ///Managing cancellables in here.
     fileprivate var cancellables = Set<AnyCancellable>()
@@ -81,15 +79,12 @@ extension Introspection {
                     return
                 }
                 
-                DispatchQueue.main.async {
-                    self.advertiseAppDescriptor()
-                }
+                self.advertiseAppDescriptor()
             }
             .store(in: &cancellables)
         
-        objectWillChange
-            .receive(on: DispatchQueue.global())
-            .debounce(for: .milliseconds(200), scheduler: DispatchQueue.global())
+        app.objectWillChange
+            .debounce(for: .milliseconds(500), scheduler: DispatchQueue.global())
             .sink { [unowned self] _ in                
                 self.advertiseAppDescriptor()
             }
@@ -97,12 +92,19 @@ extension Introspection {
     }
     
     fileprivate func advertiseAppDescriptor() {
-        do {
-            try client?.send(app)
+        queue.addOperation { [weak self] in
+            guard let self = self else {
+                return
+            }
+            
+            do {
+                try self.client?.send(self.app)
+            }
+            catch let error {
+                print("[Compose] Error advertising introspection changes: \(error)")
+            }
         }
-        catch let error {
-            print("[Compose] Error advertising introspection changes: \(error)")
-        }
+        
     }
     
 }
@@ -231,7 +233,12 @@ extension Introspection {
     
     func register(store : AnyStore, named name : String?) {
         app.stores[store.id] = StoreDescriptor(id: store.id,
-                                               name: name ?? "Unknown")
+                                               name: name ?? "Unknown",
+                                               isMapped: store.isMapped)
+    }
+    
+    func updateDescriptor(forStore id : UUID, update : (inout StoreDescriptor?) -> Void) {
+        update(&app.stores[id])
     }
     
 }
@@ -268,9 +275,37 @@ extension Introspection {
             servicesIds[ObjectIdentifier(S.self)] = id
         }
         
-        app.components[id] = ComponentDescriptor(id: id,
-                                                 name: String(describing: S.self),
-                                                 lifecycle: .service)
+        var descriptor = ComponentDescriptor(id: id,
+                                             name: String(describing: S.self),
+                                             lifecycle: .service)
+        
+        let mirror = Mirror(reflecting: service)
+        
+        for (name, value) in mirror.children {
+            
+            if let emitter = value as? AnyEmitter {
+                Introspection.shared.register(emitter: emitter, named: name)
+
+                descriptor.add(emitter: emitter)
+            }
+            
+            if let store = value as? AnyStore {
+                let name = name?.replacingOccurrences(of: "_", with: "") ?? "state"
+                
+                Introspection.shared.register(store: store, named: name)
+                
+                descriptor.add(store: store)
+        
+                Introspection.shared.register(emitter: store.willChange, named: "\(name).willChange")
+                
+                Introspection.shared.updateDescriptor(forEmitter: store.willChange.id) {
+                    $0?.componentId = id
+                }
+            }
+            
+        }
+        
+        app.components[id] = descriptor
     }
     
 }

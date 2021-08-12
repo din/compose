@@ -5,9 +5,17 @@ protocol AnyStore {
  
     var id : UUID { get }
     
+    var willChange : AnyEmitter { get }
+    
+    var isMapped : Bool { get }
+    
 }
 
 @propertyWrapper public struct Store<State : AnyState> : DynamicProperty, AnyStore {
+    
+    public var id : UUID {
+        container.id
+    }
     
     public var wrappedValue : State {
         get {
@@ -22,7 +30,13 @@ protocol AnyStore {
         container
     }
     
-    public let id = UUID()
+    var willChange: AnyEmitter {
+        container.willChange
+    }
+    
+    var isMapped: Bool {
+        false
+    }
     
     @ObservedObject fileprivate var container : StoreContainer<State>
 

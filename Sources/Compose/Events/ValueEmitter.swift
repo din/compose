@@ -33,12 +33,12 @@ public struct ValueEmitter<Value> : Emitter {
         storage.lastValue = value
         subject.send(value)
         
-        withIntrospection {
+       /* withIntrospection {
             Introspection.shared.updateDescriptor(forEmitter: self.id) {
                 $0?.fireTime = CFAbsoluteTimeGetCurrent()
                 $0?.valueDescription = String(describing: value)
             }
-        }
+        }*/
     }
     
 }
