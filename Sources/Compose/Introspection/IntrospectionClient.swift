@@ -1,9 +1,10 @@
 import Foundation
 import MultipeerConnectivity
+import Compression
 
-let IntrospectionClientServiceName = "compose-client"
+public let IntrospectionClientServiceName = "compose-client"
 
-class IntrospectionClient : NSObject {
+class IntrospectionClient : NSObject, ObservableObject {
     
     ///Internal identifier of a client
     fileprivate let discoveryInfo = [
@@ -11,7 +12,11 @@ class IntrospectionClient : NSObject {
     ]
     
     ///Current peer identifier.
-    fileprivate let peerIdentifier = MCPeerID(displayName: UIDevice.current.name)
+    #if os(iOS)
+    fileprivate let peerIdentifier = MCPeerID(displayName: Bundle.main.infoDictionary?[kCFBundleNameKey as String] as? String ?? UIDevice.current.name)
+    #else
+    fileprivate let peerIdentifier = MCPeerID(displayName: Bundle.main.infoDictionary?[kCFBundleNameKey as String] as? String ?? Host.current().localizedName ?? "Mac")
+    #endif
     
     ///Currently active session.
     fileprivate let session : MCSession
@@ -19,7 +24,7 @@ class IntrospectionClient : NSObject {
     ///Service advertiser to let Compose  know about this device.
     fileprivate let advertiser : MCNearbyServiceAdvertiser
     
-    fileprivate(set) var connectionState : ConnectionState = .disconnected
+    @Published fileprivate(set) var connectionState : ConnectionState = .disconnected
     
     override init() {
         self.advertiser = MCNearbyServiceAdvertiser(peer: peerIdentifier,
@@ -35,7 +40,22 @@ class IntrospectionClient : NSObject {
         self.advertiser.delegate = self
         self.advertiser.startAdvertisingPeer()
         
-        print("[IntrospectionClient] Introspection client is ready.")
+        #if os(iOS)
+        NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification,
+                                                object: nil,
+                                                queue: .main) { [unowned self] notification in
+            self.session.disconnect()
+            self.advertiser.stopAdvertisingPeer()
+         }
+        
+        NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification,
+                                               object: nil,
+                                               queue: .main) { [unowned self] notification in
+            self.advertiser.startAdvertisingPeer()
+        }
+        #endif
+        
+        print("[Compose] Introspection client is ready.")
     }
     
 }
@@ -43,13 +63,53 @@ class IntrospectionClient : NSObject {
 extension IntrospectionClient {
     
     func send<T : Encodable>(_ value : T) throws {
+        guard session.connectedPeers.count > 0 else {
+            return
+        }
+        
+        guard connectionState == .connected else {
+            return
+        }
+
+        print("[Compose] Sending data...")
+        
         let encoder = PropertyListEncoder()
-        let data = try encoder.encode(value)
+        
+        let encodedData = try encoder.encode(value)
+        var data = Data()
+        
+        let outputFilter = try OutputFilter(.compress,
+                                            using: .lzfse) { compressedData -> Void in
+            if let compressedData = compressedData {
+                data.append(compressedData)
+            }
+        }
+        
+        var index = 0
+        let bufferSize = encodedData.count
+        
+        while true {
+            let rangeLength = min(256, bufferSize - index)
+            
+            let subdata = encodedData.subdata(in: index ..< index + rangeLength)
+            index += rangeLength
+            
+            try outputFilter.write(subdata)
+            
+            if (rangeLength == 0) {
+                break
+            }
+        }
+        
         try send(data)
     }
     
     func send(_ data : Data) throws {
         guard session.connectedPeers.count > 0 else {
+            return
+        }
+        
+        guard connectionState == .connected else {
             return
         }
         
@@ -62,7 +122,7 @@ extension IntrospectionClient : MCNearbyServiceAdvertiserDelegate {
     
     func advertiser(_ advertiser: MCNearbyServiceAdvertiser,
                     didNotStartAdvertisingPeer error: Error) {
-        print("[IntrospectionClient] Error while advertising remote rendering client: \(error)")
+        print("[Compose] Error while advertising remote rendering client: \(error)")
     }
     
     func advertiser(_ advertiser: MCNearbyServiceAdvertiser,
@@ -70,7 +130,7 @@ extension IntrospectionClient : MCNearbyServiceAdvertiserDelegate {
                     withContext context: Data?,
                     invitationHandler: @escaping (Bool, MCSession?) -> Void) {
         invitationHandler(true, session)
-        print("[IntrospectionClient] Introspection session initiated.")
+        print("[Compose] Introspection session initiated.")
     }
     
 }
@@ -93,14 +153,14 @@ extension IntrospectionClient : MCSessionDelegate {
         switch state {
         
         case .notConnected:
-            print("[IntrospectionClient] Not connected to server")
+            print("[Compose] Not connected to server")
             self.connectionState = .disconnected
             
         case .connecting:
-            print("[IntrospectionClient] Connecting to server")
+            print("[Compose] Connecting to server")
             
         case .connected:
-            print("[IntrospectionClient] Connected to server")
+            print("[Compose] Connected to server")
             self.connectionState = .connected
             
         default:

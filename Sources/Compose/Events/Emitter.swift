@@ -1,7 +1,10 @@
 import Foundation
 import Combine
 
-public protocol AnyEmitter {
+infix operator !+=
+infix operator ~+=
+
+public protocol AnyEmitter : CustomDebugStringConvertible {
     
     var id : UUID { get }
     
@@ -19,13 +22,17 @@ extension Emitter {
     
     @discardableResult
     public func observe(handler : @escaping (Value) -> Void) -> AnyCancellable {
-        let cancellable = publisher.sink { value in
-            handler(value)
-        }
-        
-        ObservationBag.shared.add(cancellable, for: id)
+        let observer = Observer<Self, Value>(action: handler)
+
+        publisher.subscribe(observer)
+
+        ObservationBag.shared.add(observer, for: id)
     
-        return cancellable
+        return observer.cancellable
+    }
+    
+    public var debugDescription: String {
+        String(describing: Value.self)
     }
     
 }
@@ -34,9 +41,9 @@ extension Emitter {
     
     @discardableResult
     public static func +=(lhs : Self, rhs : @escaping (Value) -> Void) -> AnyCancellable {
-        return lhs.observe(handler: rhs)
+        lhs.observe(handler: rhs)
     }
-
+    
 }
 
 extension Emitter {

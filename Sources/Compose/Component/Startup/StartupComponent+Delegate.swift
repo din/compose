@@ -1,6 +1,8 @@
 import Foundation
 import SwiftUI
 
+#if os(iOS)
+
 class ComposeAppDelegate: UIResponder, UIApplicationDelegate {
 
 }
@@ -23,3 +25,5 @@ class ComposeSceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
     
 }
+
+#endif

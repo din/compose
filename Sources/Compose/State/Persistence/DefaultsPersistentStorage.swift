@@ -16,7 +16,7 @@ public class DefaultsPersistentStorage : AnyPersistentStorage {
             UserDefaults.standard.set(data, forKey: key)
         }
         catch let error {
-            print("DefaultPersistentStorage '\(key)' save error: \(error)")
+            print("[Compose] DefaultPersistentStorage '\(key)' save error: \(error)")
         }
     }
     
@@ -31,7 +31,7 @@ public class DefaultsPersistentStorage : AnyPersistentStorage {
             return try decoder.decode(State.self, from: data)
         }
         catch let error {
-            print("DefaultPersistentStorage '\(key)' load error: \(error)")
+            print("[Compose] DefaultPersistentStorage '\(key)' load error: \(error)")
             return nil
         }
     }

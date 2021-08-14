@@ -1,8 +1,6 @@
 import Foundation
 import Combine
 
-infix operator !+=
-
 extension Emitters {
     
     public struct Once<Upstream : Emitter> : Emitter {
@@ -29,7 +27,7 @@ extension Emitter {
     
     @discardableResult
     public static func !+=(lhs : Self, rhs : @escaping (Value) -> Void) -> AnyCancellable {
-        return lhs.once().observe(handler: rhs)
+        lhs.once().observe(handler: rhs)
     }
     
 }

@@ -1,6 +1,8 @@
 import Foundation
 import Swift
 import SwiftUI
+
+#if os(iOS)
 import UIKit
 
 fileprivate class UIHostingView<Content: View>: UIView, UIGestureRecognizerDelegate {
@@ -96,3 +98,17 @@ extension View {
     }
     
 }
+
+#else
+
+extension View {
+    
+    @ViewBuilder
+    public func routerScope(_ shouldScope : Bool = true) -> some View {
+        self
+    }
+    
+}
+
+
+#endif

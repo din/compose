@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Referred<T : Identifiable> : Identifiable {
+public struct Referred<T : Identifiable & Codable & Equatable> : Identifiable {
     
     public let id : T.ID
     
@@ -9,7 +9,10 @@ public struct Referred<T : Identifiable> : Identifiable {
     }
     
     public static func `for`(_ object : T) -> Referred<T> {
-        .init(id: object.id)
+        let ref = Ref(wrappedValue: object)
+        ref.wrappedValue = object
+        
+        return .init(id: object.id)
     }
     
 }

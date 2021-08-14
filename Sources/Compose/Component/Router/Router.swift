@@ -20,7 +20,18 @@ public final class Router : ObservableObject {
     public var target : Component?
     internal let options : RouterOptions
 
-    @Published internal var routes = [Route]()
+    @Published internal var routes = [Route]() {
+    
+        didSet {
+            withIntrospection {
+                Introspection.shared.updateDescriptor(forRouter: self.id) {
+                    $0?.routes = self.routes.map { $0.id }
+                }
+            }
+        }
+        
+    }
+    
     @Published internal var isPushing : Bool = false
 
     internal let id = UUID()
@@ -50,7 +61,7 @@ extension Router {
         }
         
         RouterStorage.storage(forComponent: route.id)?.enclosing = self
-  
+        
         guard animated == true else {
             self.routes.append(route)
             self.didPush.send(keyPath)
@@ -125,7 +136,7 @@ extension Router {
     
     public func replace(_ keyPath : AnyKeyPath, animated : Bool = false) {
         zIndex = 0
-        
+
         guard let route = route(for: keyPath) else {
             return
         }
@@ -149,7 +160,7 @@ extension Router {
     
     fileprivate func route(for keyPath : AnyKeyPath) -> Route? {
         guard let component = target[keyPath: keyPath] as? Component else {
-            print("[Router] Unable to find component under keypath: '\(keyPath)'.")
+            print("[Compose] Router is unable to find component under keypath: '\(keyPath)'.")
             return nil
         }
         

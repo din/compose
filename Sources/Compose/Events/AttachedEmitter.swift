@@ -34,7 +34,7 @@ extension Storage {
     
     public init() {
         emptyDestinationEmitter += { _ in
-            print("Unattached emitter with value type '\(T.self)' triggered from a view.")
+            print("[Compose] Unattached emitter with value type '\(T.self)' triggered from a view.")
         }
     }
     

@@ -3,6 +3,9 @@ import SwiftUI
 
 protocol AnyDynamicComponent {
     
+    var didCreate : SignalEmitter { get }
+    var didDestroy : SignalEmitter { get }
+    
 }
 
 @dynamicMemberLookup
@@ -57,8 +60,14 @@ extension DynamicComponent {
         let id = storage.create(allocator: allocator)
         didCreate.send()
         
-        Introspection.shared.updateDescriptor(for: self) {
-            $0?.add(component: id)
+        withIntrospection {
+            Introspection.shared.updateDescriptor(forComponent: self.id) {
+                $0?.add(component: id)
+            }
+            
+            Introspection.shared.updateDescriptor(forComponent: id) {
+                $0?.lifecycle = .dynamic
+            }
         }
     }
     
@@ -78,17 +87,21 @@ extension DynamicComponent : View {
         if let component = storage.component {
             component.view
                 .onAppear {
-                    Introspection.shared.updateDescriptor(for: self) {
-                        $0?.isVisible = true
+                    withIntrospection {
+                        Introspection.shared.updateDescriptor(forComponent: self.id) {
+                            $0?.isVisible = true
+                        }
                     }
                 }
                 .onDisappear {
                     storage.destroy()
                     didDestroy.send()
                     
-                    Introspection.shared.updateDescriptor(for: self) {
-                        $0?.isVisible = false
-                        $0?.remove(component: id)
+                    withIntrospection {
+                        Introspection.shared.updateDescriptor(forComponent: self.id) {
+                            $0?.isVisible = false
+                            $0?.remove(component: self.id)
+                        }
                     }
                 }
             }

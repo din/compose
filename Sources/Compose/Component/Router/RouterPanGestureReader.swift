@@ -1,5 +1,7 @@
 import Foundation
 import SwiftUI
+
+#if os(iOS)
 import UIKit
 
 struct RouterPanGestureReader : UIViewRepresentable {
@@ -93,3 +95,5 @@ extension RouterPanGestureReader {
     }
     
 }
+
+#endif

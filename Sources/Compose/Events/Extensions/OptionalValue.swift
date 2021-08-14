@@ -1,6 +1,10 @@
 import Foundation
 
-public protocol OptionalValue {
+public protocol AnyOptionalValue {
+    
+}
+
+public protocol OptionalValue : AnyOptionalValue {
     associatedtype Wrapped
     
     func map<U>(_ transform : (Wrapped) throws -> U) rethrows -> U?

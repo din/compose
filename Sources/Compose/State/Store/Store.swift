@@ -1,7 +1,21 @@
 import Foundation
 import SwiftUI
 
-@propertyWrapper public struct Store<State : AnyState> : DynamicProperty {
+protocol AnyStore {
+ 
+    var id : UUID { get }
+    
+    var willChange : AnyEmitter { get }
+    
+    var isMapped : Bool { get }
+    
+}
+
+@propertyWrapper public struct Store<State : AnyState> : DynamicProperty, AnyStore {
+    
+    public var id : UUID {
+        container.id
+    }
     
     public var wrappedValue : State {
         get {
@@ -14,6 +28,14 @@ import SwiftUI
     
     public var projectedValue : StoreContainer<State> {
         container
+    }
+    
+    var willChange: AnyEmitter {
+        container.willChange
+    }
+    
+    var isMapped: Bool {
+        false
     }
     
     @ObservedObject fileprivate var container : StoreContainer<State>

@@ -12,9 +12,42 @@ extension Component {
     public func bind() -> Self {
         /* Storing lifecycle for the component in the component descriptor */
         
-        Introspection.shared.register(self)
+        withIntrospection {
+            Introspection.shared.register(component: self)
+            
+            var emitters = [String : AnyEmitter]()
+            
+            emitters["didAppear"] = self.didAppear
+            emitters["didDisappear"] = self.didDisappear
+            
+            if let component = self as? AnyDynamicComponent {
+                emitters["didCreate"] = component.didCreate
+                emitters["didDestroy"] = component.didDestroy
+            }
+            else if let component = self as? AnyInstanceComponent {
+                emitters["didCreate"] = component.didCreate
+                emitters["didDestroy"] = component.didDestroy
+            }
+            
+            emitters.forEach {
+                Introspection.shared.register(emitter: $0.value, named: $0.key)
+                
+                Introspection.shared.updateDescriptor(forEmitter: $0.value.id ) {
+                    $0?.componentId = self.id
+                    $0?.isLifecycle = true
+                }
+            }
+            
+            Introspection.shared.updateDescriptor(forComponent: self.id) { descriptor in
+                emitters.forEach {
+                    descriptor?.add(emitter: $0.value)
+                }
+            }
+        }
 
         /* Binding all children and wrapped values */
+        
+        let bindingStartTime = CFAbsoluteTimeGetCurrent()
         
         let mirror = Mirror(reflecting: self)
     
@@ -23,17 +56,35 @@ extension Component {
                 (value as? Component)?.bind()
             }
             
-            /* if let name = name, let component = value as? Component {
-                Introspection.shared.updateDescriptor(for: self) {
-                    $0?.add(component: component, for: name)
+            withIntrospection {
+                if let emitter = value as? AnyEmitter {
+                    Introspection.shared.register(emitter: emitter, named: name)
+                    Introspection.shared.updateDescriptor(forComponent: self.id) { descriptor in
+                        descriptor?.add(emitter: emitter)
+                    }
                 }
-            }*/
-            
-            /*if let name = name, let emitter = value as? AnyEmitter {
-                Introspection.shared.updateDescriptor(for: self) {
-                    $0?.add(emitter: emitter, for: name)
+                
+                if let store = value as? AnyStore {
+                    let name = name?.replacingOccurrences(of: "_", with: "") ?? "state"
+                    
+                    Introspection.shared.register(store: store, named: name)
+                    Introspection.shared.updateDescriptor(forComponent: self.id) { descriptor in
+                        descriptor?.add(store: store)
+                    }
+                    
+                    Introspection.shared.register(emitter: store.willChange, named: "\(name).willChange")
+                    
+                    Introspection.shared.updateDescriptor(forEmitter: store.willChange.id) {
+                        $0?.componentId = id
+                    }
                 }
-            }*/
+                
+                if let component = value as? Component {
+                    Introspection.shared.updateDescriptor(forComponent: self.id) { descriptor in
+                        descriptor?.add(component: component)
+                    }
+                }
+            }
             
             /* Binding bindables */
             
@@ -50,22 +101,42 @@ extension Component {
                     }
                     
                     if let router = wrappedValue as? Router {
-                        Introspection.shared.updateDescriptor(for: self) {
-                            $0?.add(router: router, for: name)
+                        withIntrospection {
+                            Introspection.shared.register(router: router, named: name)
+                            
+                            Introspection.shared.updateDescriptor(forComponent: self.id) {
+                                $0?.add(router: router)
+                            }
                         }
                     }
                 }
             }
             
         }
-
+        
+        let observingStartTime = CFAbsoluteTimeGetCurrent()
+        
+        withIntrospection {
+            Introspection.shared.pushObservationScope(id: self.id)
+        }
+        
         _ = self.observers
         
         for keyPath in Self.auxiliaryBindableKeyPaths {
             _ = self[keyPath: keyPath]
         }
-     
+        
+        withIntrospection {
+            Introspection.shared.popObservationScope()
+            
+            Introspection.shared.updateDescriptor(forComponent: self.id) {
+                $0?.createdAtTime = bindingStartTime
+                $0?.bindingTime = CFAbsoluteTimeGetCurrent() - bindingStartTime
+                $0?.observingTime = CFAbsoluteTimeGetCurrent() - observingStartTime
+            }
+        }
+
         return self
     }
-    
+
 }

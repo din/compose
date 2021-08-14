@@ -66,7 +66,6 @@ public struct RouterView<Content : View> : View, Identifiable {
                 .allowsHitTesting(isTransitioning == false && routes.count == 0)
             
             routesBody
-            
             #else
             content
             routesBody

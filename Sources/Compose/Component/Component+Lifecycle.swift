@@ -33,14 +33,14 @@ extension Component {
             .onAppear {
                 didAppear.send()
                 
-                Introspection.shared.updateDescriptor(for: self) {
+                Introspection.shared.updateDescriptor(forComponent: self.id) {
                     $0?.isVisible = true
                 }
             }
             .onDisappear {
                 didDisappear.send()
                 
-                Introspection.shared.updateDescriptor(for: self) {
+                Introspection.shared.updateDescriptor(forComponent: self.id) {
                     $0?.isVisible = false
                 }
             }

@@ -16,7 +16,7 @@ public class FilePersistentStorage : AnyPersistentStorage {
                                                      attributes: nil)
         }
         catch let error {
-            print("FilePersistentStorage: cannot create root directory. \(error.localizedDescription)")
+            print("[Compose] FilePersistentStorage: cannot create root directory. \(error.localizedDescription)")
         }
     }
     
@@ -28,7 +28,7 @@ public class FilePersistentStorage : AnyPersistentStorage {
             try data.write(to: url)
         }
         catch let error {
-            print("FilePersistentStorage '\(key)' save error: \(error)")
+            print("[Compose] FilePersistentStorage '\(key)' save error: \(error)")
         }
     }
     
@@ -43,7 +43,7 @@ public class FilePersistentStorage : AnyPersistentStorage {
             return try decoder.decode(State.self, from: data)
         }
         catch let error {
-            print("FilePersistentStorage '\(key)' load error: \(error)")
+            print("[Compose] FilePersistentStorage '\(key)' load error: \(error)")
             return nil
         }
     }
