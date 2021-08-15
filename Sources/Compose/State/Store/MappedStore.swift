@@ -11,7 +11,7 @@ import SwiftUI
         container.state
     }
     
-    public var projectedValue : StoreContainer<State> {
+    public var projectedValue : BackingStore<State> {
         container
     }
     
@@ -23,11 +23,11 @@ import SwiftUI
         true
     }
     
-    fileprivate let keyPath : KeyPath<Target, StoreContainer<State>>
+    fileprivate let keyPath : KeyPath<Target, BackingStore<State>>
     
-    @ObservedObject fileprivate var container = StoreContainer<State>()
+    @ObservedObject fileprivate var container = BackingStore<State>()
     
-    public init(for keyPath : KeyPath<Target, StoreContainer<State>>) {
+    public init(for keyPath : KeyPath<Target, BackingStore<State>>) {
         self.keyPath = keyPath
     }
     
