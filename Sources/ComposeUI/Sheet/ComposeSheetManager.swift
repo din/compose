@@ -3,29 +3,32 @@ import SwiftUI
 
 final public class ComposeSheetManager : ObservableObject {
     
-    @Published var sheet : AnyView? = nil
+    var style : ComposeSheetPresentationStyle = .sheet
+    
+    @Published var content : AnyView? = nil
     @Published public var shouldPreventDismissal : Bool = false
     
     public init() {
         
     }
     
-    var hasSheet : Binding<Bool> {
+    var hasContent : Binding<Bool> {
         .init(get: {
-            self.sheet != nil
+            self.content != nil
         }, set: { value in
             if value == false {
-                self.sheet = nil
+                self.content = nil
             }
         })
     }
     
-    public func present<Content : View>(@ViewBuilder content : () -> Content) {
-        self.sheet = AnyView(content())
+    public func present<Content : View>(@ViewBuilder content : () -> Content, style : ComposeSheetPresentationStyle = .sheet) {
+        self.style = style
+        self.content = AnyView(content())
     }
     
     public func dismiss() {
-        sheet = nil
+        content = nil
         shouldPreventDismissal = false
     }
     

@@ -16,19 +16,46 @@ struct ComposeSheetContainerView<Content : View, Background : View> : View {
     }
     
     var body: some View {
-        content
-            .sheet(isPresented: manager.hasSheet) {
-                ZStack {
-                    background
-                        .edgesIgnoringSafeArea(.all)
-                        .zIndex(5)
-
-                        manager.sheet?
-                            .composeSheetDismissable(shouldPreventDismissal: manager.shouldPreventDismissal)
-                            .zIndex(6)
-                            .environment(\.composeNavigationBarStyle, navigationBarStyle)
-                            .environment(\.composeNavigationStyle, navigationStyle)
+        if #available(iOS 14.0, *) {
+            if manager.style == .cover {
+                content
+                    .fullScreenCover(isPresented: manager.hasContent) {
+                        content(for: manager.style)
+                    }
+            }
+            else {
+                content
+                    .sheet(isPresented: manager.hasContent) {
+                        content(for: manager.style)
+                    }
+            }
+        } else {
+            content
+                .sheet(isPresented: manager.hasContent) {
+                    content(for: .sheet)
                 }
+        }
+    }
+    
+    fileprivate func content(for style : ComposeSheetPresentationStyle) -> some View {
+        ZStack {
+            background
+                .edgesIgnoringSafeArea(.all)
+                .zIndex(5)
+            
+            if style == .sheet {
+                manager.content
+                    .composeSheetDismissable(shouldPreventDismissal: manager.shouldPreventDismissal)
+                    .zIndex(6)
+                    .environment(\.composeNavigationBarStyle, navigationBarStyle)
+                    .environment(\.composeNavigationStyle, navigationStyle)
+            }
+            else {
+                manager.content
+                    .zIndex(6)
+                    .environment(\.composeNavigationBarStyle, navigationBarStyle)
+                    .environment(\.composeNavigationStyle, navigationStyle)
+            }
         }
     }
     
