@@ -17,27 +17,23 @@ struct ComposeSheetContainerView<Content : View, Background : View> : View {
     
     var body: some View {
         if #available(iOS 14.0, *) {
-            if manager.style == .cover {
-                content
-                    .fullScreenCover(isPresented: manager.hasContent) {
-                        content(for: manager.style)
-                    }
-            }
-            else {
-                content
-                    .sheet(isPresented: manager.hasContent) {
-                        content(for: manager.style)
-                    }
-            }
-        } else {
             content
-                .sheet(isPresented: manager.hasContent) {
-                    content(for: .sheet)
+                .fullScreenCover(isPresented: manager.hasContent(with: .cover)) {
+                    sheetContent(for: manager.style)
+                }
+                .sheet(isPresented: manager.hasContent(with: .sheet)) {
+                    sheetContent(for: manager.style)
+                }
+        }
+        else {
+            content
+                .sheet(isPresented: manager.hasContent(with: .sheet)) {
+                    sheetContent(for: .sheet)
                 }
         }
     }
     
-    fileprivate func content(for style : ComposeSheetPresentationStyle) -> some View {
+    fileprivate func sheetContent(for style : ComposeSheetPresentationStyle) -> some View {
         ZStack {
             background
                 .edgesIgnoringSafeArea(.all)

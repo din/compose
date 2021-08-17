@@ -12,9 +12,9 @@ final public class ComposeSheetManager : ObservableObject {
         
     }
     
-    var hasContent : Binding<Bool> {
+    func hasContent(with style : ComposeSheetPresentationStyle) -> Binding<Bool> {
         .init(get: {
-            self.content != nil
+            self.content != nil && self.style == style
         }, set: { value in
             if value == false {
                 self.content = nil
