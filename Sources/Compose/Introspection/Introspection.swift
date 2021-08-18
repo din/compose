@@ -184,10 +184,9 @@ extension Introspection {
 
 extension Introspection {
     
-    func register<O : Observer<E, V>, E : Emitter, V>(observer : O,
-                                                      emitterId : UUID) {
+    func register<V>(observer : Observer<V>, emitterId : UUID) {
         app.observers[observer.id] = ObserverDescriptor(id: observer.id,
-                                                        description: String(describing: E.self),
+                                                        description: "",
                                                         emitterId: emitterId)
     }
     

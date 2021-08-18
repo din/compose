@@ -20,7 +20,7 @@ public class TimerEmitter : Emitter {
     }
     
     public func start(_ handler : @escaping (Date) -> Void) {
-        let observer = Observer<Self, Date>(action: handler)
+        let observer = Observer<Date>(action: handler)
      
         self.timerPublisher
             .autoconnect()

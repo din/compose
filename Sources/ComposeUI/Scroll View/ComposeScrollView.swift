@@ -67,7 +67,8 @@ public struct ComposeScrollView<Content : View> : View {
             ComposeScrollViewPositionIndicator(type: .moving)
                 .frame(height: 0)
                 .overlay(
-                    ComposeScrollViewReader(startDraggingOffset: $startDraggingOffset,
+                    ComposeScrollViewReader(isPagingEnabled: false,
+                                            startDraggingOffset: $startDraggingOffset,
                                             scrollPosition: $scrollPosition,
                                             onReachedBottom: onReachedBottom,
                                             onReachedTop: onReachedTop)

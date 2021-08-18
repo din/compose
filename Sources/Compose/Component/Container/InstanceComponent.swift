@@ -87,45 +87,29 @@ extension InstanceComponent {
 extension InstanceComponent : View {
     
     public var body: some View {
-        if let id = storage.currentId, let component = storage.components[id] {
-            component.view
-                .onAppear {
-                    withIntrospection {
-                        Introspection.shared.updateDescriptor(forComponent: self.id) {
-                            $0?.isVisible = storage.components.count > 0
-                        }
-                    }
-                }
-                .onDisappear {
-                    storage.destroy(id: id)
-                    didDestroy.send(id)
-                    
-                    withIntrospection {
-                        Introspection.shared.updateDescriptor(forComponent: self.id) {
-                            $0?.isVisible = storage.components.count == 0
-                            $0?.remove(component: id)
-                        }
-                    }
-                }
+        guard let id = storage.currentId, let component = storage.components[id] else {
+            fatalError("[InstanceComponent] Component \(T.self) must be set before accessing it.")
         }
-        else {
-            emptyBody
-        }
-    }
     
-    private var emptyBody : some View {
-        print("[InstanceComponent] Warning component \(T.self) must be set before accessing it.")
-        
-        #if DEBUG
-        return VStack {
-            Text("Uninitialised instance component \(String(describing: T.self))")
-                .foregroundColor(Color.orange)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        #else
-        return EmptyView()
-        #endif
+        return component.view
+            .onAppear {
+                withIntrospection {
+                    Introspection.shared.updateDescriptor(forComponent: self.id) {
+                        $0?.isVisible = storage.components.count > 0
+                    }
+                }
+            }
+            .onDisappear {
+                storage.destroy(id: id)
+                didDestroy.send(id)
+                
+                withIntrospection {
+                    Introspection.shared.updateDescriptor(forComponent: self.id) {
+                        $0?.isVisible = storage.components.count == 0
+                        $0?.remove(component: id)
+                    }
+                }
+            }
     }
     
 }

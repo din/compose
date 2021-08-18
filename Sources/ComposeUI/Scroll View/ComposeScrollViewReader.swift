@@ -5,6 +5,7 @@ struct ComposeScrollViewReader : UIViewRepresentable {
     
     typealias CompletionHandler = () -> Void
     
+    let isPagingEnabled : Bool
     @Binding var startDraggingOffset : CGPoint
     @Binding var scrollPosition : ComposeScrollPosition
     
@@ -32,6 +33,7 @@ struct ComposeScrollViewReader : UIViewRepresentable {
             isLoaded = true
 
             scrollView.delegate = context.coordinator
+            scrollView.isPagingEnabled = isPagingEnabled
         }
     }
     

@@ -22,7 +22,7 @@ extension Emitter {
     
     @discardableResult
     public func observe(handler : @escaping (Value) -> Void) -> AnyCancellable {
-        let observer = Observer<Self, Value>(action: handler)
+        let observer = Observer<Value>(action: handler)
 
         publisher.subscribe(observer)
 

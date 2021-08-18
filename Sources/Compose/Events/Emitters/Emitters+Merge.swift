@@ -25,7 +25,7 @@ extension Emitters.Merge {
     
     @discardableResult
     public func observe(handler: @escaping (Upstream.Value) -> Void) -> AnyCancellable {
-        let observer = Observer<Self, Upstream.Value>(action: handler)
+        let observer = Observer<Upstream.Value>(action: handler)
         publisher.subscribe(observer)
         
         ObservationBag.shared.add(observer, for: id)

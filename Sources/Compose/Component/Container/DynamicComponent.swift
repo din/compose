@@ -84,45 +84,29 @@ extension DynamicComponent {
 extension DynamicComponent : View {
     
     public var body: some View {
-        if let component = storage.component {
-            component.view
-                .onAppear {
-                    withIntrospection {
-                        Introspection.shared.updateDescriptor(forComponent: self.id) {
-                            $0?.isVisible = true
-                        }
-                    }
-                }
-                .onDisappear {
-                    storage.destroy()
-                    didDestroy.send()
-                    
-                    withIntrospection {
-                        Introspection.shared.updateDescriptor(forComponent: self.id) {
-                            $0?.isVisible = false
-                            $0?.remove(component: self.id)
-                        }
+        guard let component = storage.component else {
+            fatalError("[DynamicComponent] Component \(T.self) must be set before accessing it.")
+        }
+        
+        return component.view
+            .onAppear {
+                withIntrospection {
+                    Introspection.shared.updateDescriptor(forComponent: self.id) {
+                        $0?.isVisible = true
                     }
                 }
             }
-        else {
-            emptyBody
-        }
-    }
-    
-    private var emptyBody : some View {
-        print("[DynamicComponent] Warning: component \(T.self) must be set before accessing it.")
-        
-        #if DEBUG
-        return VStack {
-            Text("Uninitialised dynamic component \(String(describing: T.self))")
-                .foregroundColor(Color.orange)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        #else
-        return EmptyView()
-        #endif
+            .onDisappear {
+                storage.destroy()
+                didDestroy.send()
+                
+                withIntrospection {
+                    Introspection.shared.updateDescriptor(forComponent: self.id) {
+                        $0?.isVisible = false
+                        $0?.remove(component: self.id)
+                    }
+                }
+            }
     }
     
 }

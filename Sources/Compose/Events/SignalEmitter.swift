@@ -18,12 +18,6 @@ public struct SignalEmitter : Emitter {
     
     public func send() {
         subject.send()
-        
-        withIntrospection {
-            Introspection.shared.updateDescriptor(forEmitter: self.id) {
-                $0?.fireTime = CFAbsoluteTimeGetCurrent()
-            }
-        }
     }
     
 }

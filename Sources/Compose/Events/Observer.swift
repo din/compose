@@ -7,31 +7,43 @@ protocol AnyObserver : Cancellable {
     
 }
 
-class Observer<Emitter, Value> : Subscriber, AnyObserver {
+struct Observer<Value> : Subscriber, AnyObserver {
     typealias Input = Value
     typealias Failure = Never
     
+    fileprivate class Storage {
+        
+        var subscription : Subscription? = nil {
+            
+            didSet {
+                cancellable = AnyCancellable { [weak self] in
+                    self?.subscription?.cancel()
+                }
+            }
+            
+        }
+        
+        var cancellable = AnyCancellable({})
+        
+    }
+    
+    var cancellable : AnyCancellable {
+        storage.cancellable
+    }
+    
+    let combineIdentifier = CombineIdentifier()
     let id = UUID()
     let action : (Value) -> Void
     
-    var cancellable = AnyCancellable({})
-    
-    fileprivate var subscription : Subscription? = nil
+    fileprivate let storage = Storage()
     
     init(action : @escaping (Value) -> Void) {
         self.action = action
-        
-        self.cancellable = AnyCancellable { [weak self] in
-            self?.cancel()
-        }
-    }
-    
-    deinit {
-        
     }
     
     func receive(subscription: Subscription) {
-        self.subscription = subscription
+        storage.subscription = subscription
+        
         subscription.request(.unlimited)
     }
     
@@ -68,8 +80,17 @@ class Observer<Emitter, Value> : Subscriber, AnyObserver {
         withIntrospection {
             Introspection.shared.unregister(observer: id)
         }
-        
-        subscription?.cancel()
-        subscription = nil
+
+        storage.subscription?.cancel()
+        storage.subscription = nil
+        storage.cancellable = AnyCancellable({})
     }
+}
+
+extension Observer : CustomDebugStringConvertible {
+    
+    var debugDescription: String {
+        return "Observer(id=\(self.id), subscribption=\(storage.subscription.debugDescription))"
+    }
+    
 }

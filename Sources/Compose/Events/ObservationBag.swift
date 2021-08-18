@@ -11,18 +11,18 @@ final class ObservationBag {
     
     static let shared = ObservationBag()
     
-    fileprivate var observers = [UUID : [AnyObserver]]()
+    fileprivate var observers = [UUID : [AnyCancellable]]()
     fileprivate var owners = [UUID : [UUID]]()
     fileprivate var monitors = [UUID : Monitor]()
     
     fileprivate var activeMonitors = [UUID]()
     
-    func add<O : Observer<E, V>, V, E : Emitter>(_ observer : O, for identifier : UUID) {
+    func add<V>(_ observer : Observer<V>, for identifier : UUID) {
         if observers[identifier] == nil {
             observers[identifier] = .init()
         }
 
-        observers[identifier]?.append(observer)
+        observers[identifier]?.append(observer.cancellable)
         
         withIntrospection {
             Introspection.shared.register(observer: observer,
