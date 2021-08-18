@@ -86,7 +86,10 @@ public struct ComposePagingView<Content : View> : View {
     public var body: some View {
         ScrollView(axes, showsIndicators: showsIndicators) {
             content
-                .overlay(ScrollViewReader(currentPageIndex: $currentPageIndex))
+                .overlay(
+                    ScrollViewReader(currentPageIndex: $currentPageIndex)
+                        .allowsHitTesting(false)
+                )
         }
     }
     
