@@ -16,16 +16,26 @@ struct ComposeSheetContainerView<Content : View, Background : View> : View {
     }
     
     var body: some View {
-        if #available(iOS 14.0, *) {
+        if #available(iOS 14.5, *) {
+           content
+               .fullScreenCover(isPresented: manager.hasContent(with: .cover)) {
+                   sheetContent(for: manager.style)
+               }
+               .sheet(isPresented: manager.hasContent(with: .sheet)) {
+                   sheetContent(for: manager.style)
+               }
+       } else if #available(iOS 14.0, *) {
             content
                 .fullScreenCover(isPresented: manager.hasContent(with: .cover)) {
                     sheetContent(for: manager.style)
                 }
-                .sheet(isPresented: manager.hasContent(with: .sheet)) {
-                    sheetContent(for: manager.style)
-                }
-        }
-        else {
+                .overlay (
+                    EmptyView()
+                        .sheet(isPresented: manager.hasContent(with: .sheet)) {
+                            sheetContent(for: manager.style)
+                        }
+                )
+        } else {
             content
                 .sheet(isPresented: manager.hasContent(with: .sheet)) {
                     sheetContent(for: .sheet)
