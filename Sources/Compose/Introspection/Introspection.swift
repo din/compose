@@ -160,7 +160,7 @@ extension Introspection {
     func register(emitter : AnyEmitter, named name : String?) {
         app.emitters[emitter.id] = EmitterDescriptor(id: emitter.id,
                                                      name: name ?? "Unnamed",
-                                                     description: emitter.debugDescription,
+                                                     description: "",
                                                      valueDescription: "")
     }
     

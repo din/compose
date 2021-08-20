@@ -4,7 +4,7 @@ import Combine
 infix operator !+=
 infix operator ~+=
 
-public protocol AnyEmitter : CustomDebugStringConvertible {
+public protocol AnyEmitter {
     
     var id : UUID { get }
     
@@ -29,10 +29,6 @@ extension Emitter {
         ObservationBag.shared.add(observer, for: id)
     
         return observer.cancellable
-    }
-    
-    public var debugDescription: String {
-        String(describing: Value.self)
     }
     
 }

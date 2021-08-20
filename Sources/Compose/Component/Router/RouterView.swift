@@ -86,6 +86,12 @@ public struct RouterView<Content : View> : View, Identifiable {
                 .frame(width: 0, height: 0)
             #endif
         }
+        .onAppear {
+            router.isPresented = true
+        }
+        .onDisappear {
+            router.isPresented = false
+        }
     }
     
 }
