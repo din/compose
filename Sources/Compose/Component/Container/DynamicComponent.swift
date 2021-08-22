@@ -13,6 +13,9 @@ public struct DynamicComponent<T : Component> : Component, AnyContainerComponent
     
     public let id = UUID()
     
+    public let didCreate = SignalEmitter()
+    public let didDestroy = SignalEmitter()
+    
     public var type: Component.Type {
         T.self
     }
@@ -21,30 +24,25 @@ public struct DynamicComponent<T : Component> : Component, AnyContainerComponent
         None
     }
     
-    public var didCreate : SignalEmitter {
-        storage.didCreate
-    }
-    
-    public var didDestroy : SignalEmitter {
-        storage.didDestroy
-    }
-    
     public var component : T? {
         storage.component
     }
     
     public var isCreated : Bool {
-        storage.isCreated
+        storage.component != nil
     }
     
     var containeeId: UUID {
         storage.component?.id ?? UUID()
     }
     
-    let storage = DynamicComponentStorage<T>()
+    let storage : DynamicComponentStorage<T>
     
     public init() {
-        // Intentionally left blank
+        storage = DynamicComponentStorage<T>(lifecycleEmitterIds: [
+            didCreate.id,
+            didDestroy.id
+        ])
     }
 
 }

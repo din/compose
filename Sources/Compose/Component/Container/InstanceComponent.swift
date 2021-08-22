@@ -13,20 +13,15 @@ public struct InstanceComponent<T : Component> : Component, AnyContainerComponen
     
     public let id = UUID()
     
+    public let didCreate = ValueEmitter<UUID>()
+    public let didDestroy = ValueEmitter<UUID>()
+    
     public var type: Component.Type {
         T.self
     }
     
     public var observers: Void {
         None
-    }
-    
-    public var didCreate : ValueEmitter<UUID> {
-        storage.didCreate
-    }
-    
-    public var didDestroy : ValueEmitter<UUID> {
-        storage.didDestroy
     }
     
     public var component : T? {
@@ -45,10 +40,13 @@ public struct InstanceComponent<T : Component> : Component, AnyContainerComponen
         storage.currentId ?? UUID()
     }
     
-    let storage = InstanceComponentStorage<T>()
+    let storage : InstanceComponentStorage<T>
 
     public init() {
-        // Intentionally left blank
+        storage = InstanceComponentStorage<T>(lifecycleEmitterIds: [
+            didCreate.id,
+            didDestroy.id
+        ])
     }
 
 }
@@ -100,8 +98,8 @@ extension InstanceComponent : View {
                 }
             }
             .onDisappear {
-                storage.destroy(id: id)
                 didDestroy.send(id)
+                storage.destroy(id: id)
                 
                 withIntrospection {
                     Introspection.shared.updateDescriptor(forComponent: self.id) {

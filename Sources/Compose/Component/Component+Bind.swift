@@ -12,6 +12,13 @@ extension Component {
     public func bind() -> Self {
         /* Storing lifecycle for the component in the component descriptor */
         
+        let node = ObservationTree.shared.currentNode?.addChild(id: self.id)
+        
+        ObservationTree.shared.push(id: self.id)
+        
+        node?.addChild(id: didAppear.id)
+        node?.addChild(id: didDisappear.id)
+        
         withIntrospection {
             Introspection.shared.register(component: self)
             
@@ -55,7 +62,7 @@ extension Component {
             if value is Component {
                 (value as? Component)?.bind()
             }
-            
+
             withIntrospection {
                 if let emitter = value as? AnyEmitter {
                     Introspection.shared.register(emitter: emitter, named: name)
@@ -135,6 +142,8 @@ extension Component {
                 $0?.observingTime = CFAbsoluteTimeGetCurrent() - observingStartTime
             }
         }
+        
+        ObservationTree.shared.pop()
 
         return self
     }

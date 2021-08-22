@@ -48,7 +48,8 @@ extension ValueEmitter {
             handler(value, oldValue)
         }
         
-        ObservationBag.shared.add(observer, for: id)
+        ObservationTree.shared.currentNode?.addObserver(observer, for: id)
+        ObservationTree.shared.node(for: self.id)?.addObserver(observer, for: id)
 
         return observer.cancellable
     }

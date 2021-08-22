@@ -13,17 +13,18 @@ struct Observer<Value> : Subscriber, AnyObserver {
     
     fileprivate class Storage {
         
+        var cancellable = AnyCancellable({})
+        
         var subscription : Subscription? = nil {
             
             didSet {
                 cancellable = AnyCancellable { [weak self] in
                     self?.subscription?.cancel()
+                    self?.subscription = nil
                 }
             }
             
         }
-        
-        var cancellable = AnyCancellable({})
         
     }
     
@@ -43,32 +44,12 @@ struct Observer<Value> : Subscriber, AnyObserver {
     
     func receive(subscription: Subscription) {
         storage.subscription = subscription
-        
+
         subscription.request(.unlimited)
     }
     
     func receive(_ input: Value) -> Subscribers.Demand {
-        if Introspection.shared.isEnabled == true {
-            let monitorId = ObservationBag.shared.beginMonitoring(isShallow: true) { observer in
-                Introspection.shared.updateDescriptor(forObserver: self.id) {
-                    $0?.children.insert(observer.id)
-                }
-                
-                if let id = Introspection.shared.descriptor(forObserver: self.id)?.componentId {
-                    Introspection.shared.updateDescriptor(forObserver: observer.id) {
-                        $0?.componentId = id
-                    }
-                }
-            }
-            
-            action(input)
-            
-            ObservationBag.shared.endMonitoring(key: monitorId)
-        }
-        else {
-            action(input)
-        }
-        
+        action(input)
         return .none
     }
     
@@ -81,8 +62,7 @@ struct Observer<Value> : Subscriber, AnyObserver {
             Introspection.shared.unregister(observer: id)
         }
 
-        storage.subscription?.cancel()
-        storage.subscription = nil
+        storage.cancellable.cancel()
         storage.cancellable = AnyCancellable({})
     }
 }

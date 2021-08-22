@@ -28,10 +28,12 @@ extension Emitters.Merge {
         let observer = Observer<Upstream.Value>(action: handler)
         publisher.subscribe(observer)
         
-        ObservationBag.shared.add(observer, for: id)
-        
+        ObservationTree.shared.currentNode?.addObserver(observer, for: id)
+        ObservationTree.shared.node(for: self.id)?.addObserver(observer, for: id)
+
         for upstreamId in upstreamIds {
-            ObservationBag.shared.add(observer, for: upstreamId)
+            ObservationTree.shared.currentNode?.addObserver(observer, for: upstreamId)
+            ObservationTree.shared.node(for: upstreamId)?.addObserver(observer, for: id)
         }
         
         return observer.cancellable

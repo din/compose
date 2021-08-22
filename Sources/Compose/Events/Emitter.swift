@@ -26,7 +26,8 @@ extension Emitter {
 
         publisher.subscribe(observer)
 
-        ObservationBag.shared.add(observer, for: id)
+        ObservationTree.shared.currentNode?.addObserver(observer, for: id)
+        ObservationTree.shared.node(for: self.id)?.addObserver(observer, for: id)
     
         return observer.cancellable
     }
@@ -45,7 +46,7 @@ extension Emitter {
 extension Emitter {
     
     public func bind<C>(to component: C) where C : Component {
-        ObservationBag.shared.addOwner(component.id, for: id)
+        ObservationTree.shared.currentNode?.addChild(id: self.id)
     }
     
 }
