@@ -51,6 +51,7 @@ extension Storage {
     public var destroyedAction: (() -> Void)?
 
     fileprivate let refId = UUID()
+    fileprivate var cancellable : AnyCancellable? = nil
     
     private var value : T? = nil
     
@@ -58,24 +59,28 @@ extension Storage {
         self.value = nil
     }
     
-    public init(wrappedValue : T) {
-        self.value = wrappedValue
-        self.didChange.send(.init(senderId: refId, value: wrappedValue))
-        
+    init(value : T) {
+        self.value = value
         observeChanges()
-        
     }
     
     deinit {
         destroyedAction?()
+        
+        cancellable?.cancel()
+        cancellable = nil
     }
     
     fileprivate func observeChanges() {
-        didChange += { [weak self] change in
+        cancellable = didChange.debounce(interval: .milliseconds(300)) += { [weak self] change in
             guard change.senderId != self?.refId else {
                 return
             }
-    
+            
+            guard self?.value != change.value else {
+                return
+            }
+
             self?.value = change.value
             self?.objectWillChange.send()
         }

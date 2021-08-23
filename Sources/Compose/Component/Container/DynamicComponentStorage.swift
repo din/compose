@@ -43,8 +43,6 @@ final class DynamicComponentStorage<T : Component> {
             ObservationTree.shared.node(for: router.didReplace.id)?.remove()
         }
         
-        print("!!! DESTROY DYN", T.self)
-
         self.component = nil
      
         DispatchQueue.main.async {

@@ -9,9 +9,19 @@ public struct Referred<T : Identifiable & Codable & Equatable> : Identifiable {
     }
     
     public static func `for`(_ object : T) -> Referred<T> {
-        let ref = Ref(wrappedValue: object)
-        ref.wrappedValue = object
-        
+        if var emitter = Storage.shared.value(at: Storage.RefKey<T>(id: object.id)) as? ValueEmitter<Ref<T>.Change> {
+            if emitter.lastValue == nil {
+                emitter.lastValue = .init(senderId: UUID(), value: object)
+            }
+        }
+        else {
+            var emitter = ValueEmitter<Ref<T>.Change>()
+            emitter.lastValue = .init(senderId: UUID(), value: object)
+                
+            Storage.shared.setValue(emitter, at: Storage.RefKey<T>(id: object.id))
+        }
+
+    
         return .init(id: object.id)
     }
     

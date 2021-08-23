@@ -18,7 +18,6 @@ final class InstanceComponentStorage<T : Component> {
     
     @discardableResult
     func create(allocator : () -> T) -> UUID {
-        print("!!! CREATE INSTC", T.self)
         let component = allocator()
         
         components[component.id] = component.bind()
@@ -31,9 +30,7 @@ final class InstanceComponentStorage<T : Component> {
         components[id] = nil
 
         let enumerator = RouterStorage.storage(forComponent: id)?.registered.objectEnumerator()
-        
-        print("!!! DESTROY INSTC \(T.self)")
-        
+   
         while let router = enumerator?.nextObject() as? Router {
             router.target = nil
             router.routes.removeAll()

@@ -17,8 +17,14 @@ public struct ValueEmitter<Value> : Emitter {
             .eraseToAnyPublisher()
     }
     
-    public var lastValue : Value? {
-        storage.lastValue
+    public internal(set) var lastValue : Value? {
+        get {
+            storage.lastValue
+        }
+        
+         set {
+            storage.lastValue = newValue
+        }
     }
     
     internal let subject : PassthroughSubject<Value, Never>

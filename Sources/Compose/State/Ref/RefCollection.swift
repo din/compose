@@ -4,32 +4,39 @@ import Combine
 @propertyWrapper public class RefCollection<T : Codable & Equatable & Identifiable> : Codable, ObservableObject, AnyRef {
     
     enum CodingKeys : CodingKey {
-        case value
+        case wrappedValue
     }
     
     public var wrappedValue : [T] {
-        get {
-            value.map { $0.wrappedValue }
-        }
-        set {
-            self.value = newValue.map { Ref(wrappedValue: $0) }
-            objectWillChange.send()
+        
+        didSet {
+            self.refs = wrappedValue.map { Ref(value: $0) }
             
-            updateObservers()
+            if wrappedValue.count != oldValue.count {
+                objectWillChange.send()
+            }
         }
+
     }
     
     public var projectedValue : [Referred<T>] {
-        value.map { Referred(id: $0.wrappedValue.id) }
+        refs.map { Referred(id: $0.wrappedValue.id) }
     }
     
     public var destroyedAction: (() -> Void)?
     
-    fileprivate var value : [Ref<T>] = []
+    fileprivate var refs : [Ref<T>] = [] {
+        
+        didSet {
+            updateObservers()
+        }
+        
+    }
+    
     fileprivate var cancellables = Set<AnyCancellable>()
     
     public init() {
-        
+        self.wrappedValue = []
     }
     
     deinit {
@@ -55,9 +62,13 @@ extension RefCollection {
         
         cancellables.removeAll()
         
-        for ref in value {
+        for (index, ref) in refs.enumerated() {
             ref.objectWillChange
                 .sink { [weak self] in
+                    if self?.wrappedValue.indices.contains(index) ?? false {
+                        self?.wrappedValue[index] = ref.wrappedValue
+                    }
+                    
                     self?.objectWillChange.send()
                 }
                 .store(in: &cancellables)
