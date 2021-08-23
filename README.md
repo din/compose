@@ -31,6 +31,7 @@ _Compose is still a work in progress. The framework is still alpha—feature set
 		* [MapErrorToNil](#MapErrorToNil)
 		* [Merge](#Merge)
 		* [NonNull](#NonNull)
+		* [Once](#Once)
 		* [Publisher](#Publisher)
 		* [Tap](#Tap)
 		* [Undup](#Undup)
@@ -41,12 +42,14 @@ _Compose is still a work in progress. The framework is still alpha—feature set
 		* [Attaching Emitters With `@AttachedEmitter`](#AttachingEmittersWithAttachedEmitter)
 	* [`RouterComponent`](#RouterComponent)
 		* [`Router`](#Router)
+		* [`@EnclosingRouter`](#EnclosingRouter)
 		* [`RouterView`](#RouterView)
 	* [`StartupComponent`](#StartupComponent)
 	* [`DynamicComponent`](#DynamicComponent)
 		* [Lifecycle Emitters](#LifecycleEmitters)
 	* [`InstanceComponent`](#InstanceComponent)
 		* [Lifecycle Emitters](#LifecycleEmitters-1)
+		* [Supplementary methods](#Supplementarymethods)
 * [Services](#Services)
 * [`@Store` And State Management](#StoreAndStateManagement)
 	* [Validating State](#ValidatingState)
@@ -58,7 +61,7 @@ _Compose is still a work in progress. The framework is still alpha—feature set
 		* [`StatusSet` Operators](#StatusSetOperators)
 	* [Persisting State](#PersistingState)
 		* [Choosing Persisted Values](#ChoosingPersistedValues)
-	* [Identified References via `@Ref` and `@RefCollection`](#IdentifiedReferencesviaRefandRefCollection)
+	* [Identified References via  `@Ref` and `@RefCollection`](#IdentifiedReferencesviaRefandRefCollection)
 	* [Centralised Versus Decentralised State Management](#CentralisedVersusDecentralisedStateManagement)
 
 <!-- vscode-markdown-toc-config
@@ -456,7 +459,7 @@ emitter.send(nil)
 emitter.send(100)
 ```
 
-#### Once
+#### <a name='Once'></a>Once
 
 Only execute emitter observer closure once:
 
@@ -1055,7 +1058,7 @@ extension AuthComponent : View {
 
 > ❗️ Don't forget to mark your `router` as `@ObservedObject` if you're going to observe its `path` or any other properties directly inside the SwiftUI View of the component.
 
-#### `@EnclosingRouter` 
+#### <a name='EnclosingRouter'></a>`@EnclosingRouter` 
 
 It is useful, especially with push & pop style navigation, to access the current router without having to define one. For example, any nested component might need to be able to present some other component. It doesn't have to define the router for itself if it is well known that this particular component will always have some enclosing router around it.
 
@@ -1314,7 +1317,7 @@ While `DynamicComponent` allows only one *instance* of a component to be created
 - `didCreate` is invoked as soon as one of instances was created. The UUID of created component is supplied via the emitter.
 - `didDestroy` is invoked as soon as one of instances was destroyed. The UUID of destroyed component is supplied via the emitter.
 
-#### Supplementary methods
+#### <a name='Supplementarymethods'></a>Supplementary methods
 
 Sometimes it is necessary to access the particular instance of an instance component to subscribe to its parts. The `InstanceComponent` has a `instance(for id: UUID)` instance method which helps retrieving a particular instance of an underlying component managed by the `InstanceComponent` component.
 
