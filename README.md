@@ -4,7 +4,7 @@ Compose is an opinionated architecture framework intended to create applications
 
 - 🌴 Component tree
 - 🚦 Event-driven communication between components
-- 🚏 Easy to use routing
+- 🚏 Flexible routing
 - 🧨 Reactive store
 - 🏛 Predicable file structure
 - 👨🏽‍💻 UI elements to implement navigation from scratch
@@ -58,7 +58,7 @@ _Compose is still a work in progress. The framework is still alpha—feature set
 		* [`StatusSet` Operators](#StatusSetOperators)
 	* [Persisting State](#PersistingState)
 		* [Choosing Persisted Values](#ChoosingPersistedValues)
-	* [Identified References via  `@Ref` and `@RefCollection`](#IdentifiedReferencesviaRefandRefCollection)
+	* [Identified References via `@Ref` and `@RefCollection`](#IdentifiedReferencesviaRefandRefCollection)
 	* [Centralised Versus Decentralised State Management](#CentralisedVersusDecentralisedStateManagement)
 
 <!-- vscode-markdown-toc-config
@@ -180,11 +180,14 @@ Emitters are usually defined in the body of a component, but they also can be de
 
 There are several operators defined to add subscribers to any emitters (chained or vanilla).
 
+Any emitter has the following operator defined:
 - `+=` is used when the subscription closure must be executed any time an emitter emits a value or a signal.
-- `!+=` is used when the subscription closure must be executed **only once** and then never executed again.
 
-`ValueEmitter` defines one additional operator: 
+`ValueEmitter` defines an additional operator: 
 - `~+=` when the subscription closure must be executed with the new value and the previous emitted value, which allows computing diffing between two emitted values. 
+
+`OnceEmitter` defines an additional operator:
+- `!+=` is used when the subscription closure must be executed **only once** and then never executed again. 
 
 ### <a name='EmittersChaining'></a>Emitters Chaining
 
@@ -453,6 +456,33 @@ emitter.send(nil)
 emitter.send(100)
 ```
 
+#### Once
+
+Only execute emitter observer closure once:
+
+```swift
+// Define an emitter with some optional value.
+let emitter = ValueEmitter<Int>()
+
+// Observe the emitter only once.
+// This will only print '5' and stop observing the emitter.
+emitter.once() += { value in
+    print("Received value 1st way:", value)
+}
+
+// There is a handy operator defined to do this more often.
+// This will only print '5' and stop observing the emitter.
+emitter !+= { value in
+    print("Received value 2nd way:", value)
+}
+
+// Send different values.
+emitter.send(5)
+emitter.send(100)
+emitter.send(30)
+emitter.send(40)
+```
+
 #### <a name='Publisher'></a>Publisher
 
 Transform Combine's `AnyPublisher<Value, Error>` publisher into the `Result<Value, Error>` emitter:
@@ -581,7 +611,7 @@ struct AuthComponent : Component {
 }
 ```
 
-> ❗️ Compose permits subscriptions to emitters only within a component: a component can subscribe to emitters defined by the component itself, or by any child component. It is not possible to subscribe to events in parent components!
+> ❗️ Compose permits subscriptions to emitters only within a component scope: a component can subscribe to emitters defined by the component itself, or by any child component. It is not possible to subscribe to events in parent components!
 
 `Component` requires us to have a presentation layer. It is usually defined in the appropriate `+View.swift` file:
 
@@ -646,7 +676,7 @@ extension AuthComponent {
 }
 ```
 
-> ❗️ You should never read `observers` property manually anywhere in your code: Compose automatically sets this up for you.
+> ❗️ You should never read or refer to `observers` property manually anywhere in your code: Compose automatically sets this up for you during the app lifecycle.
 
 This component can now be presented in the tree of components using `Router` or via direct presentation within a view.
 
@@ -821,7 +851,7 @@ extension AuthComponent {
 }
 ```
 
-> ❗️ `RouterComponent provides default implementation for SwiftUI view, so you don't have to provide your own body, if you have some simple cases.
+> ❗️ `RouterComponent provides default implementation for its SwiftUI view, so you don't have to provide your own body, if you have some simple cases.
 
 Now, pushing any button in the appropriate component triggers the signal emitter, which, in turn, is observed by the `AuthComponent` and the currently presented component is replaced.
 
@@ -922,7 +952,7 @@ extension AuthComponent : View {
     
     var body : some View {
         VStack {
-            RouterView()
+            RouterView(router)
             
             HStack {
                 Button(emitter: openLogIn) {
@@ -941,7 +971,7 @@ extension AuthComponent : View {
 
 This case of centralised navigation ensures that `RouterView` is accompanied by other views that actually define navigation actions that users can perform.
 
-> ❗️ You must add `RouterView()` somewhere into the body of your `AuthComponent` in order for your children content to show up properly.
+> ❗️ You must add `RouterView(router)` somewhere into the body of your `AuthComponent` in order for your children content to show up properly.
 
 #### <a name='Router'></a>`Router`
 
@@ -995,7 +1025,7 @@ extension AuthComponent {
 
 > ❗️ Pushing and popping operations are animated by the `Router` instance. If you wish to prevent router from animating, you could always pass the `animated: false` property when you do a push or a pop operation. The replace operation is not animated by the router.
 
-It is also possible to observe `router.path` property to access the currently navigated keypath. This can be used to alter the presentation of your view:
+It is also possible to observe `router.path` and `router.paths` properties to access the currently navigated keypath. This can be used to alter the presentation of your view:
 
 ```swift
 // Auth+View.swift
@@ -1004,7 +1034,7 @@ extension AuthComponent : View {
 
     var body : some View {
         VStack {
-            RouterView()
+            RouterView(router)
 
             HStack {
                 Button(emitter: openLogIn) {
@@ -1024,6 +1054,90 @@ extension AuthComponent : View {
 ```
 
 > ❗️ Don't forget to mark your `router` as `@ObservedObject` if you're going to observe its `path` or any other properties directly inside the SwiftUI View of the component.
+
+#### `@EnclosingRouter` 
+
+It is useful, especially with push & pop style navigation, to access the current router without having to define one. For example, any nested component might need to be able to present some other component. It doesn't have to define the router for itself if it is well known that this particular component will always have some enclosing router around it.
+
+Consider having the following component for resetting password:
+
+```swift
+// ResetPassword.swift
+
+struct ResetPasswordComponent : Component {
+
+}
+
+// ResetPassword+Observers.swift
+
+extension ResetPasswordComponent {
+
+    var observers : Void {
+        None
+    }
+
+}
+
+// ResetPassword+View.swift
+
+extension ResetPasswordComponent {
+
+    var body : some View {
+        Text("Welcome To Reset Password")
+    }
+
+}
+```
+
+This component is defined inside `LogInComponent` and presented via the push & pop style navigation. `LogInComponent` is always presented by the `AuthComponent` which already defines a router. This means `LogInComponent` itself doesn't need to have a router, and instead can rely on an enclosing router for its push & pop style navigation:
+
+```swift
+// LogIn.swift
+
+struct LogInComponent : Component {
+
+    let resetPassword = ResetPasswordComponent()
+
+    @EnclosingRouter var router
+
+    let openResetPassword = SignalEmitter()
+
+}
+
+// LogIn+Observers.swift
+
+extension LogInComponent {
+
+    var observers : Void {
+        openResetPassword += {
+            router.push(\Self.resetPassword)
+        }
+
+        resetPassword.goBack += {
+            router.pop()
+        }
+    }
+
+}
+
+// LogIn+View.swift
+
+extension LogInComponent {
+
+    var body : some View {
+        VStack {
+            Text("Welcome To Log In")
+           
+            Button(emitter: openResetPassword) {
+                Text("Reset Password")
+            }}
+        }
+    }
+
+}
+```
+
+Routers referenced by the `@EnclosingRouter` property wrapper have access to `push` and `pop` methods only, and cannot do `replace` operations because it doesn't make sense for nested routing with push & pop navigation style.
 
 #### <a name='RouterView'></a>`RouterView`
 
@@ -1059,7 +1173,7 @@ extension OnboardingComponent {
 extension OnboardingComponent : View {
 
     var body : some View {
-        RouterView {
+        RouterView(router) {
             VStack {
                 Button(emitter: openNext) {
                     Text("Open Next Page")
@@ -1071,7 +1185,11 @@ extension OnboardingComponent : View {
 }
 ```
 
+A `RouterView` instance must be created by passing in the `Router` instance which will use the speciffied view to present its content.
+
 When default router view is specified, the `Router` instance must be created without any starting keypath.
+
+> ❗️ It is highly discouraged to put dynamic and instance components as default views for routers—their memory won't be properly managed that way. Please only have static components or simple views as default router views.
 
 ### <a name='StartupComponent'></a>`StartupComponent`
 
@@ -1185,7 +1303,9 @@ All instances of `DynamicComponent` manage their memory automatically. That mean
 
 ### <a name='InstanceComponent'></a>`InstanceComponent`
 
-While `DynamicComponent` allows only one component to be created, there are cases where it might be necessary to create any number of dynamic components. This might be useful, for example, to display infinite number of nested components. `InstanceComponent` works similarly to `DynamicComponent`, but allows having infinite number of components created instead. The `InstanceComponent` instance manages memory of all underlying components—all underlying components are automatically destroyed when they go out of scope.
+While `DynamicComponent` allows only one *instance* of a component to be created, there are cases where it might be necessary to create any number of dynamic components. This might be useful, for example, to display infinite number of nested components of the same type (for example, opening a video player component from another video player component which was presented by another video player component). 
+
+`InstanceComponent` works similarly to `DynamicComponent`, but allows having infinite number of components created instead. The `InstanceComponent` instance manages memory of all underlying components—all underlying components are automatically destroyed when they go out of scope.
 
 #### <a name='LifecycleEmitters-1'></a>Lifecycle Emitters
 
@@ -1193,6 +1313,10 @@ While `DynamicComponent` allows only one component to be created, there are case
 
 - `didCreate` is invoked as soon as one of instances was created. The UUID of created component is supplied via the emitter.
 - `didDestroy` is invoked as soon as one of instances was destroyed. The UUID of destroyed component is supplied via the emitter.
+
+#### Supplementary methods
+
+Sometimes it is necessary to access the particular instance of an instance component to subscribe to its parts. The `InstanceComponent` has a `instance(for id: UUID)` instance method which helps retrieving a particular instance of an underlying component managed by the `InstanceComponent` component.
 
 ## <a name='Services'></a>Services
 
@@ -1342,7 +1466,7 @@ extension LogInComponent : View {
 }
 ```
 
-Now whenever the value of one of the `TextField` views are changed, the values will be instantly stored in the state under the `firstName` and `lastName` values respectively. 
+Now whenever the value of one of the `TextField` views is changed, the values will be instantly stored in the state under the `firstName` and `lastName` values respectively. 
 
 It's also possible to subscribe to changes to the store via emitters. The `willChange` emitter exposed by any `@Store` property wrapper projected value can be observed in a familiar manner:
 
@@ -1735,7 +1859,7 @@ Consider having a component which displays two underlying components:
 ```swift
 // Exhibition.swift
 
-struct Exhibition : Component {
+struct ExhibitionComponent : Component {
 
     let specimenA : SpecimenComponent
     let specimenB : SpecimenComponent
@@ -1750,7 +1874,7 @@ struct Exhibition : Component {
 
 // Exhibition+State.swift
 
-extension Exhibition {
+extension ExhibitionComponent {
 
     struct State {
         @Ref var specimen = SpecimenModel(id: "MY-MODEL-ID", "Funny Circle")
@@ -1760,7 +1884,7 @@ extension Exhibition {
 
 // Exhibition+View.swift
 
-extension Exhibition : View {
+extension ExhibitionComponent : View {
 
     var body : some View {
         VStack {
@@ -1820,7 +1944,7 @@ Now, when one of the text fields is updated in one of the components, all other 
 ```swift
 // Exhibition.swift
 
-struct Exhibition : Component {
+struct ExhibitionComponent : Component {
 
     let specimenA : SpecimenComponent
     let specimenB : SpecimenComponent
@@ -1835,7 +1959,7 @@ struct Exhibition : Component {
 
 // Exhibition+State.swift
 
-extension Exhibition {
+extension ExhibitionComponent {
 
     struct State {
         @RefCollection var specimens = [
@@ -1848,10 +1972,10 @@ extension Exhibition {
 
 // Exhibition+View.swift
 
-extension Exhibition : RoutableView {
+extension ExhibitionComponent : RoutableView {
 
     var body : some View {
-        RouterView()
+        RouterView(router)
     }
 
     var routableBody : some View {
