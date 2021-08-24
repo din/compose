@@ -1,6 +1,8 @@
 import Foundation
 import Combine
 
+fileprivate let RefCollectionUpdateQueue = DispatchQueue(label: "compose.ref-collection-queue")
+
 @propertyWrapper public class RefCollection<T : Codable & Equatable & Identifiable> : Codable, ObservableObject, AnyRef {
     
     enum CodingKeys : CodingKey {
@@ -10,10 +12,12 @@ import Combine
     public var wrappedValue : [T] {
         
         didSet {
-            self.refs = wrappedValue.map { Ref(value: $0) }
-            
             if wrappedValue.count != oldValue.count {
+                self.refs = wrappedValue.map { Ref(value: $0) }
                 objectWillChange.send()
+            }
+            else {
+                updateChanges(oldValues: oldValue, newValues: wrappedValue)
             }
         }
 
@@ -72,6 +76,28 @@ extension RefCollection {
                     self?.objectWillChange.send()
                 }
                 .store(in: &cancellables)
+        }
+    }
+    
+}
+
+extension RefCollection {
+    
+    fileprivate func updateChanges(oldValues : [T], newValues : [T]) {
+        guard oldValues.count == newValues.count else {
+            return
+        }
+            
+        for (index, oldValue) in oldValues.enumerated() {
+            guard oldValue != newValues[index] else {
+                continue
+            }
+            
+            guard refs.indices.contains(index) == true else {
+                continue
+            }
+            
+            refs[index].wrappedValue = newValues[index]
         }
     }
     
