@@ -3,7 +3,7 @@ import SwiftUI
 
 public struct ComposePagingView<Content : View> : View {
     
-    fileprivate struct ScrollViewReader : UIViewRepresentable {
+    fileprivate struct Reader : UIViewRepresentable {
         
         class Coordinator : NSObject, UIScrollViewDelegate {
             
@@ -87,8 +87,7 @@ public struct ComposePagingView<Content : View> : View {
         ScrollView(axes, showsIndicators: showsIndicators) {
             content
                 .overlay(
-                    ScrollViewReader(currentPageIndex: $currentPageIndex)
-                        .allowsHitTesting(false)
+                    Reader(currentPageIndex: $currentPageIndex).allowsHitTesting(false)
                 )
         }
     }

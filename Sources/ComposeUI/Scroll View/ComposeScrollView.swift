@@ -5,9 +5,6 @@ import SwiftUI
 // https://github.com/globulus/swiftui-pull-to-refresh/blob/main/Sources/SwiftUIPullToRefresh/SwiftUIPullToRefresh.swift
 public struct ComposeScrollView<Content : View> : View {
    
-    public typealias CompletionHandler = () -> Void
-    public typealias RefreshHandler = (@escaping CompletionHandler) -> Void
-    
     private enum Status {
         case idle
         case dragging
@@ -20,29 +17,22 @@ public struct ComposeScrollView<Content : View> : View {
     private let axes : Axis.Set
     private let showsIndicators : Bool
     private let onRefresh : RefreshHandler?
-    private let onReachedBottom : CompletionHandler?
-    private let onReachedTop : CompletionHandler?
+    private let onReachedEdge : ReachedEdgeHandler?
     private let content : Content
     
     @State private var status : Status = .idle
     @State private var progress : Double = 0
     @State private var startDraggingOffset : CGPoint = .zero
     
-    @Binding var scrollPosition : ComposeScrollPosition
-    
     public init(_ axes : Axis.Set = .vertical,
                 showsIndicators: Bool = false,
                 onRefresh : RefreshHandler? = nil,
-                onReachedBottom : CompletionHandler? = nil,
-                onReachedTop : CompletionHandler? = nil,
-                scrollPosition : Binding<ComposeScrollPosition> = .constant(.top),
+                onReachedEdge : ReachedEdgeHandler? = nil,
                 @ViewBuilder content: () -> Content) {
         self.axes = axes
         self.showsIndicators = showsIndicators
         self.onRefresh = onRefresh
-        self.onReachedBottom = onReachedBottom
-        self.onReachedTop = onReachedTop
-        self._scrollPosition = scrollPosition
+        self.onReachedEdge = onReachedEdge
         self.content = content()
     }
     
@@ -67,11 +57,8 @@ public struct ComposeScrollView<Content : View> : View {
             ComposeScrollViewPositionIndicator(type: .moving)
                 .frame(height: 0)
                 .overlay(
-                    ComposeScrollViewReader(isPagingEnabled: false,
-                                            startDraggingOffset: $startDraggingOffset,
-                                            scrollPosition: $scrollPosition,
-                                            onReachedBottom: onReachedBottom,
-                                            onReachedTop: onReachedTop)
+                    Reader(startDraggingOffset: $startDraggingOffset,
+                           onReachedEdge: onReachedEdge)
                 )
             
             if status == .loading {
@@ -123,12 +110,6 @@ public struct ComposeScrollView<Content : View> : View {
         }
     }
     
-}
-
-public enum ComposeScrollPosition : Equatable {
-    case top
-    case middle
-    case bottom
 }
 
 /* Indicators */

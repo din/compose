@@ -22,9 +22,11 @@ public struct ComposeTabView : View {
     public let items : [ComposeTabItem]
     
     @Environment(\.composeTabViewStyle) fileprivate var style
-    @State fileprivate var currentId : AnyHashable? = nil
+    @Binding var selectedItemId : AnyHashable?
     
-    public init(@ComposeTabViewBuilder items : () -> [ComposeTabItem]) {
+    public init(selectedItemId : Binding<AnyHashable?>,
+                @ComposeTabViewBuilder items : () -> [ComposeTabItem]) {
+        self._selectedItemId = selectedItemId
         self.items = items()
     }
     
@@ -33,15 +35,15 @@ public struct ComposeTabView : View {
             ZStack {
                 ForEach(items) { item in
                     item.view
-                        .opacity(item.id == currentId ? 1.0 : 0.0)
+                        .opacity(item.id == selectedItemId ? 1.0 : 0.0)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            ComposeTabBarView(selectedItemId: $currentId, items: items)
+            ComposeTabBarView(selectedItemId: $selectedItemId, items: items)
         }
         .onAppear {
-            self.currentId = self.items.first?.id
+            self.selectedItemId = self.items.first?.id
         }
     }
     

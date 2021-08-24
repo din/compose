@@ -4,6 +4,7 @@ import SwiftUI
 public struct ComposeTabBarView : View {
     
     @Environment(\.composeTabViewStyle) fileprivate var style
+    @Environment(\.composeTabBarViewRepeatedAction) fileprivate var repeatedAction
     
     public let items : [ComposeTabItem]
     @Binding var selectedItemId : AnyHashable?
@@ -37,6 +38,11 @@ public struct ComposeTabBarView : View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .contentShape(Rectangle())
                         .onTapGesture {
+                            guard selectedItemId != item.id else {
+                                repeatedAction?()
+                                return
+                            }
+                            
                             selectedItemId = item.id
                         }
                 }
