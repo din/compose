@@ -126,12 +126,11 @@ extension Router {
                 return
             }
             
-            if let start = self.start, let route = self.route(for: start) {
-                self.routes = [route]
+            guard let route = self.routes.first, self.routes.count > 1 else {
+                return
             }
-            else {
-                self.routes = []
-            }
+            
+            self.routes = [route]
         }
         
         guard animated == true else {

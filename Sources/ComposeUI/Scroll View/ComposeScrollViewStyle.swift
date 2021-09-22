@@ -10,7 +10,7 @@ public struct ComposeScrollViewStyle {
 
     public init(tintColor : Color = .white,
                 threshold : CGFloat = 50,
-                progressOffset : CGFloat = 40) {
+                progressOffset : CGFloat = 35) {
         self.tintColor = tintColor
         self.threshold = threshold
         self.progressOffset = progressOffset

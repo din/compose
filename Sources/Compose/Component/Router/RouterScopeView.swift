@@ -5,7 +5,7 @@ import SwiftUI
 #if os(iOS)
 import UIKit
 
-fileprivate class UIHostingView<Content: View>: UIView, UIGestureRecognizerDelegate {
+public class UIHostingView<Content: View>: UIView, UIGestureRecognizerDelegate {
     private let rootViewHostingController: UIHostingController<Content>
     
     public var rootView: Content {

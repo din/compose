@@ -49,12 +49,12 @@ extension Storage {
     }
     
     public var destroyedAction: (() -> Void)?
+    
+    fileprivate var value : T? = nil
 
     fileprivate let refId = UUID()
     fileprivate var cancellable : AnyCancellable? = nil
-    
-    private var value : T? = nil
-    
+        
     public init() {
         self.value = nil
     }

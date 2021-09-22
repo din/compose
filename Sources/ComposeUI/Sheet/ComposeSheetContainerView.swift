@@ -38,7 +38,10 @@ struct ComposeSheetContainerView<Content : View, Background : View> : View {
         } else {
             content
                 .sheet(isPresented: manager.hasContent(with: .sheet)) {
-                    sheetContent(for: .sheet)
+                    sheetContent(for: manager.style)
+                }
+                .composeFullScreenCover(isPresented: manager.hasContent(with: .cover)) {
+                    sheetContent(for: manager.style)
                 }
         }
     }
