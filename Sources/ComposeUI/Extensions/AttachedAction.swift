@@ -69,6 +69,14 @@ extension View {
         
         return self
     }
+
+    public func attach<I>(_ action : AttachedAction<I>.ActionWrapper, at keyPath : KeyPath<Self, AttachedAction<I>.ActionWrapper>) -> Self {
+        self[keyPath: keyPath].action = { value in
+            action.perform(value)
+        }
+
+        return self
+    }
     
     public func attach<I, O>(_ action : AttachedAction<O>.ActionWrapper,
                              at keyPath : KeyPath<Self, AttachedAction<I>.ActionWrapper>,
@@ -92,3 +100,22 @@ extension View {
     
 }
 
+extension Button {
+
+    public init(action : AttachedAction<Void>.ActionWrapper, @ViewBuilder label: () -> Label) {
+        self.init {
+            action.perform()
+        } label: {
+            label()
+        }
+    }
+
+    public init<I>(action : AttachedAction<I>.ActionWrapper, value : I, @ViewBuilder label: () -> Label) {
+        self.init {
+            action.perform(value)
+        } label: {
+            label()
+        }
+    }
+
+}

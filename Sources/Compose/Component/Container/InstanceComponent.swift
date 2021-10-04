@@ -85,29 +85,34 @@ extension InstanceComponent {
 extension InstanceComponent : View {
     
     public var body: some View {
-        guard let id = storage.currentId, let component = storage.components[id] else {
-            fatalError("[InstanceComponent] Component \(T.self) must be set before accessing it.")
+        if let id = storage.currentId, let component = storage.components[id] {
+            component.view
+                .onAppear {
+                    withIntrospection {
+                        Introspection.shared.updateDescriptor(forComponent: self.id) {
+                            $0?.isVisible = storage.components.count > 0
+                        }
+                    }
+                }
+                .onDisappear {
+                    didDestroy.send(id)
+                    storage.destroy(id: id)
+
+                    withIntrospection {
+                        Introspection.shared.updateDescriptor(forComponent: self.id) {
+                            $0?.isVisible = storage.components.count == 0
+                            $0?.remove(component: id)
+                        }
+                    }
+                }
         }
-    
-        return component.view
-            .onAppear {
-                withIntrospection {
-                    Introspection.shared.updateDescriptor(forComponent: self.id) {
-                        $0?.isVisible = storage.components.count > 0
-                    }
-                }
-            }
-            .onDisappear {
-                didDestroy.send(id)
-                storage.destroy(id: id)
-                
-                withIntrospection {
-                    Introspection.shared.updateDescriptor(forComponent: self.id) {
-                        $0?.isVisible = storage.components.count == 0
-                        $0?.remove(component: id)
-                    }
-                }
-            }
+        else {
+            #if DEBUG
+            Text("Empty instance component view for \(String(describing: T.self))")
+            #else
+            EmptyView()
+            #endif
+        }
     }
     
 }

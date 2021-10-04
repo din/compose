@@ -82,29 +82,34 @@ extension DynamicComponent {
 extension DynamicComponent : View {
     
     public var body: some View {
-        guard let component = storage.component else {
-            fatalError("[DynamicComponent] Component \(T.self) must be set before accessing it.")
+        if let component = storage.component {
+            component.view
+                .onAppear {
+                    withIntrospection {
+                        Introspection.shared.updateDescriptor(forComponent: self.id) {
+                            $0?.isVisible = true
+                        }
+                    }
+                }
+                .onDisappear {
+                    storage.destroy()
+                    didDestroy.send()
+
+                    withIntrospection {
+                        Introspection.shared.updateDescriptor(forComponent: self.id) {
+                            $0?.isVisible = false
+                            $0?.remove(component: self.id)
+                        }
+                    }
+                }
         }
-        
-        return component.view
-            .onAppear {
-                withIntrospection {
-                    Introspection.shared.updateDescriptor(forComponent: self.id) {
-                        $0?.isVisible = true
-                    }
-                }
-            }
-            .onDisappear {
-                storage.destroy()
-                didDestroy.send()
-                
-                withIntrospection {
-                    Introspection.shared.updateDescriptor(forComponent: self.id) {
-                        $0?.isVisible = false
-                        $0?.remove(component: self.id)
-                    }
-                }
-            }
+        else {
+            #if DEBUG
+            Text("Empty dynamic component view for \(String(describing: T.self))")
+            #else
+            EmptyView()
+            #endif
+        }
     }
     
 }
