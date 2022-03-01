@@ -29,26 +29,28 @@ extension EnclosingRouter {
         fileprivate var componentId : UUID? = nil
 
         public func push<T : Component, V>(_ keyPath : KeyPath<T, V>, animated : Bool = true) {
-            guard let enclosingPath = router?.paths.last else {
+            let enclosingPaths = Array(router?.paths.reversed() ?? [])
+            
+            for enclosingPath in enclosingPaths {
+                var path : AnyKeyPath = keyPath
+                
+                if enclosingPath.appending(path: path) == nil {
+                    path = \DynamicComponent<T>.[dynamicMember: keyPath]
+                }
+                
+                if enclosingPath.appending(path: path) == nil {
+                    path = \InstanceComponent<T>.[dynamicMember: keyPath]
+                }
+                
+                guard let fullPath = enclosingPath.appending(path: path) else {
+                    continue
+                }
+                
+                router?.push(fullPath, animated: animated)
                 return
             }
-            
-            var path : AnyKeyPath = keyPath
-
-            if enclosingPath.appending(path: path) == nil {
-                path = \DynamicComponent<T>.[dynamicMember: keyPath]
-            }
-            
-            if enclosingPath.appending(path: path) == nil {
-                path = \InstanceComponent<T>.[dynamicMember: keyPath]
-            }
-            
-            guard let fullPath = enclosingPath.appending(path: path) else {
-                print("[Compose] Invalid keypath to push to the enclosing router.")
-                return
-            }
-            
-            router?.push(fullPath, animated: animated)
+        
+            print("[Compose] Invalid keypath to push to the enclosing router.")
         }
         
         public func pop(animated : Bool = true) {
