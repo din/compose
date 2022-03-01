@@ -1,3 +1,5 @@
+#if os(iOS)
+
 import UIKit
 import SwiftUI
 
@@ -37,3 +39,4 @@ class ComposeModalWindow : UIWindow {
     
 }
 
+#endif

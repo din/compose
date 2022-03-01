@@ -1,3 +1,5 @@
+#if os(iOS)
+
 import Foundation
 import SwiftUI
 
@@ -80,3 +82,4 @@ fileprivate struct ComposeFieldGroupDetector : UIViewRepresentable {
     
 }
 
+#endif

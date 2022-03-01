@@ -8,8 +8,8 @@ public struct Referred<T : Identifiable & Codable & Equatable> : Identifiable {
         self.id = id
     }
     
-    public static func `for`(_ object : T) -> Referred<T> {
-        if var emitter = Storage.shared.value(at: Storage.RefKey<T>(id: object.id)) as? ValueEmitter<Ref<T>.Change> {
+    public static func `for`(_ object : T, namespace : String = RefDefaultNamespace) -> Referred<T> {
+        if var emitter = Storage.shared.value(at: Storage.RefKey<T>(id: object.id, namespace: namespace)) as? ValueEmitter<Ref<T>.Change> {
             if emitter.lastValue == nil {
                 emitter.lastValue = .init(senderId: UUID(), value: object)
             }
@@ -18,7 +18,7 @@ public struct Referred<T : Identifiable & Codable & Equatable> : Identifiable {
             var emitter = ValueEmitter<Ref<T>.Change>()
             emitter.lastValue = .init(senderId: UUID(), value: object)
                 
-            Storage.shared.setValue(emitter, at: Storage.RefKey<T>(id: object.id))
+            Storage.shared.setValue(emitter, at: Storage.RefKey<T>(id: object.id, namespace: namespace))
         }
 
     

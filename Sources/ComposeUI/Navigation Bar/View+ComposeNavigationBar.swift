@@ -1,3 +1,5 @@
+#if os(iOS)
+
 import SwiftUI
 import Compose
 
@@ -41,3 +43,5 @@ extension View {
     }
     
 }
+
+#endif

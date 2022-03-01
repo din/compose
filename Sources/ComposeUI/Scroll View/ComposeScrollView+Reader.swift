@@ -1,3 +1,5 @@
+#if os(iOS)
+
 import SwiftUI
 import UIKit
 
@@ -102,3 +104,5 @@ extension ComposeScrollView {
     }
     
 }
+
+#endif

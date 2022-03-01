@@ -1,3 +1,5 @@
+#if os(iOS)
+
 import Foundation
 import SwiftUI
 
@@ -9,3 +11,5 @@ extension View {
     }
     
 }
+
+#endif

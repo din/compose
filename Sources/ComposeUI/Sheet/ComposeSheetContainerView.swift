@@ -1,3 +1,5 @@
+#if os(iOS)
+
 import Foundation
 import SwiftUI
 
@@ -69,3 +71,5 @@ struct ComposeSheetContainerView<Content : View, Background : View> : View {
     }
     
 }
+
+#endif

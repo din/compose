@@ -1,3 +1,5 @@
+#if os(iOS)
+
 import Foundation
 import SwiftUI
 import Combine
@@ -129,3 +131,5 @@ struct ComposeToastView_Previews: PreviewProvider {
         .background(Color.white.opacity(0.1))
     }
 }
+
+#endif

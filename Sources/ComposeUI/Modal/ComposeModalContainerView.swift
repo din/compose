@@ -1,3 +1,5 @@
+#if os(iOS)
+
 import Foundation
 import SwiftUI
 
@@ -23,3 +25,5 @@ public struct ComposeModalContainerView : View {
     }
     
 }
+
+#endif

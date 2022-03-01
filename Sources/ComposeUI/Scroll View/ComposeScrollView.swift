@@ -1,3 +1,5 @@
+#if os(iOS)
+
 import Foundation
 import SwiftUI
 
@@ -61,9 +63,9 @@ public struct ComposeScrollView<Content : View> : View {
                            onReachedEdge: onReachedEdge)
                 )
             
-            if status == .loading {
+            if status != .idle {
                 Color.clear
-                    .frame(height: style.threshold)
+                    .frame(height: status == .loading ? style.threshold : style.threshold * progress)
             }
             
             content
@@ -74,7 +76,7 @@ public struct ComposeScrollView<Content : View> : View {
             guard status != .loading, onRefresh != nil else {
                 return
             }
-            
+           
             guard startDraggingOffset == .zero else {
                 status = .idle
                 return
@@ -83,11 +85,15 @@ public struct ComposeScrollView<Content : View> : View {
             if status == .idle {
                 status = .dragging
             }
-            
+
             DispatchQueue.main.async {
                 let movingY = values.first { $0.type == .moving }?.y ?? 0
                 let fixedY = values.first { $0.type == .fixed }?.y ?? 0
                 let offset : CGFloat = movingY - fixedY
+                
+                guard offset > 0 else {
+                    return
+                }
 
                 progress = Double(min(max(abs(offset) / style.threshold, 0.0), 1.0))
                 
@@ -95,12 +101,18 @@ public struct ComposeScrollView<Content : View> : View {
                     status = .primed
                 }
                 else if offset < style.threshold && status == .primed {
-                    status = .loading
+                    withAnimation(.linear(duration: 0.2)) {
+                        status = .loading
+                    }
                     
                     onRefresh? {
-                        withAnimation {
-                            self.status = .idle
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
+                            withAnimation {
+                                self.status = .idle
+                                self.progress = 0
+                            }
                         }
+                      
                     }
                 }
             }
@@ -134,3 +146,5 @@ private struct ActivityIndicator: UIViewRepresentable {
         uiView.startAnimating()
     }
 }
+
+#endif

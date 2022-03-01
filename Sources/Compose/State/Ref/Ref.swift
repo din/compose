@@ -5,15 +5,18 @@ extension Storage {
     
     struct RefKey<T : Codable & Equatable & Identifiable> : Hashable {
         let id : T.ID
+        let namespace : String
         let objectId = \Ref<T>.self
     }
     
 }
 
+public let RefDefaultNamespace = "."
+
 @propertyWrapper public class Ref<T : Codable & Equatable & Identifiable> : Codable, Identifiable, ObservableObject, AnyRef {
     
     public enum CodingKeys : CodingKey {
-        case value
+        case namespace, value
     }
     
     public var wrappedValue : T {
@@ -39,7 +42,7 @@ extension Storage {
             Referred(id: self.wrappedValue.id)
         }
         set {
-            if let emitter = Storage.shared.value(at: Storage.RefKey<T>(id: newValue.id)) as? ValueEmitter<Change>,
+            if let emitter = Storage.shared.value(at: Storage.RefKey<T>(id: newValue.id, namespace: self.namespace)) as? ValueEmitter<Change>,
                   let change = emitter.lastValue {
                 self.value = change.value
             }
@@ -52,15 +55,18 @@ extension Storage {
     
     fileprivate var value : T? = nil
 
+    fileprivate let namespace : String
     fileprivate let refId = UUID()
     fileprivate var cancellable : AnyCancellable? = nil
         
-    public init() {
+    public init(namespace : String = RefDefaultNamespace) {
         self.value = nil
+        self.namespace = namespace
     }
     
-    init(value : T) {
+    init(value : T, namespace : String = RefDefaultNamespace) {
         self.value = value
+        self.namespace = namespace
         observeChanges()
     }
     
@@ -104,7 +110,7 @@ extension Ref {
     }
     
     var didChange : ValueEmitter<Change> {
-        Storage.shared.value(at: Storage.RefKey<T>(id: self.wrappedValue.id)) {
+        Storage.shared.value(at: Storage.RefKey<T>(id: self.wrappedValue.id, namespace: self.namespace)) {
             ValueEmitter<Change>()
         }
     }

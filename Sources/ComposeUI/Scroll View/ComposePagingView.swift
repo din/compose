@@ -1,3 +1,5 @@
+#if os(iOS)
+
 import Foundation
 import SwiftUI
 
@@ -93,3 +95,5 @@ public struct ComposePagingView<Content : View> : View {
     }
     
 }
+
+#endif

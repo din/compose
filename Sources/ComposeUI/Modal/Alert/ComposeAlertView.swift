@@ -1,3 +1,5 @@
+#if os(iOS)
+
 import Foundation
 import SwiftUI
 
@@ -180,3 +182,5 @@ struct ComposeAlertView_Previews: PreviewProvider {
         .background(Color.white.opacity(0.2))
     }
 }
+
+#endif

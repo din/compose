@@ -1,3 +1,5 @@
+#if os(iOS)
+
 import Foundation
 import SwiftUI
 import Compose
@@ -33,3 +35,5 @@ public struct ComposeNavigationBackButton : View {
     }
     
 }
+
+#endif

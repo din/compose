@@ -1,3 +1,5 @@
+#if os(iOS)
+
 import Foundation
 import SwiftUI
 import Compose
@@ -81,3 +83,4 @@ extension ComposeModalManager {
     
 }
 
+#endif
