@@ -13,8 +13,8 @@ public struct ComposeAlertView : ComposeModal {
     public let mode : ComposeAlertViewPresentationMode
     public let actions : [ComposeAlertAction]
     
-    public init(title : String? = nil,
-                message : String? = nil,
+    public init(title : LocalizedStringKey? = nil,
+                message : LocalizedStringKey? = nil,
                 mode : ComposeAlertViewPresentationMode = .alert,
                 @ComposeAlertActionBuilder actions : () -> [ComposeAlertAction]) {
         self.title = title

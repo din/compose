@@ -75,7 +75,7 @@ public struct ComposeAlertAction : Identifiable, Equatable {
         self.handler = {}
     }
     
-    public init(title : String, kind : Kind = .normal, handler : @escaping () -> Void = {}) {
+    public init(title : LocalizedStringKey, kind : Kind = .normal, handler : @escaping () -> Void = {}) {
         self.content = AnyView(Text(title))
         
         self.kind = kind

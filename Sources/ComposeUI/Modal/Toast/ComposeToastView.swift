@@ -13,7 +13,7 @@ public struct ComposeToastView : ComposeModal {
     public let message : String
     public let event : ComposeToastViewEvent
     
-    public init(title: String, message: String, event: ComposeToastViewEvent = .normal) {
+    public init(title: LocalizedStringKey, message: LocalizedStringKey, event: ComposeToastViewEvent = .normal) {
         self.title = title
         self.message = message
         self.event = event
