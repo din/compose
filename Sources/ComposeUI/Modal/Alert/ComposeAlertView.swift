@@ -8,8 +8,8 @@ public struct ComposeAlertView : ComposeModal {
     @EnvironmentObject private var manager : ComposeModalManager
     @Environment(\.composeAlertViewStyle) private var style
     
-    public let title : String?
-    public let message : String?
+    public let title : LocalizedStringKey?
+    public let message : LocalizedStringKey?
     public let mode : ComposeAlertViewPresentationMode
     public let actions : [ComposeAlertAction]
     

@@ -9,8 +9,8 @@ public struct ComposeToastView : ComposeModal {
     @EnvironmentObject private var manager : ComposeModalManager
     @State private var timerCancellable : AnyCancellable? = nil
 
-    public let title : String
-    public let message : String
+    public let title : LocalizedStringKey
+    public let message : LocalizedStringKey
     public let event : ComposeToastViewEvent
     
     public init(title: LocalizedStringKey, message: LocalizedStringKey, event: ComposeToastViewEvent = .normal) {
