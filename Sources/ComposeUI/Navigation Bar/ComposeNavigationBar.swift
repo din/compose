@@ -6,11 +6,11 @@ public struct ComposeNavigationBar<LeftView : View, RightView : View> : View {
     
     @Environment(\.composeNavigationBarStyle) var style
     
-    public let title : String
+    public let title : LocalizedStringKey
     public let leftView : LeftView
     public let rightView : RightView
     
-    public init(title : String,
+    public init(title : LocalizedStringKey,
                 leftView : LeftView,
                 rightView : RightView) {
         self.title = title
@@ -33,13 +33,13 @@ public struct ComposeNavigationBar<LeftView : View, RightView : View> : View {
             
             GeometryReader { info in
                 if leftView is EmptyView == false || style.alwaysCenterTitle == true {
-                    Text(NSLocalizedString(title, comment: ""))
+                    Text(title)
                         .font(.system(size: 16, weight: .semibold, design: .default))
                         .position(x: info.frame(in: .local).midX, y: info.frame(in: .local).midY)
                         .frame(maxWidth: info.size.width * 0.7)
                 }
                 else {
-                    Text(NSLocalizedString(title, comment: ""))
+                    Text(title)
                         .font(.system(size: 18, weight: .regular))
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .position(x: info.frame(in: .local).midX, y: info.frame(in: .local).midY)

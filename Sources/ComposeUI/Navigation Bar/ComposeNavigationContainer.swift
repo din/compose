@@ -5,7 +5,7 @@ struct ComposeNavigationContainer<Content : View, LeftView : View, RightView : V
     
     @Environment(\.composeNavigationStyle) var style
     
-    let title : String
+    let title : LocalizedStringKey
     let content : Content
     let leftView : LeftView
     let rightView : RightView
