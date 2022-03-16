@@ -164,6 +164,10 @@ struct ComposeAlertView_Previews: PreviewProvider {
                          message: "Are you sure you want to delete this post? This action cannot be undone.") {
             ComposeAlertAction(title: "Cancel")
             ComposeAlertAction(title: "Delete", kind: .destructive)
+            
+            for i in 0...5 {
+                ComposeAlertAction(title: "Action \(i)")
+            }
         }
         .composeAlertViewStyle(
             ComposeAlertViewStyle(backgroundColor: Color.black,

@@ -9,11 +9,13 @@ public struct ComposeToastView : ComposeModal {
     @EnvironmentObject private var manager : ComposeModalManager
     @State private var timerCancellable : AnyCancellable? = nil
 
-    public let title : LocalizedStringKey
+    public let title : LocalizedStringKey?
     public let message : LocalizedStringKey
     public let event : ComposeToastViewEvent
     
-    public init(title: LocalizedStringKey, message: LocalizedStringKey, event: ComposeToastViewEvent = .normal) {
+    public init(title: LocalizedStringKey? = nil,
+                message: LocalizedStringKey,
+                event: ComposeToastViewEvent = .normal) {
         self.title = title
         self.message = message
         self.event = event
@@ -25,12 +27,14 @@ public struct ComposeToastView : ComposeModal {
     
     public var body: some View {
         VStack(spacing: 0) {
-            Text(title)
-                .font(.system(size: 16, weight: .semibold, design: .default))
-                .frame(maxWidth: .infinity, alignment: .leading)
-            
-            Spacer()
-                .frame(height: 4)
+            if let title = title {
+                Text(title)
+                    .font(.system(size: 16, weight: .semibold, design: .default))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                
+                Spacer()
+                    .frame(height: 4)
+            }
             
             Text(message)
                 .font(.system(size: 15, weight: .regular, design: .default))

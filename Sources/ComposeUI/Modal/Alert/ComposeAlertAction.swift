@@ -49,6 +49,10 @@ extension Array: ComposeAlertActionGroup where Element == ComposeAlertAction {
         actions?.flatMap { $0.actions } ?? []
     }
     
+    public static func buildArray(_ actions: [[ComposeAlertAction]]) -> [ComposeAlertAction] {
+        actions.flatMap { $0.actions }
+    }
+    
 }
 
 public struct ComposeAlertAction : Identifiable, Equatable {
