@@ -41,7 +41,6 @@ public struct RouterView<Content : View> : View, Identifiable {
             
             #if os(iOS)
             route.view
-                .routerScope(router.options.shouldScopeAnimations)
                 .transition(.move(edge: .trailing))
                 .zIndex(route.zIndex)
                 .transition(.asymmetric(insertion: .identity, removal: .move(edge: .trailing)))
