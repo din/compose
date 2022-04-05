@@ -30,6 +30,7 @@ extension Component {
     
     func lifecycle<Body : View>(_ view : Body) -> some View {
         return view
+            .componentScope()
             .onAppear {
                 didAppear.send()
                 

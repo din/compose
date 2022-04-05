@@ -1,5 +1,9 @@
 import Foundation
 
+#if os(iOS)
+import UIKit
+#endif
+
 public protocol Bindable {
     
     func bind<C : Component>(to component : C)
@@ -118,7 +122,7 @@ extension Component {
                     }
                 }
             }
-            
+    
         }
         
         let observingStartTime = CFAbsoluteTimeGetCurrent()

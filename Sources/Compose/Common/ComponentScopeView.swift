@@ -63,7 +63,7 @@ public class UIHostingView<Content: View>: UIView, UIGestureRecognizerDelegate {
 }
 
 ///This view resets all animation conexts of underlying views and makes top-level animations smoother.
-fileprivate struct RouterScopeView<Content: View>: UIViewRepresentable {
+fileprivate struct ComponentScopeView<Content: View>: UIViewRepresentable {
     
     let content: Content
     
@@ -82,19 +82,15 @@ fileprivate struct RouterScopeView<Content: View>: UIViewRepresentable {
     func updateUIView(_ uiView: UIViewType, context: Context) {
         
     }
-        
+    
 }
 
 extension View {
     
     @ViewBuilder
-    public func routerScope(_ shouldScope : Bool = true) -> some View {
-        if shouldScope == true {
-            RouterScopeView(content: self)
-        }
-        else {
-            self
-        }
+    func componentScope() -> some View {
+        ComponentScopeView(content: self)
+            .edgesIgnoringSafeArea(.all)
     }
     
 }
@@ -104,7 +100,7 @@ extension View {
 extension View {
     
     @ViewBuilder
-    public func routerScope(_ shouldScope : Bool = true) -> some View {
+    func componentScope() -> some View {
         self
     }
     
