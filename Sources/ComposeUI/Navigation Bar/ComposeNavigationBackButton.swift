@@ -29,6 +29,7 @@ public struct ComposeNavigationBackButton : View {
                     .frame(width: 17, height: 17)
                     .padding(.leading, -8)
                     .shadow(color: Color.black.opacity(0.5), radius: 5, x: 0, y: 0)
+                    .font(.system(size: 16, weight: .semibold, design: .default))
             }
             .frame(width: 25, alignment: .leading)
             .padding(8)
