@@ -5,19 +5,22 @@ import UIKit
 
 extension ComposeScrollView {
     
-    public enum Edge {
-        case top
-        case bottom
+    public enum Event {
+        case startedDragging
+        case endedDragging
+        case endedDeccelerating
+        case reachedTop
+        case reachedBottom
     }
     
-    public typealias ReachedEdgeHandler = (Edge) -> Void
+    public typealias DragHandler = (Event) -> Void
     public typealias CompletionHandler = () -> Void
     public typealias RefreshHandler = (@escaping CompletionHandler) -> Void
 
     struct Reader : UIViewRepresentable {
         
         @Binding var startDraggingOffset : CGPoint
-        let onReachedEdge : ReachedEdgeHandler?
+        let onDrag : DragHandler?
 
         @State var isLoaded : Bool = false
         
@@ -45,7 +48,7 @@ extension ComposeScrollView {
         
         func makeCoordinator() -> Coordinator {
             Coordinator(startDraggingOffset: $startDraggingOffset,
-                        onReachedEdge: onReachedEdge)
+                        onDrag: onDrag)
         }
         
     }
@@ -58,19 +61,29 @@ extension ComposeScrollView {
         
         @Binding var startDraggingOffset : CGPoint
         
-        let onReachedEdge : ReachedEdgeHandler?
+        let onDrag : DragHandler?
         
         fileprivate var hasAlreadyReachedBottom: Bool = false
         fileprivate var hasAlreadyReachedTop: Bool = true
         
         public init(startDraggingOffset : Binding<CGPoint>,
-                    onReachedEdge : ReachedEdgeHandler?) {
+                    onDrag : DragHandler?) {
             self._startDraggingOffset = startDraggingOffset
-            self.onReachedEdge = onReachedEdge
+            self.onDrag = onDrag
         }
         
         func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
             startDraggingOffset = scrollView.contentOffset
+            
+            onDrag?(.startedDragging)
+        }
+        
+        func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+            onDrag?(.endedDragging)
+        }
+        
+        func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+            onDrag?(.endedDeccelerating)
         }
         
         func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -79,7 +92,7 @@ extension ComposeScrollView {
                 if !hasAlreadyReachedBottom
                 {
                     hasAlreadyReachedBottom = true
-                    onReachedEdge?(.bottom)
+                    onDrag?(.reachedBottom)
                 }
             }
             else
@@ -92,7 +105,7 @@ extension ComposeScrollView {
                 if !hasAlreadyReachedTop
                 {
                     hasAlreadyReachedTop = true
-                    onReachedEdge?(.top)
+                    onDrag?(.reachedTop)
                 }
             }
             else
