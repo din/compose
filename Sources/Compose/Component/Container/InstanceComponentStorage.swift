@@ -44,9 +44,7 @@ final class InstanceComponentStorage<T : Component> {
             ObservationTree.shared.node(for: id)?.remove()
         }
         
-        withIntrospection {
-            Introspection.shared.unregister(component: id)
-        }
+        Introspection.shared.unregister(component: id)
     }
     
     fileprivate func destroyAll() {

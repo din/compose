@@ -57,14 +57,13 @@ extension InstanceComponent {
         let id = storage.create(allocator: allocator)
         didCreate.send(id)
         
-        withIntrospection {
-            Introspection.shared.updateDescriptor(forComponent: self.id) {
-                $0?.add(component: id)
-            }
+        Introspection.shared.updateDescriptor(forComponent: self.id) {
+            $0?.add(component: id)
+        }
 
-            Introspection.shared.updateDescriptor(forComponent: id) {
-                $0?.lifecycle = .instance
-            }
+        Introspection.shared.updateDescriptor(forComponent: id) {
+            $0?.lifecycle = .instance
+            $0?.parent = self.id
         }
     }
     
@@ -88,21 +87,17 @@ extension InstanceComponent : View {
         if let id = storage.currentId, let component = storage.components[id] {
             component.view
                 .onAppear {
-                    withIntrospection {
-                        Introspection.shared.updateDescriptor(forComponent: self.id) {
-                            $0?.isVisible = storage.components.count > 0
-                        }
+                    Introspection.shared.updateDescriptor(forComponent: self.id) {
+                        $0?.isVisible = storage.components.count > 0
                     }
                 }
                 .onDisappear {
                     didDestroy.send(id)
                     storage.destroy(id: id)
 
-                    withIntrospection {
-                        Introspection.shared.updateDescriptor(forComponent: self.id) {
-                            $0?.isVisible = storage.components.count == 0
-                            $0?.remove(component: id)
-                        }
+                    Introspection.shared.updateDescriptor(forComponent: self.id) {
+                        $0?.isVisible = storage.components.count == 0
+                        $0?.remove(component: id)
                     }
                 }
         }

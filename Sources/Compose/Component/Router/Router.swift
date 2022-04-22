@@ -38,6 +38,8 @@ public final class Router : ObservableObject {
                     $0?.routes = self.routes.map { $0.id }
                 }
             }
+            
+            updateFocused()
         }
         
     }
@@ -202,3 +204,4 @@ extension Router : Bindable {
     }
     
 }
+

@@ -23,9 +23,9 @@ extension Component {
         node?.addChild(id: didAppear.id)
         node?.addChild(id: didDisappear.id)
         
-        withIntrospection {
-            Introspection.shared.register(component: self)
+        Introspection.shared.register(component: self)
             
+        withIntrospection {
             var emitters = [String : AnyEmitter]()
             
             emitters["didAppear"] = self.didAppear
@@ -89,11 +89,15 @@ extension Component {
                         $0?.componentId = id
                     }
                 }
-                
-                if let component = value as? Component {
-                    Introspection.shared.updateDescriptor(forComponent: self.id) { descriptor in
-                        descriptor?.add(component: component)
-                    }
+            }
+            
+            if let component = value as? Component {
+                Introspection.shared.updateDescriptor(forComponent: self.id) { descriptor in
+                    descriptor?.add(component: component)
+                }
+               
+                Introspection.shared.updateDescriptor(forComponent: component.id) { descriptor in
+                    descriptor?.parent = self.id
                 }
             }
             
@@ -112,12 +116,10 @@ extension Component {
                     }
                     
                     if let router = wrappedValue as? Router {
-                        withIntrospection {
-                            Introspection.shared.register(router: router, named: name)
-                            
-                            Introspection.shared.updateDescriptor(forComponent: self.id) {
-                                $0?.add(router: router)
-                            }
+                        Introspection.shared.register(router: router, named: name)
+                        
+                        Introspection.shared.updateDescriptor(forComponent: self.id) {
+                            $0?.add(router: router)
                         }
                     }
                 }

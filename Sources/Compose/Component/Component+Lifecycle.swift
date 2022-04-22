@@ -8,9 +8,33 @@ extension Storage {
         let keyPath : AnyKeyPath
     }
     
+    struct PresentationEmitterKey : Hashable {
+
+        enum Kind {
+            case enter
+            case leave
+        }
+        
+        let id : UUID
+        let kind : Kind
+        
+    }
+    
 }
 
 extension Component {
+    
+    public var didEnterFocus : SignalEmitter {
+        Storage.shared.value(at: Storage.PresentationEmitterKey(id: self.id, kind: .enter)) {
+            SignalEmitter()
+        }
+    }
+    
+    public var didLeaveFocus : SignalEmitter {
+        Storage.shared.value(at: Storage.PresentationEmitterKey(id: self.id, kind: .leave)) {
+            SignalEmitter()
+        }
+    }
   
     public var didAppear : SignalEmitter {
         Storage.shared.value(at: Storage.LifecycleEmitterKey(id: self.id, keyPath: \Self.didAppear)) {

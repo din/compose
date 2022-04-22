@@ -49,9 +49,7 @@ final class DynamicComponentStorage<T : Component> {
             ObservationTree.shared.node(for: id)?.remove()
         }
         
-        withIntrospection {
-            Introspection.shared.unregister(component: id)
-        }
+        Introspection.shared.unregister(component: id)
         
         return id
     }

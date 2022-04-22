@@ -8,6 +8,7 @@ public struct ComponentDescriptor : Codable, Identifiable {
              name,
              isVisible,
              children,
+             parent,
              emitters,
              routers,
              stores,
@@ -36,6 +37,12 @@ public struct ComponentDescriptor : Codable, Identifiable {
     
     ///Whether the component is visible (in the view hierarchy) or not.
     public var isVisible : Bool = false
+    
+    ///Focused component.
+    public var focused : UUID? = nil
+    
+    ///Parent component.
+    public var parent : UUID? = nil
     
     ///All children components.
     public fileprivate(set) var children = Set<UUID>()
