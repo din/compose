@@ -98,6 +98,12 @@ extension View {
         return self
     }
     
+    public func attach<T>(at keyPath : KeyPath<Self, AttachedAction<T>.ActionWrapper>, action : @escaping (T) -> Void) -> Self {
+        self[keyPath: keyPath].action = action
+        
+        return self
+    }
+    
 }
 
 extension Button {
