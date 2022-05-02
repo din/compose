@@ -72,6 +72,11 @@ extension Router {
             return
         }
         
+        guard routes.contains(route) == false else {
+            print("[Compose] Warning: attempting to present route with the same component id. Routing ignored.")
+            return
+        }
+        
         RouterStorage.storage(forComponent: route.id)?.enclosing = self
         
         guard animated == true else {
