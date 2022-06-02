@@ -128,16 +128,21 @@ public struct ComposeAlertView : ComposeModal {
                 }
                 
                 ForEach(actions) { action in
-                    Button(action: {
-                        manager.dismiss()
-                        action.handler()
-                    }) {
-                        action.content
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .contentShape(Rectangle())
+                    if action.isCustom == false {
+                        Button(action: {
+                            manager.dismiss()
+                            action.handler()
+                        }) {
+                            action.content
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .contentShape(Rectangle())
+                        }
+                        .foregroundColor(action.kind == .destructive ? style.destructiveColor : style.actionColor)
+                        .padding(.vertical, style.sheetVerticalSpacing)
                     }
-                    .foregroundColor(action.kind == .destructive ? style.destructiveColor : style.actionColor)
-                    .padding(.vertical, style.sheetVerticalSpacing)
+                    else {
+                        action.content
+                    }
                     
                     if action != actions.last {
                         Divider()
@@ -161,13 +166,16 @@ struct ComposeAlertView_Previews: PreviewProvider {
     
     static var alert : some View {
         ComposeAlertView(title: "Delete Post",
-                         message: "Are you sure you want to delete this post? This action cannot be undone.") {
-            ComposeAlertAction(title: "Cancel")
-            ComposeAlertAction(title: "Delete", kind: .destructive)
+                         message: "Are you sure you want to delete this post? This action cannot be undone.",
+                         mode: .sheet) {
             
-            for i in 0...5 {
-                ComposeAlertAction(title: "Action \(i)")
+            ComposeAlertAction {
+                Text("Custom Content Thing")
+                    .padding(.vertical, 40)
             }
+            
+            ComposeAlertAction(title: "Delete", kind: .destructive)
+            ComposeAlertAction(title: "Cancel")
         }
         .composeAlertViewStyle(
             ComposeAlertViewStyle(backgroundColor: Color.black,

@@ -69,11 +69,13 @@ public struct ComposeAlertAction : Identifiable, Equatable {
     public let content : AnyView
     public let kind : Kind
     public let handler : () -> Void
+    public let isCustom : Bool
     
     public let id = UUID()
     
     public init<Content : View>(@ViewBuilder content : () -> Content) {
         self.content = AnyView(content())
+        self.isCustom = true
         
         self.kind = .normal
         self.handler = {}
@@ -81,6 +83,7 @@ public struct ComposeAlertAction : Identifiable, Equatable {
     
     public init(title : LocalizedStringKey, kind : Kind = .normal, handler : @escaping () -> Void = {}) {
         self.content = AnyView(Text(title))
+        self.isCustom = false
         
         self.kind = kind
         self.handler = handler
