@@ -57,6 +57,7 @@ public struct ComposeNavigationBar<LeftView : View, RightView : View> : View {
                 .padding(.horizontal, -style.horizontalPadding)
             }
         }
+        .font(style.normalFont)
         .frame(height: style.height)
         .padding(.horizontal, style.horizontalPadding)
         .overlay(
