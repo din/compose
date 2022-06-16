@@ -34,13 +34,13 @@ public struct ComposeNavigationBar<LeftView : View, RightView : View> : View {
             GeometryReader { info in
                 if leftView is EmptyView == false || style.alwaysCenterTitle == true {
                     Text(title)
-                        .font(.system(size: 16, weight: .semibold, design: .default))
+                        .font(style.normalFont)
                         .position(x: info.frame(in: .local).midX, y: info.frame(in: .local).midY)
                         .frame(maxWidth: info.size.width * 0.7)
                 }
                 else {
                     Text(title)
-                        .font(.system(size: 18, weight: .regular))
+                        .font(style.largeFont)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .position(x: info.frame(in: .local).midX, y: info.frame(in: .local).midY)
                 }
@@ -57,7 +57,7 @@ public struct ComposeNavigationBar<LeftView : View, RightView : View> : View {
                 .padding(.horizontal, -style.horizontalPadding)
             }
         }
-        .font(.system(size: 16, weight: .semibold, design: .default))
+        .font(style.normalFont)
         .frame(height: style.height)
         .padding(.horizontal, style.horizontalPadding)
         .overlay(
