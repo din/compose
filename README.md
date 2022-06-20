@@ -1,4 +1,6 @@
-# Compose
+# Compose 
+
+[![Maintainability](https://api.codeclimate.com/v1/badges/dde2d99fb7fd3b902659/maintainability)](https://codeclimate.com/github/din/compose/maintainability)
 
 Compose is an opinionated architecture framework intended to create applications for iOS and macOS. Compose is built on top of Combine and SwiftUI.
 
