@@ -17,10 +17,18 @@ extension ComposePagingView {
             
         }
         
-        fileprivate var hostingView : UIHostingView<Content>? = nil
+        fileprivate var hostingView = UIHostingView<AnyView>(rootView: AnyView(EmptyView()))
         
         override init(frame: CGRect) {
             super.init(frame: .zero)
+            
+            contentView.addSubview(hostingView)
+            
+            hostingView.translatesAutoresizingMaskIntoConstraints = false
+            hostingView.leftAnchor.constraint(equalTo: contentView.leftAnchor).isActive = true
+            hostingView.rightAnchor.constraint(equalTo: contentView.rightAnchor).isActive = true
+            hostingView.topAnchor.constraint(equalTo: contentView.topAnchor).isActive = true
+            hostingView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
         }
         
         required init?(coder: NSCoder) {
@@ -29,25 +37,14 @@ extension ComposePagingView {
         
         fileprivate func updateContent() {
             guard let content = content else {
-                hostingView?.removeFromSuperview()
-                hostingView = nil
                 return
             }
-            
-            let view = UIHostingView(rootView: content)
-            view.translatesAutoresizingMaskIntoConstraints = false
-            
-            contentView.addSubview(view)
-            
-            view.leftAnchor.constraint(equalTo: contentView.leftAnchor).isActive = true
-            view.rightAnchor.constraint(equalTo: contentView.rightAnchor).isActive = true
-            view.topAnchor.constraint(equalTo: contentView.topAnchor).isActive = true
-            view.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
-            
-            self.hostingView = view
+
+            hostingView.rootView = AnyView(content.edgesIgnoringSafeArea(.all))
         }
         
     }
+    
     
 }
 

@@ -25,6 +25,7 @@ public struct ComposePagingView<Data : RandomAccessCollection & Equatable, Conte
     public func makeUIView(context: Context) -> UICollectionView {
         let view = CollectionView(frame: .zero, collectionViewLayout: Layout())
         context.coordinator.collectionView = view
+        context.coordinator.style = style
 
         return view
     }
