@@ -3,12 +3,12 @@ import Combine
 
 extension Emitters {
     
-    public struct IgnoreOutput<Upstream : Emitter> : Emitter {
+    public struct IgnoreOutput : Emitter {
         
         public let id : UUID
         public var publisher: AnyPublisher<Void, Never>
         
-        public init(emitter : Upstream) {
+        public init<Upstream : Emitter>(emitter : Upstream) {
             self.id = emitter.id
             self.publisher = emitter.publisher
                 .map { _ in
@@ -23,7 +23,7 @@ extension Emitters {
 
 extension Emitter {
     
-    public func ignoreOutput() -> Emitters.IgnoreOutput<Self> {
+    public func ignoreOutput() -> Emitters.IgnoreOutput {
         Emitters.IgnoreOutput(emitter: self)
     }
     
