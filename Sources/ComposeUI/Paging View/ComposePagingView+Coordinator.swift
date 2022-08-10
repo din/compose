@@ -32,7 +32,23 @@ extension ComposePagingView {
         var data : Data? = nil {
             
             didSet {
-                collectionView?.reloadData()
+                if let oldData = oldValue, let newData = data {
+                    let diff = newData.difference(from: oldData) { a, b in
+                        return a.id == b.id
+                    }
+                    
+                    if diff.insertions.count == 0 && diff.removals.count == 0 {
+                        UIView.performWithoutAnimation {
+                            collectionView?.reloadItems(at: collectionView?.indexPathsForVisibleItems ?? [])
+                        }
+                    }
+                    else {
+                        collectionView?.reloadData()
+                    }
+                }
+                else {
+                    collectionView?.reloadData()
+                }
                 
                 if data != nil && currentIndex != 0 {
                     DispatchQueue.main.async {
