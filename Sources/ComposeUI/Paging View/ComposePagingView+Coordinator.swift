@@ -145,7 +145,15 @@ extension ComposePagingView {
             }
             
             let finalOffset = layout.targetContentOffset(forProposedContentOffset: scrollView.contentOffset, withScrollingVelocity: velocity)
-            let finalIndex = Int(max(0, floor(finalOffset.x / layout.itemSize.width)))
+            
+            var finalIndex = 0
+            
+            if style.direction == .horizontal {
+                finalIndex = Int(max(0, floor(finalOffset.x / layout.itemSize.width)))
+            }
+            else {
+                finalIndex = Int(max(0, floor(finalOffset.y / layout.itemSize.height)))
+            }
             
             if finalIndex != self.currentIndex {
                 self.currentIndex = finalIndex
