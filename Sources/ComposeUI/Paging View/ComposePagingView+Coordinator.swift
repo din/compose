@@ -3,6 +3,7 @@
 import Foundation
 import UIKit
 import SwiftUI
+import Combine
 
 extension ComposePagingView {
     
@@ -25,6 +26,27 @@ extension ComposePagingView {
                 view.contentInsetAdjustmentBehavior = .never
                 
                 view.register(PageCell.self, forCellWithReuseIdentifier: "Page")
+            }
+            
+        }
+        
+        weak var token : ComposePagingViewToken? = nil {
+            
+            didSet {
+                cancellables.forEach {
+                    $0.cancel()
+                }
+                
+                cancellables.removeAll()
+                
+                if let token = token {
+                    token.objectWillChange.sink { [weak self] in
+                        UIView.performWithoutAnimation {
+                            self?.collectionView?.reloadItems(at: self?.collectionView?.indexPathsForVisibleItems ?? [])
+                        }
+                    }
+                    .store(in: &cancellables)
+                }
             }
             
         }
@@ -76,10 +98,16 @@ extension ComposePagingView {
         let content : (Data.Element) -> Content
         @Binding var currentIndex : Int
         
+        fileprivate var cancellables = [AnyCancellable]()
+        
         init(@ViewBuilder content : @escaping (Data.Element) -> Content,
              currentIndex : Binding<Int>) {
             self.content = content
             self._currentIndex = currentIndex
+        }
+        
+        deinit {
+            token = nil
         }
         
         public func numberOfSections(in collectionView: UICollectionView) -> Int {
