@@ -22,6 +22,7 @@ extension ComposePagingView {
                 view.showsVerticalScrollIndicator = false
                 view.showsHorizontalScrollIndicator = false
                 view.backgroundColor = UIColor.clear
+                view.contentInsetAdjustmentBehavior = .never
                 
                 view.register(PageCell.self, forCellWithReuseIdentifier: "Page")
             }
@@ -32,6 +33,14 @@ extension ComposePagingView {
             
             didSet {
                 collectionView?.reloadData()
+                
+                if data != nil && currentIndex != 0 {
+                    DispatchQueue.main.async {
+                        self.collectionView?.scrollToItem(at: .init(item: self.currentIndex, section: 0),
+                                                          at: .centeredVertically,
+                                                          animated: false)
+                    }
+                }
             }
             
         }
@@ -80,7 +89,8 @@ extension ComposePagingView {
             }
 
             let element = data[index]
-            cell.content = content(element)
+            
+            cell.updateContent(to: content(element), shouldRecreateView: style.shouldRecreateContentView)
             
             return cell
         }

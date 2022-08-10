@@ -5,7 +5,7 @@ import SwiftUI
 import UIKit
 
 // Paging view supports horizontal scrolling only for now.
-public struct ComposePagingView<Data : RandomAccessCollection & Equatable, Content : View> : UIViewRepresentable, DynamicViewContent {
+public struct ComposePagingView<Data : RandomAccessCollection & Equatable, Content : View> : UIViewRepresentable, DynamicViewContent where Data.Element : Identifiable {
     
     public var data: Data
     

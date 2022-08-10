@@ -7,7 +7,18 @@ extension ComposePagingView {
         
         override var intrinsicContentSize: CGSize {
             var size = super.intrinsicContentSize
-            size.height = (self.collectionViewLayout as? Layout)?.itemSize.height ?? size.height
+            
+            guard let layout = self.collectionViewLayout as? Layout else {
+                return size
+            }
+            
+            if layout.style.direction == .horizontal {
+                size.height = layout.itemSize.height
+            }
+            else {
+                size.width = layout.itemSize.width
+            }
+            
             return size
         }
         
