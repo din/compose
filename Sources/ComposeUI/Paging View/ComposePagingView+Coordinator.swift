@@ -42,7 +42,12 @@ extension ComposePagingView {
                 if let token = token {
                     token.objectWillChange.sink { [weak self] in
                         UIView.performWithoutAnimation {
-                            self?.collectionView?.reloadItems(at: self?.collectionView?.indexPathsForVisibleItems ?? [])
+                            guard let count = self?.data?.count, count > 0 else {
+                                return
+                            }
+                            
+                            let indexPaths = (0...count - 1).map { IndexPath(item: $0, section: 0) }
+                            self?.collectionView?.reloadItems(at: indexPaths)
                         }
                     }
                     .store(in: &cancellables)
