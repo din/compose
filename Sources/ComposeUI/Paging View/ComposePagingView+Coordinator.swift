@@ -99,6 +99,7 @@ extension ComposePagingView {
         @Binding var currentIndex : Int
         
         fileprivate var cancellables = [AnyCancellable]()
+        fileprivate var lastOffset = CGPoint.zero
         
         init(@ViewBuilder content : @escaping (Data.Element) -> Content,
              currentIndex : Binding<Int>) {
@@ -139,24 +140,39 @@ extension ComposePagingView {
             return cell
         }
         
-        public func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
+        public func scrollViewDidScroll(_ scrollView: UIScrollView) {
+            guard scrollView.isDragging == true || scrollView.isDecelerating == true else {
+                return
+            }
+            
             guard let layout = collectionView?.collectionViewLayout as? Layout else {
                 return
             }
             
-            let finalOffset = layout.targetContentOffset(forProposedContentOffset: scrollView.contentOffset, withScrollingVelocity: velocity)
-            
-            var finalIndex = 0
+            var finalIndex : CGFloat = 0
+            var isForward = false
             
             if style.direction == .horizontal {
-                finalIndex = Int(max(0, floor(finalOffset.x / layout.itemSize.width)))
+                finalIndex = max(0, scrollView.contentOffset.x / layout.itemSize.width)
+                
+                if lastOffset.x > scrollView.contentOffset.x {
+                    isForward = true
+                }
             }
             else {
-                finalIndex = Int(max(0, floor(finalOffset.y / layout.itemSize.height)))
+                finalIndex = max(0, scrollView.contentOffset.y / layout.itemSize.height)
+                
+                if lastOffset.y <= scrollView.contentOffset.y {
+                    isForward = true
+                }
             }
             
-            if finalIndex != self.currentIndex {
-                self.currentIndex = finalIndex
+            let proposedFinalIndex : CGFloat = isForward == true ? ceil(finalIndex) : floor(finalIndex)
+            
+            lastOffset = scrollView.contentOffset
+
+            if abs(proposedFinalIndex - finalIndex) <= style.pagingDeccelerationSensitivity && Int(proposedFinalIndex) != self.currentIndex {
+                self.currentIndex = Int(proposedFinalIndex)
             }
         }
 
