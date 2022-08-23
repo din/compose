@@ -6,105 +6,23 @@ import SwiftUI
 import Combine
 
 extension ComposePagingView {
-    
-    public class Coordinator : NSObject, UICollectionViewDelegate, UICollectionViewDataSource {
+   
+    public class Coordinator : NSObject, UIPageViewControllerDataSource, UIPageViewControllerDelegate {
         
-        weak var collectionView : UICollectionView? = nil {
-            
+        weak var controller : UIPageViewController? = nil
+        
+        var data : Data? = nil {
             didSet {
-                guard let view = collectionView else {
+                guard data != nil else {
                     return
                 }
                 
-                view.dataSource = self
-                view.delegate = self
-                
-                view.decelerationRate = .fast
-                view.showsVerticalScrollIndicator = false
-                view.showsHorizontalScrollIndicator = false
-                view.backgroundColor = UIColor.clear
-                view.contentInsetAdjustmentBehavior = .never
-                
-                view.register(PageCell.self, forCellWithReuseIdentifier: "Page")
+                controller?.setViewControllers([makeController(for: currentIndex)], direction: .forward, animated: false)
             }
-            
-        }
-        
-        weak var token : ComposePagingViewToken? = nil {
-            
-            didSet {
-                cancellables.forEach {
-                    $0.cancel()
-                }
-                
-                cancellables.removeAll()
-                
-                if let token = token {
-                    token.objectWillChange.sink { [weak self] in
-                        UIView.performWithoutAnimation {
-                            guard let count = self?.data?.count, count > 0 else {
-                                return
-                            }
-                            
-                            let indexPaths = (0...count - 1).map { IndexPath(item: $0, section: 0) }
-                            self?.collectionView?.reloadItems(at: indexPaths)
-                        }
-                    }
-                    .store(in: &cancellables)
-                }
-            }
-            
-        }
-        
-        var data : Data? = nil {
-            
-            didSet {
-                if let oldData = oldValue, let newData = data {
-                    let diff = newData.difference(from: oldData) { a, b in
-                        return a.id == b.id
-                    }
-                    
-                    if diff.insertions.count == 0 && diff.removals.count == 0 {
-                        UIView.performWithoutAnimation {
-                            collectionView?.reloadItems(at: collectionView?.indexPathsForVisibleItems ?? [])
-                        }
-                    }
-                    else {
-                        collectionView?.reloadData()
-                    }
-                }
-                else {
-                    collectionView?.reloadData()
-                }
-                
-                if data != nil && currentIndex != 0 {
-                    DispatchQueue.main.async {
-                        self.collectionView?.scrollToItem(at: .init(item: self.currentIndex, section: 0),
-                                                          at: .centeredVertically,
-                                                          animated: false)
-                    }
-                }
-            }
-            
-        }
-        
-        var style : ComposePagingViewStyle {
-            
-            get {
-                (collectionView?.collectionViewLayout as? Layout)?.style ?? .init()
-            }
-            
-            set {
-                (collectionView?.collectionViewLayout as? Layout)?.style = newValue
-            }
-            
         }
         
         let content : (Data.Element) -> Content
         @Binding var currentIndex : Int
-        
-        fileprivate var cancellables = [AnyCancellable]()
-        fileprivate var lastOffset = CGPoint.zero
         
         init(@ViewBuilder content : @escaping (Data.Element) -> Content,
              currentIndex : Binding<Int>) {
@@ -112,77 +30,83 @@ extension ComposePagingView {
             self._currentIndex = currentIndex
         }
         
-        deinit {
-            token = nil
-        }
-        
-        public func numberOfSections(in collectionView: UICollectionView) -> Int {
-            1
-        }
-        
-        public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-            guard let data = data else {
-                return 0
+        public func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
+            
+            guard let index = (viewController as? HostingController)?.index else {
+                return nil
             }
             
-            return data.count
-        }
-        
-        public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-            guard let data = data,
-                  let index = data.index(data.startIndex, offsetBy: indexPath.item, limitedBy: data.endIndex) else {
-                return UICollectionViewCell()
+            guard index - 1 >= 0 else {
+                return nil
             }
             
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Page", for: indexPath) as? PageCell else {
-                return UICollectionViewCell()
-            }
-
-            let element = data[index]
-            
-            cell.updateContent(to: content(element), shouldRecreateView: style.shouldRecreateContentView)
-            
-            return cell
+            return makeController(for: index - 1)
         }
         
-        public func scrollViewDidScroll(_ scrollView: UIScrollView) {
-            guard scrollView.isDragging == true || scrollView.isDecelerating == true else {
+        public func pageViewController(_ pageViewController: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
+            
+            guard let index = (viewController as? HostingController)?.index else {
+                return nil
+            }
+            
+            guard index + 1 < data?.count ?? 0 else {
+                return nil
+            }
+            
+            return makeController(for: index + 1)
+        }
+        
+        public func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
+            guard let controller = pageViewController.viewControllers?.first as? HostingController else {
                 return
             }
             
-            guard let layout = collectionView?.collectionViewLayout as? Layout else {
+            if finished == true {
+                currentIndex = controller.index
+            }
+            
+            for controller in previousViewControllers.compactMap({ $0 as? HostingController }) {
+                controller.rootView = AnyView(EmptyView())
+            }
+        }
+        
+        func makeController(for index : Int) -> UIViewController {
+            guard let element = element(for: index) else {
+                return UIViewController()
+            }
+            
+            let view = AnyView(content(element).edgesIgnoringSafeArea(.all))
+            
+            let controller = HostingController(rootView: view)
+            controller.index = index
+            
+            return controller
+        }
+        
+        func updateVisibleController() {
+            guard let controller = controller?.viewControllers?.first as? HostingController else {
                 return
             }
             
-            var finalIndex : CGFloat = 0
-            var isForward = false
-            
-            if style.direction == .horizontal {
-                finalIndex = max(0, scrollView.contentOffset.x / layout.itemSize.width)
-                
-                if lastOffset.x > scrollView.contentOffset.x {
-                    isForward = true
-                }
-            }
-            else {
-                finalIndex = max(0, scrollView.contentOffset.y / layout.itemSize.height)
-                
-                if lastOffset.y <= scrollView.contentOffset.y {
-                    isForward = true
-                }
+            guard let element = element(for: controller.index) else {
+                return
             }
             
-            let proposedFinalIndex : CGFloat = isForward == true ? ceil(finalIndex) : floor(finalIndex)
+            let view = AnyView(content(element).edgesIgnoringSafeArea(.all))
             
-            lastOffset = scrollView.contentOffset
-
-            if abs(proposedFinalIndex - finalIndex) <= style.pagingDeccelerationSensitivity && Int(proposedFinalIndex) != self.currentIndex {
-                self.currentIndex = Int(proposedFinalIndex)
-            }
+            controller.rootView = view
         }
-
+        
+        func element(for index : Int) -> Data.Element? {
+            guard let data = data, let elementIndex = data.index(data.startIndex, offsetBy: index, limitedBy: data.endIndex) else {
+                return nil
+            }
+            
+            return data[elementIndex]
+        }
+        
     }
-    
+   
 }
 
 #endif
