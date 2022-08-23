@@ -11,14 +11,14 @@ public struct ComposeModalContainerView : View {
         ZStack(alignment: .top) {
             Color.clear
             
-            ForEach(manager.presenters.indices, id: \.self) { index in
-                manager.presenters[index].backgroundView
+            ForEach(manager.presenters) { presenter in
+                presenter.modal.backgroundView
                     .edgesIgnoringSafeArea(.all)
-                    .zIndex(Double(index))
+                    .zIndex(Double(presenter.zIndex))
                     .environmentObject(manager)
 
-                manager.presenters[index].modalView
-                    .zIndex(100.0 + Double(index))
+                presenter.modal.modalView
+                    .zIndex(100.0 + Double(presenter.zIndex))
             }
         }
         

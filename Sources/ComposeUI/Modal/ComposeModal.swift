@@ -3,6 +3,8 @@ import SwiftUI
 
 public protocol AnyComposeModal {
     
+    var id : UUID { get }
+    
     var backgroundView : AnyView { get }
     var modalView : AnyView { get }
     

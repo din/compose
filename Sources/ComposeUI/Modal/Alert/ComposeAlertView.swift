@@ -4,9 +4,11 @@ import Foundation
 import SwiftUI
 
 public struct ComposeAlertView : ComposeModal {
-    
+ 
     @EnvironmentObject private var manager : ComposeModalManager
     @Environment(\.composeAlertViewStyle) private var style
+    
+    public let id = UUID()
     
     public let title : LocalizedStringKey?
     public let message : LocalizedStringKey?
@@ -69,7 +71,7 @@ public struct ComposeAlertView : ComposeModal {
                 HStack(spacing: 0) {
                     ForEach(actions) { action in
                         Button(action: {
-                            manager.dismiss()
+                            manager.dismiss(id: id)
                             action.handler()
                         }) {
                             action.content
@@ -114,7 +116,7 @@ public struct ComposeAlertView : ComposeModal {
                 .edgesIgnoringSafeArea(.all)
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    manager.dismiss()
+                    manager.dismiss(id: id)
                 }
 
             VStack(spacing: 0) {
@@ -130,7 +132,7 @@ public struct ComposeAlertView : ComposeModal {
                 ForEach(actions) { action in
                     if action.isCustom == false {
                         Button(action: {
-                            manager.dismiss()
+                            manager.dismiss(id: id)
                             action.handler()
                         }) {
                             action.content
@@ -157,7 +159,9 @@ public struct ComposeAlertView : ComposeModal {
             .padding(.horizontal, style.sheetHorizontalPadding)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .transition(.move(edge: .bottom).animation(.easeOut(duration: 0.18)))
+        .transition(
+            .move(edge: .bottom).animation(.easeOut(duration: 0.18))
+        )
     }
     
 }

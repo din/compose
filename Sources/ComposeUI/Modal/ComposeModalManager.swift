@@ -6,9 +6,20 @@ import Compose
 
 final public class ComposeModalManager : ObservableObject {
     
-    @Published var presenters = [AnyComposeModal]()
-    @Published var sheet : AnyView? = nil
+    struct Presenter : Identifiable {
+        
+        var id: UUID {
+            modal.id
+        }
+        
+        let modal : AnyComposeModal
+        let zIndex : Int
+        
+    }
     
+    @Published var presenters = [Presenter]()
+    @Published var sheet : AnyView? = nil
+
     fileprivate var window : ComposeModalWindow? = nil
 
     public init(_ wrapper : @escaping ((ComposeModalContainerView) -> AnyView) = { view in AnyView(view) }) {
@@ -24,21 +35,25 @@ final public class ComposeModalManager : ObservableObject {
     }
     
     public func present(_ modal : AnyComposeModal) {
- 
         withAnimation {
-            presenters.append(modal)
+            presenters.append(.init(modal: modal, zIndex: presenters.count))
         }
         
         window?.isUserInteractionEnabled = true
     }
     
-    public func dismiss() {
+    public func dismiss(id : UUID? = nil) {
         guard presenters.count > 0 else {
             return
         }
         
         withAnimation {
-            _ = presenters.removeLast()
+            if let id = id {
+                presenters.removeAll(where: { $0.id == id })
+            }
+            else {
+                _ = presenters.removeLast()
+            }
             
             if presenters.count == 0 {
                 window?.isUserInteractionEnabled = false

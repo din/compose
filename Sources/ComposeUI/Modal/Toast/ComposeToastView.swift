@@ -5,10 +5,13 @@ import SwiftUI
 import Combine
 
 public struct ComposeToastView : ComposeModal {
+ 
     @Environment(\.composeToastViewStyle) private var style
     @EnvironmentObject private var manager : ComposeModalManager
     @State private var timerCancellable : AnyCancellable? = nil
 
+    public let id = UUID()
+    
     public let title : LocalizedStringKey?
     public let message : LocalizedStringKey
     public let event : ComposeToastViewEvent
@@ -67,12 +70,12 @@ public struct ComposeToastView : ComposeModal {
                 .autoconnect()
                 .sink { _ in
                     timerCancellable?.cancel()
-                    manager.dismiss()
+                    manager.dismiss(id: id)
                 }
         }
         .onTapGesture {
             timerCancellable?.cancel()
-            manager.dismiss()
+            manager.dismiss(id: id)
         }
     }
     
