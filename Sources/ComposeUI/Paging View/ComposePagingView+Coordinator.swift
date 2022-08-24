@@ -12,6 +12,7 @@ extension ComposePagingView {
         weak var controller : UIPageViewController? = nil
         
         var data : Data? = nil {
+            
             didSet {
                 guard data != nil else {
                     return
@@ -19,6 +20,7 @@ extension ComposePagingView {
                 
                 controller?.setViewControllers([makeController(for: currentIndex)], direction: .forward, animated: false)
             }
+            
         }
         
         let content : (Data.Element) -> Content
