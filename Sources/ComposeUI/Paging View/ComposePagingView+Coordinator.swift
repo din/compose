@@ -17,7 +17,7 @@ extension ComposePagingView {
                 guard data != nil else {
                     return
                 }
-                
+
                 controller?.setViewControllers([makeController(for: currentIndex)], direction: .forward, animated: false)
             }
             
@@ -66,13 +66,14 @@ extension ComposePagingView {
             guard let controller = pageViewController.viewControllers?.first as? HostingController else {
                 return
             }
-
+            
             if finished == true && pageViewController.viewControllers != previousViewControllers {
                 currentIndex = controller.index
+
                 controller.rootView = makeController(for: controller.index).rootView
                 
                 for controller in previousViewControllers.compactMap({ $0 as? HostingController }) {
-                    controller.rootView = AnyView(EmptyView())
+                    controller.rootView = makeController(for: controller.index, isTransition: true).rootView
                 }
             }
         }
@@ -105,7 +106,7 @@ extension ComposePagingView {
             guard let element = element(for: controller.index) else {
                 return
             }
-            
+    
             let view = AnyView(content(element).edgesIgnoringSafeArea(.all))
             
             controller.rootView = view
