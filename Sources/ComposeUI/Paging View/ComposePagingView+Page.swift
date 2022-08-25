@@ -9,6 +9,7 @@ extension ComposePagingView {
     
     class HostingController : UIHostingController<AnyView> {
         
+        var isTransition = false
         var index : Int = 0
         
     }

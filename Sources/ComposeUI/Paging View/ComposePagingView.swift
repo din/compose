@@ -16,17 +16,20 @@ public struct ComposePagingView<Data : RandomAccessCollection & Equatable,
     
     let direction : Axis
     let spacing : CGFloat
+    let delay : Double
     
     public init(data: Data,
                 currentIndex : Binding<Int>,
                 direction : Axis = .vertical,
                 spacing : CGFloat = 0,
+                delay : Double = 0.0,
                 @ViewBuilder content: @escaping (Data.Element) -> Content,
                 @ViewBuilder transitionContent: @escaping (Data.Element) -> TransitionContent) {
         self.data = data
         self._currentIndex = currentIndex
         self.direction = direction
         self.spacing = spacing
+        self.delay = delay
         self.content = content
         self.transitionContent = transitionContent
     }
@@ -39,12 +42,16 @@ public struct ComposePagingView<Data : RandomAccessCollection & Equatable,
         controller.dataSource = context.coordinator
         controller.delegate = context.coordinator
         
+        context.coordinator.delay = delay
         context.coordinator.controller = controller
         
         return controller
     }
     
     public func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) {
+        context.coordinator.content = content
+        context.coordinator.transitionContent = transitionContent
+        
         if data != context.coordinator.data {
             context.coordinator.data = data
         }
@@ -67,11 +74,13 @@ extension ComposePagingView where TransitionContent == Content {
                 currentIndex : Binding<Int>,
                 direction : Axis = .vertical,
                 spacing : CGFloat = 0,
+                delay : Double = 0.0,
                 @ViewBuilder content: @escaping (Data.Element) -> Content) {
         self.data = data
         self._currentIndex = currentIndex
         self.direction = direction
         self.spacing = spacing
+        self.delay = delay
         self.content = content
         self.transitionContent = content
     }

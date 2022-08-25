@@ -23,8 +23,10 @@ extension ComposePagingView {
             
         }
         
-        let content : (Data.Element) -> Content
-        let transitionContent : (Data.Element) -> TransitionContent
+        var delay : Double = 0.0
+        
+        var content : (Data.Element) -> Content
+        var transitionContent : (Data.Element) -> TransitionContent
         
         @Binding var currentIndex : Int
         
@@ -62,6 +64,10 @@ extension ComposePagingView {
             return makeController(for: index + 1, isTransition: true)
         }
         
+        public func pageViewController(_ pageViewController: UIPageViewController, willTransitionTo pendingViewControllers: [UIViewController]) {
+            
+        }
+        
         public func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
             guard let controller = pageViewController.viewControllers?.first as? HostingController else {
                 return
@@ -70,7 +76,9 @@ extension ComposePagingView {
             if finished == true && pageViewController.viewControllers != previousViewControllers {
                 currentIndex = controller.index
 
-                controller.rootView = makeController(for: controller.index).rootView
+                DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                    controller.rootView = self.makeController(for: controller.index).rootView
+                }
                 
                 for controller in previousViewControllers.compactMap({ $0 as? HostingController }) {
                     controller.rootView = makeController(for: controller.index, isTransition: true).rootView
@@ -94,6 +102,7 @@ extension ComposePagingView {
             
             let controller = HostingController(rootView: view)
             controller.index = index
+            controller.isTransition = isTransition
             
             return controller
         }
@@ -103,12 +112,16 @@ extension ComposePagingView {
                 return
             }
             
+            guard controller.isTransition == false else {
+                return
+            }
+            
             guard let element = element(for: controller.index) else {
                 return
             }
-    
+
             let view = AnyView(content(element).edgesIgnoringSafeArea(.all))
-            
+
             controller.rootView = view
         }
         
