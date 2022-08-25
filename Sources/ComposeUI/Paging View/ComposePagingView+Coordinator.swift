@@ -63,11 +63,7 @@ extension ComposePagingView {
             
             return makeController(for: index + 1, isTransition: true)
         }
-        
-        public func pageViewController(_ pageViewController: UIPageViewController, willTransitionTo pendingViewControllers: [UIViewController]) {
-            
-        }
-        
+         
         public func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
             guard let controller = pageViewController.viewControllers?.first as? HostingController else {
                 return
@@ -78,10 +74,12 @@ extension ComposePagingView {
 
                 DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
                     controller.rootView = self.makeController(for: controller.index).rootView
+                    controller.isTransition = false
                 }
                 
                 for controller in previousViewControllers.compactMap({ $0 as? HostingController }) {
                     controller.rootView = makeController(for: controller.index, isTransition: true).rootView
+                    controller.isTransition = true
                 }
             }
         }
