@@ -24,11 +24,15 @@ extension ComposePagingView {
         }
         
         let content : (Data.Element) -> Content
+        let transitionContent : (Data.Element) -> TransitionContent
+        
         @Binding var currentIndex : Int
         
         init(@ViewBuilder content : @escaping (Data.Element) -> Content,
+             @ViewBuilder transitionContent : @escaping (Data.Element) -> TransitionContent,
              currentIndex : Binding<Int>) {
             self.content = content
+            self.transitionContent = transitionContent
             self._currentIndex = currentIndex
         }
         
@@ -42,7 +46,7 @@ extension ComposePagingView {
                 return nil
             }
             
-            return makeController(for: index - 1)
+            return makeController(for: index - 1, isTransition: true)
         }
         
         public func pageViewController(_ pageViewController: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
@@ -55,29 +59,37 @@ extension ComposePagingView {
                 return nil
             }
             
-            return makeController(for: index + 1)
+            return makeController(for: index + 1, isTransition: true)
         }
         
         public func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
             guard let controller = pageViewController.viewControllers?.first as? HostingController else {
                 return
             }
-            
-            if finished == true {
+
+            if finished == true && pageViewController.viewControllers != previousViewControllers {
                 currentIndex = controller.index
-            }
-            
-            for controller in previousViewControllers.compactMap({ $0 as? HostingController }) {
-                controller.rootView = AnyView(EmptyView())
+                controller.rootView = makeController(for: controller.index).rootView
+                
+                for controller in previousViewControllers.compactMap({ $0 as? HostingController }) {
+                    controller.rootView = AnyView(EmptyView())
+                }
             }
         }
         
-        func makeController(for index : Int) -> UIViewController {
+        func makeController(for index : Int, isTransition : Bool = false) -> HostingController {
             guard let element = element(for: index) else {
-                return UIViewController()
+                return HostingController(rootView: AnyView(EmptyView()))
             }
             
-            let view = AnyView(content(element).edgesIgnoringSafeArea(.all))
+            var view = AnyView(EmptyView())
+            
+            if isTransition == true {
+                view = AnyView(transitionContent(element).edgesIgnoringSafeArea(.all))
+            }
+            else {
+                view = AnyView(content(element).edgesIgnoringSafeArea(.all))
+            }
             
             let controller = HostingController(rootView: view)
             controller.index = index

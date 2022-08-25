@@ -5,13 +5,14 @@ import SwiftUI
 import UIKit
 import Compose
 
-public struct ComposeCollectionView<Data : RandomAccessCollection & Equatable, Content : View> : UIViewControllerRepresentable, DynamicViewContent where Data.Element : Identifiable {
+public struct ComposeCollectionView<Data : RandomAccessCollection & Equatable,
+                                    Content : View> : UIViewControllerRepresentable, DynamicViewContent where Data.Element : Identifiable {
     
     public var data: Data
     
     @Binding var currentIndex : Int
     @ViewBuilder var content : (Data.Element) -> Content
-    
+
     weak var token : ComposeCollectionViewToken? = nil
     
     @Environment(\.composeCollectionViewStyle) var style
