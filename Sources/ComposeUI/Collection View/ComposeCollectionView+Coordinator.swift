@@ -96,6 +96,13 @@ extension ComposeCollectionView {
             
             set {
                 (collectionView?.collectionViewLayout as? Layout)?.style = newValue
+                
+                if style.shouldCenterOnCells == true {
+                    collectionView?.decelerationRate = .fast
+                }
+                else {
+                    collectionView?.decelerationRate = .normal
+                }
             }
             
         }
