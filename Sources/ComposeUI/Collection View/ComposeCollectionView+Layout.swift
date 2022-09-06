@@ -27,6 +27,10 @@ extension ComposeCollectionView {
         
         override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint,
                                           withScrollingVelocity velocity: CGPoint) -> CGPoint {
+            guard style.shouldCenterOnCells == true else {
+                return super.targetContentOffset(forProposedContentOffset: proposedContentOffset, withScrollingVelocity: velocity)
+            }
+            
             let collectionViewSize = self.collectionView!.bounds.size
             
             if style.direction == .horizontal {

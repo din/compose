@@ -19,7 +19,7 @@ public struct ComposeCollectionView<Data : RandomAccessCollection & Equatable,
 
     public init(data: Data,
                 token : ComposeCollectionViewToken? = nil,
-                currentIndex : Binding<Int>,
+                currentIndex : Binding<Int> = .init(get: { 0 }, set: { _ in }),
                 @ViewBuilder content: @escaping (Data.Element) -> Content) {
         self.data = data
         self.token = token

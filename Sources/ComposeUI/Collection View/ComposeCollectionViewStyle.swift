@@ -10,6 +10,7 @@ public struct ComposeCollectionViewStyle : Equatable {
     public var pageSpacing : CGFloat
     public var padding : EdgeInsets
     
+    public var shouldCenterOnCells : Bool
     public var shouldRecreateContentView : Bool
     public var pagingDeccelerationSensitivity : CGFloat
     
@@ -17,12 +18,14 @@ public struct ComposeCollectionViewStyle : Equatable {
                 pageSize : CGSize = .init(width: UIScreen.main.bounds.width, height: 300),
                 pageSpacing : CGFloat = 16,
                 padding : EdgeInsets = .init(top: 0, leading: 0, bottom: 0, trailing: 0),
+                shouldCenterOnCells : Bool = false,
                 shouldRecreateContentView : Bool = false,
                 pagingDeccelerationSensitivity : CGFloat = 0.2) {
         self.direction = direction
         self.pageSize = pageSize
         self.pageSpacing = pageSpacing
         self.padding = padding
+        self.shouldCenterOnCells = shouldCenterOnCells
         self.shouldRecreateContentView = shouldRecreateContentView
         self.pagingDeccelerationSensitivity = pagingDeccelerationSensitivity
     }
