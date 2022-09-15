@@ -47,7 +47,7 @@ public struct RouterView<Content : View> : View, Identifiable {
                 .offset(x: isTransitioning == false && isLast == false && routes.count > 0 ? startingSubviewTransitionOffset : 0)
                 .offset(x: isTransitioning == true && isLast == false ? startingSubviewTransitionOffset * (1.0 - transitionProgress) : 0)
                 .offset(x: isTransitioning == true && isLast == true ? interactiveTransitionOffset : 0)
-                .allowsHitTesting(isTransitioning == false && isLast == false ? false : true)
+                .opacity(isLast == false ? 0.0 : 1.0)
             #else
             route.view
                 .opacity(isLast == true ? 1.0 : 0.0)
@@ -62,7 +62,6 @@ public struct RouterView<Content : View> : View, Identifiable {
                 .zIndex(1)
                 .offset(x: isTransitioning == false && routes.count > 0 ? startingSubviewTransitionOffset : 0)
                 .offset(x: isTransitioning == true && routes.count == 1 ? startingSubviewTransitionOffset * (1.0 - transitionProgress) : 0)
-                .allowsHitTesting(isTransitioning == false && routes.count == 0)
             
             routesBody
             #else
