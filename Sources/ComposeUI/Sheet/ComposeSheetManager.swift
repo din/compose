@@ -24,9 +24,24 @@ final public class ComposeSheetManager : ObservableObject {
         })
     }
     
-    public func present<Content : View>(@ViewBuilder content : () -> Content, style : ComposeSheetPresentationStyle = .sheet) {
+    public func present<Content : View>(@ViewBuilder content : () -> Content,
+                                        style : ComposeSheetPresentationStyle = .sheet) {
         self.style = style
         self.content = AnyView(content())
+    }
+    
+    public func present<Content : View, Background : View>(@ViewBuilder content : () -> Content,
+                                                           background : Background,
+                                                           style : ComposeSheetPresentationStyle = .sheet) {
+        self.style = style
+        self.content = AnyView(
+            ZStack {
+                background
+                    .zIndex(5)
+                
+                content()
+            }
+        )
     }
     
     public func dismiss() {
