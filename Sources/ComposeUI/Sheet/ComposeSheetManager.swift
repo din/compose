@@ -17,7 +17,9 @@ final public class ComposeSheetManager : ObservableObject {
             self.content != nil && self.style == style
         }, set: { value in
             if value == false {
-                self.content = nil
+                DispatchQueue.main.async {
+                    self.content = nil
+                }
             }
         })
     }
