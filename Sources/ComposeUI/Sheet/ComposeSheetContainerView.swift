@@ -3,18 +3,16 @@
 import Foundation
 import SwiftUI
 
-struct ComposeSheetContainerView<Content : View, Background : View> : View {
+struct ComposeSheetContainerView<Content : View> : View {
     
     @Environment(\.composeNavigationBarStyle) var navigationBarStyle
     @Environment(\.composeNavigationStyle) var navigationStyle
     @EnvironmentObject var manager : ComposeSheetManager
     
     let content : Content
-    let background : Background
     
-    init(content : @autoclosure () -> Content, background : @autoclosure () -> Background) {
+    init(content : @autoclosure () -> Content) {
         self.content = content()
-        self.background = background()
     }
     
     var body: some View {
@@ -50,10 +48,6 @@ struct ComposeSheetContainerView<Content : View, Background : View> : View {
     
     fileprivate func sheetContent(for style : ComposeSheetPresentationStyle) -> some View {
         ZStack {
-            background
-                .edgesIgnoringSafeArea(.all)
-                .zIndex(5)
-            
             if style == .sheet {
                 manager.content
                     .composeSheetDismissable(shouldPreventDismissal: manager.shouldPreventDismissal)
