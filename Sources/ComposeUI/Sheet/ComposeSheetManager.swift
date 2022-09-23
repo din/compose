@@ -27,7 +27,7 @@ final public class ComposeSheetManager : ObservableObject {
     public func present<Content : View>(@ViewBuilder content : () -> Content,
                                         style : ComposeSheetPresentationStyle = .sheet) {
         self.style = style
-        self.content = AnyView(content())
+        self.content = AnyView(content().zIndex(6))
     }
     
     public func present<Content : View, Background : View>(@ViewBuilder content : () -> Content,
@@ -40,6 +40,7 @@ final public class ComposeSheetManager : ObservableObject {
                     .zIndex(5)
                 
                 content()
+                    .zIndex(6)
             }
         )
     }

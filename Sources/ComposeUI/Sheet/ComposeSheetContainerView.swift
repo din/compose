@@ -46,21 +46,18 @@ struct ComposeSheetContainerView<Content : View> : View {
         }
     }
     
+    @ViewBuilder
     fileprivate func sheetContent(for style : ComposeSheetPresentationStyle) -> some View {
-        ZStack {
-            if style == .sheet {
-                manager.content
-                    .composeSheetDismissable(shouldPreventDismissal: manager.shouldPreventDismissal)
-                    .zIndex(6)
-                    .environment(\.composeNavigationBarStyle, navigationBarStyle)
-                    .environment(\.composeNavigationStyle, navigationStyle)
-            }
-            else {
-                manager.content
-                    .zIndex(6)
-                    .environment(\.composeNavigationBarStyle, navigationBarStyle)
-                    .environment(\.composeNavigationStyle, navigationStyle)
-            }
+        if style == .sheet {
+            manager.content
+                .composeSheetDismissable(shouldPreventDismissal: manager.shouldPreventDismissal)
+                .environment(\.composeNavigationBarStyle, navigationBarStyle)
+                .environment(\.composeNavigationStyle, navigationStyle)
+        }
+        else {
+            manager.content
+                .environment(\.composeNavigationBarStyle, navigationBarStyle)
+                .environment(\.composeNavigationStyle, navigationStyle)
         }
     }
     
