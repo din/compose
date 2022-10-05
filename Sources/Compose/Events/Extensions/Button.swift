@@ -19,4 +19,13 @@ extension Button {
         }
     }
     
+    @available(iOS 15.0, *)
+    public init(role: ButtonRole?, emitter : SignalEmitter, @ViewBuilder label: () -> Label) {
+        self.init(role: role) {
+            emitter.send()
+        } label: {
+            label()
+        }
+    }
+    
 }
