@@ -28,4 +28,13 @@ extension Button {
         }
     }
     
+    @available(iOS 15.0, *)
+    public init<V>(role: ButtonRole?, emitter : ValueEmitter<V>, value : V, @ViewBuilder label : () -> Label) {
+        self.init(role: role) {
+            emitter.send(value)
+        } label: {
+            label()
+        }
+    }
+    
 }

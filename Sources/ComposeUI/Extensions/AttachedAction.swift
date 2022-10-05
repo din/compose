@@ -123,5 +123,23 @@ extension Button {
             label()
         }
     }
+    
+    @available(iOS 15.0, *)
+    public init(role : ButtonRole?, action : AttachedAction<Void>.ActionWrapper, @ViewBuilder label: () -> Label) {
+        self.init(role: role) {
+            action.perform()
+        } label: {
+            label()
+        }
+    }
+    
+    @available(iOS 15.0, *)
+    public init<I>(role : ButtonRole?, action : AttachedAction<I>.ActionWrapper, value : I, @ViewBuilder label: () -> Label) {
+        self.init(role: role) {
+            action.perform(value)
+        } label: {
+            label()
+        }
+    }
 
 }
