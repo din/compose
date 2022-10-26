@@ -3,6 +3,16 @@
 import SwiftUI
 import Compose
 
+fileprivate struct NavigationBarInsetsModifier : ViewModifier {
+    
+    @Environment(\.composeNavigationBarStyle) var barStyle
+    
+    func body(content: Content) -> some View {
+        content.padding(.top, barStyle.height)
+    }
+    
+}
+
 extension View {
     
     public func composeNavigationBar<LeftView : View, RightView : View>(title : LocalizedStringKey,
@@ -40,6 +50,21 @@ extension View {
                                    content: self,
                                    leftView: ComposeNavigationBackButton(emitter: backButtonEmitter),
                                    rightView: rightView())
+    }
+    
+}
+
+extension View {
+    
+    public func adjustComposeNavigationBarInsets() -> some View {
+        self.modifier(NavigationBarInsetsModifier())
+    }
+    
+    public func overlayComposeNavigationBar() -> some View {
+        self.transformEnvironment(\.composeNavigationBarStyle) { value in
+            value.isOverlayingContent = true
+            value.background = .init(Color.clear)
+        }
     }
     
 }

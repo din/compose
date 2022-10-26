@@ -60,14 +60,14 @@ public struct ComposeNavigationBar<LeftView : View, RightView : View> : View {
         .font(style.normalFont)
         .frame(height: style.height)
         .padding(.horizontal, style.horizontalPadding)
-        .overlay(
+        .background(
             Rectangle()
-                .fill(style.backgroundColor)
-                .frame(maxWidth: .infinity, minHeight: 100, maxHeight: 100)
+                .fill(.clear)
+                .frame(maxWidth: .infinity, minHeight: 100 + style.height, maxHeight: 100 + style.height)
+                .background(style.background)
                 .offset(y: -100),
             alignment: .top
         )
-        .background(style.backgroundColor)
         .foregroundColor(style.foregroundColor)
     }
     

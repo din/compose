@@ -3,26 +3,29 @@ import SwiftUI
 
 public struct ComposeTabViewStyle {
     
-    public var backgroundColor : Color
+    public var background : AnyView
     public var foregroundColor : Color
     public var tintColor : Color
     
     public var height : CGFloat
     public var padding : CGFloat
+    public var backgroundHeight : CGFloat
     
     public var shouldShowDivider : Bool
     
-    public init(backgroundColor : Color = .black,
-                foregroundColor : Color = .white,
-                tintColor : Color = .blue,
-                height : CGFloat = 40,
-                padding : CGFloat = -16,
-                shouldShowDivider : Bool = true) {
-        self.backgroundColor = backgroundColor
+    public init<Background : View>(background : Background = Color.clear,
+                                   foregroundColor : Color = .white,
+                                   tintColor : Color = .blue,
+                                   height : CGFloat = 40,
+                                   padding : CGFloat = -16,
+                                   backgroundHeight : CGFloat = 100,
+                                   shouldShowDivider : Bool = true) {
+        self.background = AnyView(background)
         self.foregroundColor = foregroundColor
         self.tintColor = tintColor
         self.height = height
         self.padding = padding
+        self.backgroundHeight = backgroundHeight
         self.shouldShowDivider = shouldShowDivider
     }
     

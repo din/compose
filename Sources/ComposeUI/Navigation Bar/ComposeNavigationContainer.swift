@@ -3,6 +3,7 @@ import SwiftUI
 
 struct ComposeNavigationContainer<Content : View, LeftView : View, RightView : View> : View {
     
+    @Environment(\.composeNavigationBarStyle) var barStyle
     @Environment(\.composeNavigationStyle) var style
     
     let title : LocalizedStringKey
@@ -11,15 +12,14 @@ struct ComposeNavigationContainer<Content : View, LeftView : View, RightView : V
     let rightView : RightView
     
     var body: some View {
-        ZStack {
+        ZStack(alignment: .top) {
             style.backgroundColor
                 .edgesIgnoringSafeArea(.all)
             
-            VStack(spacing: 0) {
-                ComposeNavigationBar(title: title, leftView: leftView, rightView: rightView)
-                
-                content
-            }
+            content
+                .padding(.top, barStyle.isOverlayingContent == true ? 0 : barStyle.height)
+            
+            ComposeNavigationBar(title: title, leftView: leftView, rightView: rightView)
         }
     }
     

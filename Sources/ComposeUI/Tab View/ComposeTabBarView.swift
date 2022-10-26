@@ -25,9 +25,11 @@ public struct ComposeTabBarView : View {
         ZStack(alignment: .top) {
             
             Rectangle()
+                .fill(.clear)
                 .overlay(Rectangle()
-                            .fill(style.backgroundColor)
-                            .frame(maxWidth: .infinity, minHeight: 100, maxHeight: 100),
+                            .fill(.clear)
+                            .frame(maxWidth: .infinity, minHeight: style.backgroundHeight, maxHeight: style.backgroundHeight)
+                            .background(style.background),
                          alignment: .top)
             
             HStack {
@@ -53,9 +55,7 @@ public struct ComposeTabBarView : View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
         }
-        .padding(.top, 10)
         .frame(minHeight: style.height, maxHeight: style.height)
-        .background(style.backgroundColor)
         .overlay(style.shouldShowDivider == true ? Divider() : nil, alignment: .top)
     }
     
