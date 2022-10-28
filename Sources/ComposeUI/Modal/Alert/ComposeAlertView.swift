@@ -90,12 +90,12 @@ public struct ComposeAlertView : ComposeModal {
             }
             .foregroundColor(style.foregroundColor)
             .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(style.backgroundColor)
+                style.background
+                    .clipShape(RoundedRectangle(cornerRadius: style.cornerRadius))
                     .shadow(color: Color.black.opacity(0.05), radius: 10)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 10)
+                RoundedRectangle(cornerRadius: style.cornerRadius)
                     .stroke(Color(UIColor.separator).opacity(0.5))
             )
             .padding(.horizontal, style.alertOuterHorizontalPadding)
@@ -153,8 +153,8 @@ public struct ComposeAlertView : ComposeModal {
             }
             .frame(maxWidth: .infinity)
             .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(style.backgroundColor)
+                style.background
+                    .clipShape(RoundedRectangle(cornerRadius: style.cornerRadius))
             )
             .padding(.horizontal, style.sheetHorizontalPadding)
         }
@@ -182,7 +182,7 @@ struct ComposeAlertView_Previews: PreviewProvider {
             ComposeAlertAction(title: "Cancel")
         }
         .composeAlertViewStyle(
-            ComposeAlertViewStyle(backgroundColor: Color.black,
+            ComposeAlertViewStyle(background: Color.black,
                                   foregroundColor: Color.white,
                                   actionColor: Color.blue)
         )

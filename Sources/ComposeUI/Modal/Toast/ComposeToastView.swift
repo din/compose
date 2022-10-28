@@ -47,13 +47,11 @@ public struct ComposeToastView : ComposeModal {
         .foregroundColor(style.foregroundColor)
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
-        .background(ZStack {
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color.black)
-            RoundedRectangle(cornerRadius: 10)
-                .fill(style.color(for: event))
+        .background(
+            style.background(for: event)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
                 .shadow(color: Color.black.opacity(0.05), radius: 10)
-        })
+        )
         .overlay(
             RoundedRectangle(cornerRadius: 10)
                 .stroke(Color(UIColor.separator).opacity(0.3))
@@ -87,7 +85,7 @@ struct ComposeToastView_Previews: PreviewProvider {
         ComposeToastView(title: "Generic message",
                          message: "This is neither good nor bad. Figure out what to do with this.")
         .composeToastViewStyle(
-            ComposeToastViewStyle(backgroundColor: Color.blue,
+            ComposeToastViewStyle(background: Color.blue,
                                   foregroundColor: Color.white)
         )
     }
@@ -97,7 +95,7 @@ struct ComposeToastView_Previews: PreviewProvider {
                          message: "Something very good happened. And this is good news!",
                          event: .success)
             .composeToastViewStyle(
-                ComposeToastViewStyle(backgroundColor: Color.blue,
+                ComposeToastViewStyle(background: Color.blue,
                                       foregroundColor: Color.white)
             )
     }
@@ -107,7 +105,7 @@ struct ComposeToastView_Previews: PreviewProvider {
                          message: "Something bad happened with network during the request. Try again!",
                          event: .error)
             .composeToastViewStyle(
-                ComposeToastViewStyle(backgroundColor: Color.blue,
+                ComposeToastViewStyle(background: Color.blue,
                                       foregroundColor: Color.white)
             )
     }

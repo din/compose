@@ -3,7 +3,8 @@ import SwiftUI
 
 public struct ComposeAlertViewStyle {
     
-    public var backgroundColor : Color
+    public var background : AnyView
+    
     public var foregroundColor : Color
     public var actionColor : Color
     public var destructiveColor : Color
@@ -16,17 +17,20 @@ public struct ComposeAlertViewStyle {
     public var sheetVerticalSpacing : CGFloat
     public var sheetHorizontalPadding : CGFloat
     
-    public init(backgroundColor : Color = .black,
-                foregroundColor : Color = .white,
-                actionColor : Color = .blue,
-                destructiveColor : Color = .red,
-                overlayColor : Color = Color.black.opacity(0.85),
-                verticalPadding : CGFloat = 15,
-                horizontalPadding : CGFloat = 15,
-                outerHorizontalPadding : CGFloat = 40,
-                sheetVerticalSpacing : CGFloat = 15,
-                sheetHorizontalPadding : CGFloat = 15) {
-        self.backgroundColor = backgroundColor
+    public var cornerRadius : CGFloat
+    
+    public init<Background : View>(background : Background = Color.black,
+                                   foregroundColor : Color = .white,
+                                   actionColor : Color = .blue,
+                                   destructiveColor : Color = .red,
+                                   overlayColor : Color = Color.black.opacity(0.85),
+                                   verticalPadding : CGFloat = 15,
+                                   horizontalPadding : CGFloat = 15,
+                                   outerHorizontalPadding : CGFloat = 40,
+                                   sheetVerticalSpacing : CGFloat = 15,
+                                   sheetHorizontalPadding : CGFloat = 15,
+                                   cornerRadius : CGFloat = 10) {
+        self.background = AnyView(background)
         self.foregroundColor = foregroundColor
         self.actionColor = actionColor
         self.destructiveColor = destructiveColor
@@ -36,6 +40,7 @@ public struct ComposeAlertViewStyle {
         self.alertOuterHorizontalPadding = outerHorizontalPadding
         self.sheetVerticalSpacing = sheetVerticalSpacing
         self.sheetHorizontalPadding = sheetHorizontalPadding
+        self.cornerRadius = cornerRadius
     }
     
 }
