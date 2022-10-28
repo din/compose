@@ -48,7 +48,7 @@ public struct ComposeToastView : ComposeModal {
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
         .background(
-            style.background(for: event)
+            style.background
                 .clipShape(RoundedRectangle(cornerRadius: 10))
                 .shadow(color: Color.black.opacity(0.05), radius: 10)
         )

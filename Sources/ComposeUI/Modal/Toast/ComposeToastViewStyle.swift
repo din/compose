@@ -18,17 +18,17 @@ public struct ComposeToastViewStyle {
         self.successBackgroundColor = successBackgroundColor
     }
     
-    public func background(for event : ComposeToastViewEvent) -> AnyView {
+    public func color(for event : ComposeToastViewEvent) -> Color {
         switch event {
         
         case .normal:
-            return background
+            return foregroundColor
             
         case .error:
-            return AnyView(errorBackgroundColor)
+            return errorBackgroundColor
             
         case .success:
-            return AnyView(successBackgroundColor)
+            return successBackgroundColor
             
         }
     }
