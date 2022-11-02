@@ -19,9 +19,9 @@ public struct ComposeNavigationBarStyle {
     public var normalFont : Font
     public var largeFont : Font
 
-    public var backButtonContent : AnyView
+    public var backButtonContent : (@escaping () -> Void) -> AnyView
     
-    public init<Background : View, BackButtonContent : View>(
+    public init<Background : View, BackButtonContent : ComposeNavigationBackButtonContent>(
         background : Background = Color.clear,
         foregroundColor : Color = .clear,
         tintColor : Color = .blue,
@@ -32,7 +32,7 @@ public struct ComposeNavigationBarStyle {
         isOverlayingContent : Bool = false,
         normalFont : Font = .system(size: 16, weight: .semibold, design: .default),
         largeFont: Font = .system(size: 18, weight: .regular),
-        backButtonContent : BackButtonContent = ComposeNavigationBackButtonContent()
+        backButtonContent : BackButtonContent.Type = ComposeNavigationBackButtonDefaultContent.self
     ) {
         self.background = AnyView(background)
         self.foregroundColor = foregroundColor
@@ -44,7 +44,7 @@ public struct ComposeNavigationBarStyle {
         self.isOverlayingContent = isOverlayingContent
         self.normalFont = normalFont
         self.largeFont = largeFont
-        self.backButtonContent = AnyView(backButtonContent)
+        self.backButtonContent = { action in AnyView(BackButtonContent.init(action: action)) }
     }
 
 }
