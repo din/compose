@@ -3,6 +3,25 @@
 import Foundation
 import SwiftUI
 import Compose
+ 
+struct ComposeNavigationBackButtonContent : View {
+    
+    public var body: some View {
+        ZStack {
+            Image(systemName: "chevron.backward")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 17, height: 17)
+                .padding(.leading, -8)
+                .shadow(color: Color.black.opacity(0.5), radius: 5, x: 0, y: 0)
+                .font(.system(size: 16, weight: .semibold, design: .default))
+        }
+        .frame(width: 25, alignment: .leading)
+        .padding(8)
+        .contentShape(Rectangle())
+    }
+    
+}
 
 public struct ComposeNavigationBackButton : View {
     
@@ -22,18 +41,7 @@ public struct ComposeNavigationBackButton : View {
     
     public var body: some View {
         Button(action: action) {
-            ZStack {
-                Image(systemName: "chevron.backward")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 17, height: 17)
-                    .padding(.leading, -8)
-                    .shadow(color: Color.black.opacity(0.5), radius: 5, x: 0, y: 0)
-                    .font(.system(size: 16, weight: .semibold, design: .default))
-            }
-            .frame(width: 25, alignment: .leading)
-            .padding(8)
-            .contentShape(Rectangle())
+            style.backButtonContent
         }
         .buttonStyle(PlainButtonStyle())
     }
