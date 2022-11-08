@@ -8,7 +8,8 @@ public struct ComposeAlertViewStyle {
     public var foregroundColor : Color
     public var actionColor : Color
     public var destructiveColor : Color
-    public var overlayColor : Color
+    public var alertOverlayColor : Color
+    public var sheetOverlayColor : Color
     
     public var alertVerticalPadding : CGFloat
     public var alertHorizontalPadding : CGFloat
@@ -23,7 +24,8 @@ public struct ComposeAlertViewStyle {
                                    foregroundColor : Color = .white,
                                    actionColor : Color = .blue,
                                    destructiveColor : Color = .red,
-                                   overlayColor : Color = Color.black.opacity(0.85),
+                                   alertOverlayColor : Color = Color.black.opacity(0.30),
+                                   sheetOverlayColor : Color = Color.black.opacity(0.30),
                                    verticalPadding : CGFloat = 15,
                                    horizontalPadding : CGFloat = 15,
                                    outerHorizontalPadding : CGFloat = 40,
@@ -34,7 +36,8 @@ public struct ComposeAlertViewStyle {
         self.foregroundColor = foregroundColor
         self.actionColor = actionColor
         self.destructiveColor = destructiveColor
-        self.overlayColor = overlayColor
+        self.alertOverlayColor = alertOverlayColor
+        self.sheetOverlayColor = sheetOverlayColor
         self.alertVerticalPadding = verticalPadding
         self.alertHorizontalPadding = horizontalPadding
         self.alertOuterHorizontalPadding = outerHorizontalPadding

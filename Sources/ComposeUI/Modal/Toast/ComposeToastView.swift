@@ -24,10 +24,6 @@ public struct ComposeToastView : ComposeModal {
         self.event = event
     }
     
-    public var backgroundBody: some View {
-        EmptyView()
-    }
-    
     public var body: some View {
         VStack(spacing: 0) {
             if let title = title {

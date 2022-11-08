@@ -25,16 +25,19 @@ public struct ComposeAlertView : ComposeModal {
         self.actions = actions()
     }
     
-    public var backgroundBody: some View {
-        style.overlayColor
-            .transition(.opacity.animation(.easeOut(duration: 0.2)))
-    }
-    
     public var body: some View {
         if mode == .alert {
+            Rectangle()
+                .fill(style.alertOverlayColor)
+                .edgesIgnoringSafeArea(.all)
+            
             alertBody
         }
         else {
+            Rectangle()
+                .fill(style.sheetOverlayColor)
+                .edgesIgnoringSafeArea(.all)
+            
             sheetBody
         }
     }
@@ -112,7 +115,7 @@ public struct ComposeAlertView : ComposeModal {
     fileprivate var sheetBody : some View {
         ZStack(alignment: .bottom) {
             
-            style.overlayColor.opacity(0.00001)
+            style.sheetOverlayColor.opacity(0.00001)
                 .edgesIgnoringSafeArea(.all)
                 .contentShape(Rectangle())
                 .onTapGesture {
