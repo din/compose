@@ -3,19 +3,13 @@ import SwiftUI
 
 public struct ComposeAlertViewStyle {
     public struct CornerRadius {
-        let topLeft : CGFloat
-        let topRight : CGFloat
-        let bottomLeft : CGFloat
-        let bottomRight : CGFloat
+        let top : CGFloat
+        let bottom : CGFloat
         
-        public init(topLeft: CGFloat,
-                    topRight: CGFloat,
-                    bottomLeft: CGFloat,
-                    bottomRight: CGFloat) {
-            self.topLeft = topLeft
-            self.topRight = topRight
-            self.bottomLeft = bottomLeft
-            self.bottomRight = bottomRight
+        public init(top: CGFloat,
+                    bottom: CGFloat) {
+            self.top = top
+            self.bottom = bottom
         }
     }
     
@@ -54,7 +48,7 @@ public struct ComposeAlertViewStyle {
                                    sheetVerticalPadding : CGFloat = 0,
                                    sheetHorizontalPadding : CGFloat = 15,
                                    alertCornerRadius : CGFloat = 10,
-                                   sheetCornerRadius : CornerRadius = .init(topLeft: 10, topRight: 10, bottomLeft: 10, bottomRight: 10),
+                                   sheetCornerRadius : CornerRadius = .init(top: 10, bottom: 10),
                                    seperatorColor : Color = Color.white.opacity(0.1)) {
         self.background = AnyView(background)
         self.foregroundColor = foregroundColor

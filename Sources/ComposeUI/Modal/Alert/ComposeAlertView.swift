@@ -177,10 +177,8 @@ public struct ComposeAlertView : ComposeModal {
             .frame(maxWidth: .infinity)
             .background(
                 style.background
-                    .clipShape(RoundedCornersShape(radius: style.sheetCornerRadius.topLeft, corners: .topLeft))
-                    .clipShape(RoundedCornersShape(radius: style.sheetCornerRadius.topRight, corners: .topRight))
-                    .clipShape(RoundedCornersShape(radius: style.sheetCornerRadius.bottomLeft, corners: .bottomLeft))
-                    .clipShape(RoundedCornersShape(radius: style.sheetCornerRadius.bottomRight, corners: .bottomRight))
+                    .clipShape(RoundedCornersShape(radius: style.sheetCornerRadius.top, corners: [.topLeft, .topRight]))
+                    .clipShape(RoundedCornersShape(radius: style.sheetCornerRadius.bottom, corners: [.bottomLeft, .bottomRight]))
             )
             .padding(.horizontal, style.sheetHorizontalPadding)
             .offset(x: 0, y: -style.sheetVerticalPadding)
