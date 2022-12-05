@@ -2,6 +2,22 @@ import Foundation
 import SwiftUI
 
 public struct ComposeAlertViewStyle {
+    public struct CornerRadius {
+        let topLeft : CGFloat
+        let topRight : CGFloat
+        let bottomLeft : CGFloat
+        let bottomRight : CGFloat
+        
+        public init(topLeft: CGFloat,
+                    topRight: CGFloat,
+                    bottomLeft: CGFloat,
+                    bottomRight: CGFloat) {
+            self.topLeft = topLeft
+            self.topRight = topRight
+            self.bottomLeft = bottomLeft
+            self.bottomRight = bottomRight
+        }
+    }
     
     public var background : AnyView
     
@@ -16,9 +32,14 @@ public struct ComposeAlertViewStyle {
     public var alertOuterHorizontalPadding : CGFloat
     
     public var sheetVerticalSpacing : CGFloat
+    
+    public var sheetVerticalPadding : CGFloat
     public var sheetHorizontalPadding : CGFloat
     
-    public var cornerRadius : CGFloat
+    public var alertCornerRadius : CGFloat
+    public var sheetCornerRadius : CornerRadius
+    
+    public var seperatorColor : Color
     
     public init<Background : View>(background : Background = Color.black,
                                    foregroundColor : Color = .white,
@@ -30,8 +51,11 @@ public struct ComposeAlertViewStyle {
                                    horizontalPadding : CGFloat = 15,
                                    outerHorizontalPadding : CGFloat = 40,
                                    sheetVerticalSpacing : CGFloat = 15,
+                                   sheetVerticalPadding : CGFloat = 0,
                                    sheetHorizontalPadding : CGFloat = 15,
-                                   cornerRadius : CGFloat = 10) {
+                                   alertCornerRadius : CGFloat = 10,
+                                   sheetCornerRadius : CornerRadius = .init(topLeft: 10, topRight: 10, bottomLeft: 10, bottomRight: 10),
+                                   seperatorColor : Color = Color.white.opacity(0.1)) {
         self.background = AnyView(background)
         self.foregroundColor = foregroundColor
         self.actionColor = actionColor
@@ -42,8 +66,11 @@ public struct ComposeAlertViewStyle {
         self.alertHorizontalPadding = horizontalPadding
         self.alertOuterHorizontalPadding = outerHorizontalPadding
         self.sheetVerticalSpacing = sheetVerticalSpacing
+        self.sheetVerticalPadding = sheetVerticalPadding
         self.sheetHorizontalPadding = sheetHorizontalPadding
-        self.cornerRadius = cornerRadius
+        self.alertCornerRadius = alertCornerRadius
+        self.sheetCornerRadius = sheetCornerRadius
+        self.seperatorColor = seperatorColor
     }
     
 }

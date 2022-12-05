@@ -38,8 +38,27 @@ public struct ComposeAlertView : ComposeModal {
                 .fill(style.sheetOverlayColor)
                 .edgesIgnoringSafeArea(.all)
             
-            sheetBody
+            if #available(iOS 14.0, *) {
+                sheetBody
+                    .ignoresSafeArea()
+            } else {
+                sheetBody
+            }
         }
+    }
+    
+    var verticalDivider: some View {
+        Rectangle()
+            .frame(height: 1)
+            .frame(maxWidth: .infinity)
+            .foregroundColor(style.seperatorColor)
+    }
+    
+    var horizontalDivider: some View {
+        Rectangle()
+            .frame(width: 1)
+            .frame(maxHeight: .infinity)
+            .foregroundColor(style.seperatorColor)
     }
     
     fileprivate var alertBody : some View {
@@ -69,7 +88,7 @@ public struct ComposeAlertView : ComposeModal {
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 
-                Divider()
+                verticalDivider
                 
                 HStack(spacing: 0) {
                     ForEach(actions) { action in
@@ -85,7 +104,7 @@ public struct ComposeAlertView : ComposeModal {
                         .foregroundColor(action.kind == .destructive ? style.destructiveColor : style.actionColor)
                         
                         if action != actions.last {
-                            Divider()
+                            horizontalDivider
                         }
                     }
                 }
@@ -94,11 +113,11 @@ public struct ComposeAlertView : ComposeModal {
             .foregroundColor(style.foregroundColor)
             .background(
                 style.background
-                    .clipShape(RoundedRectangle(cornerRadius: style.cornerRadius))
+                    .clipShape(RoundedRectangle(cornerRadius: style.alertCornerRadius))
                     .shadow(color: Color.black.opacity(0.05), radius: 10)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: style.cornerRadius)
+                RoundedRectangle(cornerRadius: style.alertCornerRadius)
                     .stroke(Color(UIColor.separator).opacity(0.5))
             )
             .padding(.horizontal, style.alertOuterHorizontalPadding)
@@ -129,7 +148,7 @@ public struct ComposeAlertView : ComposeModal {
                         .foregroundColor(style.foregroundColor.opacity(0.7))
                         .padding(.vertical, style.sheetVerticalSpacing)
                     
-                    Divider()
+                    verticalDivider
                 }
                 
                 ForEach(actions) { action in
@@ -150,16 +169,21 @@ public struct ComposeAlertView : ComposeModal {
                     }
                     
                     if action != actions.last {
-                        Divider()
+                        verticalDivider
                     }
                 }
+                
             }
             .frame(maxWidth: .infinity)
             .background(
                 style.background
-                    .clipShape(RoundedRectangle(cornerRadius: style.cornerRadius))
+                    .clipShape(RoundedCornersShape(radius: style.sheetCornerRadius.topLeft, corners: .topLeft))
+                    .clipShape(RoundedCornersShape(radius: style.sheetCornerRadius.topRight, corners: .topRight))
+                    .clipShape(RoundedCornersShape(radius: style.sheetCornerRadius.bottomLeft, corners: .bottomLeft))
+                    .clipShape(RoundedCornersShape(radius: style.sheetCornerRadius.bottomRight, corners: .bottomRight))
             )
             .padding(.horizontal, style.sheetHorizontalPadding)
+            .offset(x: 0, y: -style.sheetVerticalPadding)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .transition(
@@ -199,6 +223,17 @@ struct ComposeAlertView_Previews: PreviewProvider {
             alert
         }
         .background(Color.white.opacity(0.2))
+    }
+}
+
+fileprivate struct RoundedCornersShape: Shape {
+    
+    var radius: CGFloat = .infinity
+    var corners: UIRectCorner = .allCorners
+    
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(roundedRect: rect, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
+        return Path(path.cgPath)
     }
 }
 
