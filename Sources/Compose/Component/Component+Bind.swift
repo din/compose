@@ -9,6 +9,25 @@ extension Component {
     func bind() -> ComponentController {
         let controller = ComponentController(component: self)
         
+        /* Intrinsic emitters */
+        
+        var intrinsicEmitters : [AnyEmitter] = [
+            controller.didAppear,
+            controller.didDestroy,
+            controller.didDisappear
+        ]
+        
+        if let component = self as? AnyDynamicComponent {
+            intrinsicEmitters.append(contentsOf: [
+                component.didCreateInstance,
+                component.didDestroyInstance
+            ])
+        }
+        
+        intrinsicEmitters.forEach {
+            ComponentControllerStorage.shared.ownedEntities[$0.id] = controller.id
+        }
+        
         /* Bindables */
         
         let mirror = Mirror(reflecting: self)
@@ -19,14 +38,21 @@ extension Component {
                 controller.addChildController(subcomponent.bind())
             }
             
+            // Registering component entries
             if let value = value as? ComponentEntry {
                 ComponentControllerStorage.shared.ownedEntities[value.id] = controller.id
             }
             
+            // Registering stores
+            if let store = value as? AnyStore {
+                ComponentControllerStorage.shared.ownedEntities[store.willChange.id] = controller.id
+            }
+            
             if let name = name, name.hasPrefix("_") {
                 let wrapperMirror = Mirror(reflecting: value)
-                
+
                 for (_, wrappedValue) in wrapperMirror.children {
+                    // Registering nested component entries
                     if let wrappedValue = wrappedValue as? ComponentEntry {
                         ComponentControllerStorage.shared.ownedEntities[wrappedValue.id] = controller.id
                     }

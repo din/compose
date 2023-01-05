@@ -77,6 +77,12 @@ extension ComposeModalManager {
             return
         }
         
+        let window = ComposeModalWindow(windowScene: windowScene)
+        window.windowLevel = .alert
+        window.makeKeyAndVisible()
+        window.isUserInteractionEnabled = false
+        window.backgroundColor = UIColor.clear
+
         let rootView = wrapper(ComposeModalContainerView())
             .environmentObject(self)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -85,12 +91,7 @@ extension ComposeModalManager {
                 value = .init()
             }
         
-        let window = ComposeModalWindow(windowScene: windowScene)
-        window.windowLevel = .alert
         window.rootViewController = UIHostingController(rootView: rootView)
-        window.makeKeyAndVisible()
-        window.isUserInteractionEnabled = false
-        window.backgroundColor = UIColor.clear
         window.rootViewController?.view.backgroundColor = .clear
         
         self.window = window

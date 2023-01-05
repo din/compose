@@ -46,7 +46,7 @@ extension ValueEmitter {
  
     @discardableResult
     public func observeChange(handler : @escaping (Value, Value) -> Void) -> AnyCancellable {
-        let observer = Observer<Value> { value in
+        let cancellable = publisher.sink { value in
             guard let oldValue = self.lastValue else {
                 return
             }
@@ -54,9 +54,9 @@ extension ValueEmitter {
             handler(value, oldValue)
         }
         
-        self.parentController?.addObserver(observer, for: self.id)
+        self.parentController?.addObserver(cancellable, for: self.id)
 
-        return observer.cancellable
+        return cancellable
     }
     
     @discardableResult

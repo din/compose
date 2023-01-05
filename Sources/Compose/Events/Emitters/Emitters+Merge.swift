@@ -25,16 +25,17 @@ extension Emitters.Merge {
     
     @discardableResult
     public func observe(handler: @escaping (Upstream.Value) -> Void) -> AnyCancellable {
-        let observer = Observer<Upstream.Value>(action: handler)
-        publisher.subscribe(observer)
-        
-        self.parentController?.addObserver(observer, for: self.id)
-
-        for upstreamId in upstreamIds {
-            self.parentController?.addObserver(observer, for: upstreamId)
+        let cancellable = publisher.sink { value in
+            handler(value)
         }
         
-        return observer.cancellable
+        self.parentController?.addObserver(cancellable, for: self.id)
+
+        for upstreamId in upstreamIds {
+            self.parentController?.addObserver(cancellable, for: upstreamId)
+        }
+        
+        return cancellable
     }
   
 }

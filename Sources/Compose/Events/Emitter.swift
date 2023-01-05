@@ -22,13 +22,13 @@ extension Emitter {
     
     @discardableResult
     public func observe(handler : @escaping (Value) -> Void) -> AnyCancellable {
-        let observer = Observer<Value>(action: handler)
+        let cancellable = publisher.sink { v in
+            handler(v)
+        }
 
-        publisher.subscribe(observer)
-        
-        self.parentController?.addObserver(observer, for: self.id)
+        self.parentController?.addObserver(cancellable, for: self.id)
 
-        return observer.cancellable
+        return cancellable
     }
     
 }

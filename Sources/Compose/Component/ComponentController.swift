@@ -62,13 +62,13 @@ class ComponentController : UIHostingController<AnyView> {
     deinit {
         print("[CCC] - '\(type(of: component))'")
         
-        didDestroy.send()
-        
         cancellables.values.forEach {
             $0.cancel()
         }
         
         cancellables.removeAll()
+        
+        didDestroy.send()
         
         ComponentControllerStorage.shared.controllers[self.id] = nil
     }
@@ -93,8 +93,8 @@ class ComponentController : UIHostingController<AnyView> {
 extension ComponentController {
     
     override func viewDidAppear(_ animated: Bool) {
-        didAppear.send()
         super.viewDidAppear(animated)
+        didAppear.send()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -122,8 +122,8 @@ extension ComponentController {
 
 extension ComponentController {
     
-    func addObserver<V>(_ observer : Observer<V>, for id : UUID) {
-        self.cancellables[id] = observer.cancellable
+    func addObserver(_ cancellable : AnyCancellable, for id : UUID) {
+        self.cancellables[id] = cancellable
     }
     
     func removeObserver(for id : UUID) {
