@@ -58,10 +58,6 @@ struct Observer<Value> : Subscriber, AnyObserver {
     }
     
     func cancel() {
-        withIntrospection {
-            Introspection.shared.unregister(observer: id)
-        }
-
         storage.cancellable.cancel()
         storage.cancellable = AnyCancellable({})
     }

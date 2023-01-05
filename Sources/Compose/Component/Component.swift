@@ -1,11 +1,9 @@
 import Foundation
 import SwiftUI
 
+fileprivate var ComponentAuxiliaryBindableKeyPaths = Set<AnyKeyPath>()
+
 public protocol Component {
-    
-    static var auxiliaryBindableKeyPaths : [AnyKeyPath] { get }
-    
-    var type : Component.Type { get }
     
     var id : UUID { get }
     
@@ -17,25 +15,22 @@ public protocol Component {
 
 extension Component {
     
-    public static var auxiliaryBindableKeyPaths : [AnyKeyPath] {
-        []
-    }
-    
-}
-
-extension Component {
-    
-    public var type : Component.Type {
-        return Self.self
-    }
-    
-}
-
-extension Component {
-    
     public var services : Services {
         return Services.all
     }
     
 }
 
+extension Component {
+    
+    public static var auxiliaryBindableKeyPaths : Set<AnyKeyPath> {
+        get {
+            return ComponentAuxiliaryBindableKeyPaths
+        }
+        
+        set {
+            ComponentAuxiliaryBindableKeyPaths = newValue
+        }
+    }
+    
+}

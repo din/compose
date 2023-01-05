@@ -1,211 +1,113 @@
 import Foundation
 import SwiftUI
+import Combine
 
-public final class Router : ObservableObject {
+public final class Router : ObservableObject, ComponentEntry {
+    
+    enum Action {
+        case push(Bool)
+        case pop(Bool)
+        case popToRoot(Bool)
+        case replace(Bool)
+        case clear
+        
+        var isAnimated : Bool {
+            switch self {
+                
+            case .push(let animated), .pop(let animated), .popToRoot(let animated), .replace(let animated):
+                return animated
+                
+            default:
+                return false
+                
+            }
+        }
+    }
     
     public var path : AnyKeyPath? {
         paths.last
     }
     
-    public var paths : [AnyKeyPath] {
-        routes.map { $0.path }
-    }
-        
-    public let didPush = ValueEmitter<AnyKeyPath>()
-    public let didPop = ValueEmitter<AnyKeyPath>()
-    public let didReplace = ValueEmitter<AnyKeyPath>()
-    
-    @Published public var isPresented : Bool = false {
-        
-        didSet {
-            if isPresented == false && options.shouldClearWhenNotPresented == true {
-                clear()
-            }
-        }
-        
-    }
-    
+    @Published public var paths : [AnyKeyPath] = []
     @Published public var isInteractiveTransitionEnabled : Bool = true
-    
-    public var target : Component?
-    internal let options : RouterOptions
 
-    @Published internal var routes = [Route]() {
+    public let id = UUID()
     
-        didSet {
-            withIntrospection {
-                Introspection.shared.updateDescriptor(forRouter: self.id) {
-                    $0?.routes = self.routes.map { $0.id }
-                }
-            }
-            
-            updateFocused()
-        }
-        
-    }
-    
-    @Published internal var isPushing : Bool = false
+    internal let didPerformAction = PassthroughSubject<Action, Never>()
 
-    internal let id = UUID()
     internal let start : AnyKeyPath?
     
-    fileprivate var zIndex : Int64 = 0
-    
-    public init(start : AnyKeyPath, options : RouterOptions = .init()) {
+    public init(start : AnyKeyPath) {
         self.start = start
-        self.options = options
+        self.paths = [start]
     }
-    
-    public init(options : RouterOptions = .init()) {
-        self.start = nil
-        self.options = options
-    }
-    
 }
 
 extension Router {
     
     public func push(_ keyPath : AnyKeyPath, animated : Bool = true) {
-        zIndex += 1
-        
-        guard let route = route(for: keyPath) else {
-            return
-        }
-        
-        guard routes.contains(route) == false else {
+        guard paths.contains(keyPath) == false else {
             print("[Compose] Warning: attempting to present route with the same component id. Routing ignored.")
             return
         }
         
-        RouterStorage.storage(forComponent: route.id)?.enclosing = self
+        // RouterStorage.storage(forComponent: route.id)?.enclosing = self
         
-        guard animated == true else {
-            self.routes.append(route)
-            self.didPush.send(keyPath)
-            return
-        }
-        
-        withAnimation(.easeOut(duration: 0.28)) {
-            self.routes.append(route)
-            self.isPushing = true
-        }
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.29) { [weak self] in
-            self?.isPushing = false
-            self?.didPush.send(keyPath)
-        }
+        paths.append(keyPath)
+        didPerformAction.send(.push(animated))
     }
     
     public func pop(animated : Bool = true) {
-        guard self.paths.count > 0 else {
+        guard paths.count > 0 else {
             return
         }
         
-        let change = { [weak self] in
-            guard let self = self else {
-                return
-            }
-            
-            let route = self.routes.removeLast()
-
-            self.didPop.send(route.path)
-        }
-        
-        guard animated == true else {
-            change()
-            return
-        }
-
-        withAnimation(.easeOut(duration: 0.25)) {
-            change()
-        }
+        paths.removeLast()
+        didPerformAction.send(.pop(animated))
     }
     
     public func popToRoot(animated : Bool = false) {
-        guard self.paths.count > 0 else {
+        guard paths.count > 0 else {
             return
         }
         
-        zIndex = 0
-        
-        let change = { [weak self] in
-            guard let self = self else {
-                return
-            }
-            
-            guard let route = self.routes.first, self.routes.count > 1 else {
-                return
-            }
-            
-            self.routes = [route]
-        }
-        
-        guard animated == true else {
-            change()
+        guard let path = paths.first, paths.count > 1 else {
             return
         }
         
-        withAnimation(.easeOut(duration: 0.25)) {
-            change()
-        }
+        paths = [path]
+        didPerformAction.send(.popToRoot(animated))
     }
     
     public func replace(_ keyPath : AnyKeyPath, animated : Bool = false) {
-        zIndex = 0
-
-        guard let route = route(for: keyPath) else {
-            return
-        }
+        // RouterStorage.storage(forComponent: route.id)?.enclosing = self
         
-        RouterStorage.storage(forComponent: route.id)?.enclosing = self
-        
-        let change = { [weak self] in
-            self?.routes = [route]
-            self?.didReplace.send(keyPath)
-        }
-        
-        guard animated == true else {
-            change()
-            return
-        }
-        
-        withAnimation {
-            change()
-        }
+        paths = [keyPath]
+        didPerformAction.send(.replace(animated))
     }
     
     public func clear() {
-        zIndex = 0
-        
-        self.routes = []
+        self.paths = []
+        didPerformAction.send(.clear)
     }
     
-    fileprivate func route(for keyPath : AnyKeyPath) -> Route? {
+    func controller(for keyPath : AnyKeyPath) -> ComponentController? {
+        guard let target = parentController?.component else {
+            print("[CCR] Warning: router is unbound. No components could be looked up.")
+            return nil
+        }
+
         guard let component = target[keyPath: keyPath] as? Component else {
-            print("[Compose] Router is unable to find component under keypath: '\(keyPath)'.")
+            print("[CCR] Warning: router is unable to find component under keypath: '\(keyPath)'.")
             return nil
         }
         
-        return Route(id: (component as? AnyContainerComponent)?.containeeId ?? component.id,
-                     view: AnyView(component.view),
-                     path: keyPath,
-                     zIndex: Double(zIndex))
-    }
-    
-}
-
-extension Router : Bindable {
-    
-    public func bind<C : Component>(to component: C) {
-        self.target = component
-
-        if let start = start {
-            replace(start)
+        if let dynamicComponent = component as? AnyDynamicComponent, let controller = dynamicComponent.storage.lastController {            
+            return controller
         }
-        
-        RouterStorage.storage(forComponent: component.id)?
-            .registered
-            .setObject(self, forKey: self.id.uuidString as NSString)
+        else {
+            return component.controller
+        }
     }
     
 }

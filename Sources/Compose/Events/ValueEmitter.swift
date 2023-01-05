@@ -54,8 +54,7 @@ extension ValueEmitter {
             handler(value, oldValue)
         }
         
-        ObservationTree.shared.currentNode?.addObserver(observer, for: id)
-        ObservationTree.shared.node(for: self.id)?.addObserver(observer, for: id)
+        self.parentController?.addObserver(observer, for: self.id)
 
         return observer.cancellable
     }

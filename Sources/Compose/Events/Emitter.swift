@@ -10,7 +10,7 @@ public protocol AnyEmitter {
     
 }
 
-public protocol Emitter : AnyEmitter, Bindable {
+public protocol Emitter : AnyEmitter, ComponentEntry {
     associatedtype Value
 
     var publisher : AnyPublisher<Value, Never> { get }
@@ -25,10 +25,9 @@ extension Emitter {
         let observer = Observer<Value>(action: handler)
 
         publisher.subscribe(observer)
+        
+        self.parentController?.addObserver(observer, for: self.id)
 
-        ObservationTree.shared.currentNode?.addObserver(observer, for: id)
-        ObservationTree.shared.node(for: self.id)?.addObserver(observer, for: id)
-    
         return observer.cancellable
     }
     
@@ -43,10 +42,3 @@ extension Emitter {
     
 }
 
-extension Emitter {
-    
-    public func bind<C>(to component: C) where C : Component {
-        ObservationTree.shared.currentNode?.addChild(id: self.id)
-    }
-    
-}

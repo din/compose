@@ -26,12 +26,11 @@ public class TimerEmitter : Emitter {
             .autoconnect()
             .subscribe(observer)
         
-        ObservationTree.shared.currentNode?.addObserver(observer, for: id)
-        ObservationTree.shared.node(for: self.id)?.addObserver(observer, for: id)
+        self.parentController?.addObserver(observer, for: self.id)
     }
     
     public func stop() {
-        ObservationTree.shared.node(for: id)?.remove()
+        self.parentController?.removeObserver(for: self.id)
     }
     
 }

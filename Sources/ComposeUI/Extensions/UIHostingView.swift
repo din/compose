@@ -1,9 +1,5 @@
 import Foundation
-import Swift
 import SwiftUI
-
-#if os(iOS)
-import UIKit
 
 public class UIHostingView<Content: View>: UIView, UIGestureRecognizerDelegate {
     private let rootViewHostingController: UIHostingController<Content>
@@ -61,50 +57,3 @@ public class UIHostingView<Content: View>: UIView, UIGestureRecognizerDelegate {
     }
     
 }
-
-///This view resets all animation conexts of underlying views and makes top-level animations smoother.
-fileprivate struct ComponentScopeView<Content: View>: UIViewRepresentable {
-    
-    let content: Content
-    
-    init(@ViewBuilder content : () -> Content) {
-        self.content = content()
-    }
-    
-    init(content : Content) {
-        self.content = content
-    }
-    
-    func makeUIView(context: Context) -> some UIView {
-        UIHostingView(rootView: content)
-    }
-    
-    func updateUIView(_ uiView: UIViewType, context: Context) {
-        
-    }
-    
-}
-
-extension View {
-    
-    @ViewBuilder
-    func componentScope() -> some View {
-        ComponentScopeView(content: self)
-            .edgesIgnoringSafeArea(.all)
-    }
-    
-}
-
-#else
-
-extension View {
-    
-    @ViewBuilder
-    func componentScope() -> some View {
-        self
-    }
-    
-}
-
-
-#endif

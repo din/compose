@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-@propertyWrapper public struct MappedStore<Target : Component, State : AnyState> : DynamicProperty, Bindable, AnyStore {
+@propertyWrapper public struct MappedStore<Target : Component, State : AnyState> : DynamicProperty,/* Bindable,*/ AnyStore {
     
     public var id : UUID {
         container.id
