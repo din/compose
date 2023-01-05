@@ -91,6 +91,16 @@ extension Component {
         controller.present(childController, animated: animated)
     }
     
+    public func dismiss(animated : Bool = true) {
+        let controller = self.controller
+        
+        guard controller.presentedViewController != nil else {
+            return
+        }
+        
+        controller.dismiss(animated: animated)
+    }
+    
 }
 
 extension Component {
