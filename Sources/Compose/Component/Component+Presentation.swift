@@ -22,7 +22,7 @@ public enum ComponentPresentation : Equatable {
     case cover
     
     /// Non-resizable modal sheet presentation, dismissable with swipe gestures.
-    public static var sheet : ComponentPresentation {
+    public static var largeSheet : ComponentPresentation {
         .sheet(.init())
     }
     
@@ -43,7 +43,7 @@ extension Component {
     /// Presents component at the specified keypath modally with the specified presentation settings.
     public func present<V : Component>(_ keyPath : KeyPath<Self, V>,
                                        animated : Bool = true,
-                                       presentation : ComponentPresentation = .sheet) {
+                                       presentation : ComponentPresentation = .largeSheet) {
         let child = self[keyPath: keyPath]
         
         let controller = self.controller
