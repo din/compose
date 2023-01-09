@@ -37,6 +37,11 @@ public final class Router : ObservableObject, ComponentEntry {
 
     internal let start : AnyKeyPath?
     
+    public init() {
+        self.start = nil
+        self.paths = []
+    }
+    
     public init(start : AnyKeyPath) {
         self.start = start
         self.paths = [start]

@@ -22,11 +22,21 @@ extension Emitter {
     
     @discardableResult
     public func observe(handler : @escaping (Value) -> Void) -> AnyCancellable {
-        let cancellable = publisher.sink { v in
+        let currentScope = ComponentControllerStorage.shared.currentEventScope
+        
+        let cancellable = publisher.sink { [weak currentScope] v in
+            if let scope = currentScope {
+                ComponentControllerStorage.shared.pushEventScope(for: scope.id)
+            }
+            
             handler(v)
+            
+            if currentScope != nil {
+                ComponentControllerStorage.shared.popEventScope()
+            }
         }
-
-        self.parentController?.addObserver(cancellable, for: self.id)
+        
+        currentScope?.addObserver(cancellable)
 
         return cancellable
     }

@@ -25,15 +25,17 @@ extension Emitters.Merge {
     
     @discardableResult
     public func observe(handler: @escaping (Upstream.Value) -> Void) -> AnyCancellable {
-        let cancellable = publisher.sink { value in
+        let currentScope = ComponentControllerStorage.shared.currentEventScope
+        
+        let cancellable = publisher.sink { [weak currentScope] value in
+            ComponentControllerStorage.shared.pushEventScope(for: currentScope?.id)
+            
             handler(value)
+            
+            ComponentControllerStorage.shared.popEventScope()
         }
         
-        self.parentController?.addObserver(cancellable, for: self.id)
-
-        for upstreamId in upstreamIds {
-            self.parentController?.addObserver(cancellable, for: upstreamId)
-        }
+        currentScope?.addObserver(cancellable)
         
         return cancellable
     }

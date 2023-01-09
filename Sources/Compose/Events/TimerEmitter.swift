@@ -1,36 +1,41 @@
 import Foundation
 import Combine
 
-public class TimerEmitter : Emitter {
+public struct TimerEmitter : Emitter, ComponentEntry {
+    
+    fileprivate class Storage {
+        var timer : Timer? = nil
+    }
     
     public let id = UUID()
 
-    public var publisher: AnyPublisher<Date, Never> {
-        timerPublisher.eraseToAnyPublisher()
+    public var publisher : AnyPublisher<Void, Never> {
+        subject.eraseToAnyPublisher()
     }
     
-    fileprivate let timerPublisher : Timer.TimerPublisher
+    fileprivate let subject = PassthroughSubject<Void, Never>()
+    fileprivate let storage = Storage()
+    fileprivate let interval : TimeInterval
     
-    deinit {
-        stop()
+    public init(every interval: TimeInterval) {
+        self.interval = interval
     }
     
-    public init(every interval: TimeInterval, on runloop: RunLoop = RunLoop.main, in mode: RunLoop.Mode = .default) {
-        self.timerPublisher = Timer.publish(every: interval, on: runloop, in: mode)
-    }
-    
-    public func start(_ handler : @escaping (Date) -> Void) {
-        let cancellable = self.timerPublisher
-            .autoconnect()
-            .sink { value in
-                handler(value)
-            }
+    public func start() {
+        storage.timer = Timer.scheduledTimer(withTimeInterval: self.interval, repeats: true, block: { timer in
+            subject.send()
+        })
         
-        self.parentController?.addObserver(cancellable, for: self.id)
+        parentController?.addObserver(AnyCancellable {
+            stop()
+        }, for: self.id)
     }
     
     public func stop() {
-        self.parentController?.removeObserver(for: self.id)
+        storage.timer?.invalidate()
+        storage.timer = nil
+        
+        parentController?.removeObserver(for: self.id)
     }
     
 }

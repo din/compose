@@ -3,29 +3,18 @@ import SwiftUI
 import UIKit
 import Combine
 
-public protocol ComponentEntry {
-    
-    var id : UUID { get }
-    
-}
-
-extension ComponentEntry {
-
-    var parentController : ComponentController? {
-        ComponentControllerStorage.shared.owner(for: self.id)
-    }
-    
-}
-
 class ComponentControllerStorage {
     
     static let shared = ComponentControllerStorage()
     
+    // All controllers in the app.
+    var controllers = WeakDictionary<UUID, ComponentController>()
+    
     // All owned entries. Key is the entry ID, value is the ID of controller which owns the entity.
     var ownedEntities = [UUID : UUID]()
     
-    // All controllers in the app.
-    var controllers = WeakDictionary<UUID, ComponentController>()
+    // All event scopes
+    var eventScopes = [UUID]()
     
     func owner(for entityId : UUID) -> ComponentController? {
         guard let componentId = ownedEntities[entityId] else {
@@ -33,6 +22,26 @@ class ComponentControllerStorage {
         }
         
         return controllers[componentId]
+    }
+    
+    var currentEventScope : ComponentController? {
+        guard let componentId = eventScopes.last else {
+            return nil
+        }
+        
+        return controllers[componentId]
+    }
+    
+    func pushEventScope(for id : UUID?) {
+        guard let id = id else {
+            return
+        }
+        
+        eventScopes.append(id)
+    }
+    
+    func popEventScope() {
+        eventScopes.removeLast()
     }
     
 }
@@ -49,6 +58,7 @@ class ComponentController : UIHostingController<AnyView> {
     var subcontrollers = [ComponentController]()
     
     // Lifecycle emitters.
+    let didCreate = SignalEmitter()
     let didDestroy = SignalEmitter()
     let didAppear = SignalEmitter()
     let didDisappear = SignalEmitter()
@@ -57,12 +67,12 @@ class ComponentController : UIHostingController<AnyView> {
     let didMoveOutOfParent = PassthroughSubject<Void, Never>()
     
     // Cancellables that are managed by this contorller.
-    fileprivate var cancellables = [UUID : AnyCancellable]()
+    fileprivate var cancellables = Set<ComposeCancellable>()
     
     deinit {
         print("[CCC] - '\(type(of: component))'")
         
-        cancellables.values.forEach {
+        cancellables.forEach {
             $0.cancel()
         }
         
@@ -91,6 +101,11 @@ class ComponentController : UIHostingController<AnyView> {
 }
 
 extension ComponentController {
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        didCreate.send()
+    }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
@@ -122,13 +137,39 @@ extension ComponentController {
 
 extension ComponentController {
     
-    func addObserver(_ cancellable : AnyCancellable, for id : UUID) {
-        self.cancellables[id] = cancellable
+    class ComposeCancellable : Hashable, Equatable {
+      
+        static func == (lhs: ComponentController.ComposeCancellable, rhs: ComponentController.ComposeCancellable) -> Bool {
+            lhs.id == rhs.id
+        }
+        
+        let id : UUID
+        let cancellable : AnyCancellable?
+        
+        init(id: UUID, cancellable: AnyCancellable? = nil) {
+            self.id = id
+            self.cancellable = cancellable
+        }
+        
+        deinit {
+            cancellable?.cancel()
+        }
+        
+        func cancel() {
+            cancellable?.cancel()
+        }
+
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(id)
+        }
+    }
+    
+    func addObserver(_ cancellable : AnyCancellable, for id : UUID = UUID()) {
+        self.cancellables.insert(.init(id: id, cancellable: cancellable))
     }
     
     func removeObserver(for id : UUID) {
-        self.cancellables[id]?.cancel()
-        self.cancellables[id] = nil
+        self.cancellables.remove(.init(id: id))
     }
     
 }

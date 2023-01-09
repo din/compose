@@ -12,8 +12,9 @@ extension Component {
         /* Intrinsic emitters */
         
         var intrinsicEmitters : [AnyEmitter] = [
-            controller.didAppear,
+            controller.didCreate,
             controller.didDestroy,
+            controller.didAppear,
             controller.didDisappear
         ]
         
@@ -41,11 +42,19 @@ extension Component {
             // Registering component entries
             if let value = value as? ComponentEntry {
                 ComponentControllerStorage.shared.ownedEntities[value.id] = controller.id
+                value.didBind()
             }
             
             // Registering stores
             if let store = value as? AnyStore {
                 ComponentControllerStorage.shared.ownedEntities[store.willChange.id] = controller.id
+            }
+            
+            // Registering component entries inside dictionaries
+            if let entries = value as? Dictionary<AnyHashable, ComponentEntry> {
+                entries.values.forEach {
+                    ComponentControllerStorage.shared.ownedEntities[$0.id] = controller.id
+                }
             }
             
             if let name = name, name.hasPrefix("_") {
@@ -55,18 +64,23 @@ extension Component {
                     // Registering nested component entries
                     if let wrappedValue = wrappedValue as? ComponentEntry {
                         ComponentControllerStorage.shared.ownedEntities[wrappedValue.id] = controller.id
+                        wrappedValue.didBind()
                     }
                 }
             }
         }
         
         /* Observers */
+        
+        ComponentControllerStorage.shared.pushEventScope(for: id)
  
         _ = self.observers
         
-        for keyPath in Self.auxiliaryBindableKeyPaths {
+        for keyPath in ComponentAuxiliaryBindableKeyPaths {
             _ = self[keyPath: keyPath]
         }
+        
+        ComponentControllerStorage.shared.popEventScope()
    
         return controller
     }

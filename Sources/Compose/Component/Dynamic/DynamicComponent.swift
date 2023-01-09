@@ -57,6 +57,14 @@ extension DynamicComponent {
         storage.controller(for: id)?.component as? T
     }
     
+    public var lastInstance : T? {
+        storage.lastController?.component as? T
+    }
+    
+    public var isCreated : Bool {
+        lastInstance != nil
+    }
+    
 }
 
 extension DynamicComponent {

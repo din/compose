@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-@propertyWrapper public struct MappedStore<Target : Component, State : AnyState> : DynamicProperty,/* Bindable,*/ AnyStore {
+@propertyWrapper public struct MappedStore<Target : Component, State : AnyState> : DynamicProperty, ComponentEntry, AnyStore {
     
     public var id : UUID {
         container.id
@@ -31,14 +31,16 @@ import SwiftUI
         self.keyPath = keyPath
     }
     
-    public func bind<C>(to component: C) where C : Component {
-        guard let component = component as? Target else {
+    public func didBind() {
+        guard let controller = ComponentControllerStorage.shared.owner(for: self.id) else {
             return
         }
         
-        let store = component[keyPath: keyPath]
-        
-        store.willChange.withCurrent() += { state in
+        guard let component = controller.component as? Target else {
+            return
+        }
+
+        component[keyPath: keyPath].willChange.withCurrent() += { state in
             self.container.state = state
         }
     }

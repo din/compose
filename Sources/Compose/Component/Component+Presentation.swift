@@ -114,6 +114,10 @@ extension Component {
 
 extension Component {
     
+    public var didCreate : SignalEmitter {
+        controller.didCreate
+    }
+    
     public var didDestroy : SignalEmitter {
         controller.didDestroy
     }

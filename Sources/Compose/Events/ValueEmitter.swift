@@ -46,15 +46,21 @@ extension ValueEmitter {
  
     @discardableResult
     public func observeChange(handler : @escaping (Value, Value) -> Void) -> AnyCancellable {
-        let cancellable = publisher.sink { value in
+        let currentScope = ComponentControllerStorage.shared.currentEventScope
+        
+        let cancellable = publisher.sink { [weak currentScope] value in
             guard let oldValue = self.lastValue else {
                 return
             }
             
+            ComponentControllerStorage.shared.pushEventScope(for: currentScope?.id)
+            
             handler(value, oldValue)
+            
+            ComponentControllerStorage.shared.popEventScope()
         }
         
-        self.parentController?.addObserver(cancellable, for: self.id)
+        currentScope?.addObserver(cancellable)
 
         return cancellable
     }
