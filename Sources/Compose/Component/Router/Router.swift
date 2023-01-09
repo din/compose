@@ -51,13 +51,6 @@ public final class Router : ObservableObject, ComponentEntry {
 extension Router {
     
     public func push(_ keyPath : AnyKeyPath, animated : Bool = true) {
-        guard paths.contains(keyPath) == false else {
-            print("[Compose] Warning: attempting to present route with the same component id. Routing ignored.")
-            return
-        }
-        
-        // RouterStorage.storage(forComponent: route.id)?.enclosing = self
-        
         paths.append(keyPath)
         didPerformAction.send(.push(animated))
     }
@@ -85,8 +78,6 @@ extension Router {
     }
     
     public func replace(_ keyPath : AnyKeyPath, animated : Bool = false) {
-        // RouterStorage.storage(forComponent: route.id)?.enclosing = self
-        
         paths = [keyPath]
         didPerformAction.send(.replace(animated))
     }
