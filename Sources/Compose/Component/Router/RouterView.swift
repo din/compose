@@ -7,9 +7,37 @@ import Combine
 import UIKit
 #endif
 
+protocol RouterNavigationControllerInteractiveDelegate : AnyObject {
+    
+    func routerNavigationControllerDidFinishInteractivePop(_ routerNavigationController : RouterNavigationController)
+    
+}
+
 class RouterNavigationController : UINavigationController, UIGestureRecognizerDelegate {
     
     weak var router : Router? = nil
+    weak var interactiveDelegate : RouterNavigationControllerInteractiveDelegate? = nil
+    
+    override func popViewController(animated: Bool) -> UIViewController? {
+        
+        let controller = super.popViewController(animated: animated)
+        
+        if animated == true, let coordinator = transitionCoordinator {
+            coordinator.notifyWhenInteractionChanges { [weak self] context in
+                guard context.initiallyInteractive == true && context.isCancelled == false else {
+                    return
+                }
+                
+                if let self = self {
+                    self.interactiveDelegate?.routerNavigationControllerDidFinishInteractivePop(self)
+                }
+            }
+           
+            return controller
+        }
+        
+        return controller
+    }
 
 }
 
@@ -84,8 +112,8 @@ public struct RouterContentView<Content : View> : UIViewControllerRepresentable,
         controller.navigationBar.isTranslucent = false
         controller.setViewControllers(children, animated: false)
         controller.interactivePopGestureRecognizer?.delegate = context.coordinator
-        controller.delegate = context.coordinator
-   
+        controller.interactiveDelegate = context.coordinator
+
         context.coordinator.navigationController = controller
         
         return controller
@@ -106,11 +134,12 @@ public struct RouterContentView<Content : View> : UIViewControllerRepresentable,
 
 extension RouterContentView {
     
-    public class Coordinator : NSObject, UIGestureRecognizerDelegate, UINavigationControllerDelegate {
+    public class Coordinator : NSObject, UIGestureRecognizerDelegate, RouterNavigationControllerInteractiveDelegate {
         
         weak var navigationController : RouterNavigationController? = nil
         
         fileprivate var cancellables = Set<AnyCancellable>()
+        fileprivate var observer : NSKeyValueObservation?
         
         init(router : Router?) {
             super.init()
@@ -159,7 +188,7 @@ extension RouterContentView {
             guard gestureRecognizer == navigationController?.interactivePopGestureRecognizer else {
                 return true
             }
-            
+
             return navigationController?.viewControllers.count ?? 0 > 1
         }
         
@@ -167,18 +196,12 @@ extension RouterContentView {
             true
         }
         
-        public func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
-            guard let coordinator = navigationController.topViewController?.transitionCoordinator else {
+        func routerNavigationControllerDidFinishInteractivePop(_ routerNavigationController: RouterNavigationController) {
+            guard self.navigationController?.router?.paths.count ?? 0 > 0 else {
                 return
             }
             
-            coordinator.notifyWhenInteractionChanges { [weak self] context in
-                guard context.initiallyInteractive == true && context.isCancelled == false else {
-                    return
-                }
-                
-                self?.navigationController?.router?.paths.removeLast()
-            }
+            self.navigationController?.router?.paths.removeLast()
         }
         
     }
