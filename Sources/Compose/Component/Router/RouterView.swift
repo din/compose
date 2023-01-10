@@ -139,12 +139,11 @@ extension RouterContentView {
         weak var navigationController : RouterNavigationController? = nil
         
         fileprivate var cancellables = Set<AnyCancellable>()
-        fileprivate var observer : NSKeyValueObservation?
-        
+
         init(router : Router?) {
             super.init()
             
-            router?.didPerformAction.sink { [weak self] action in
+            router?.didPerformAction.sink { [weak self, weak router] action in
                 
                 switch action {
                     

@@ -7,9 +7,11 @@ public class TabRouter : ObservableObject, ComponentEntry {
     public let id = UUID()
     
     @Published var paths = [AnyKeyPath]()
+    @Published public var currentPath : AnyKeyPath? = nil
     
     public init(paths : [AnyKeyPath]) {
         self.paths = paths
+        self.currentPath = paths.first
     }
     
 }
@@ -18,6 +20,7 @@ extension TabRouter {
     
     public func update(paths : [AnyKeyPath]) {
         self.paths = paths
+        self.currentPath = paths.first
     }
     
 }
@@ -41,32 +44,6 @@ extension TabRouter {
         else {
             return component.controller
         }
-    }
-    
-}
-
-public struct TabRouterView : UIViewControllerRepresentable {
-    
-    @ObservedObject var router : TabRouter
-    
-    public init(router: TabRouter) {
-        self.router = router
-    }
-    
-    public func makeUIViewController(context: Context) -> some UIViewController {
-        let controller = UITabBarController()
-        
-        let children : [UIViewController] = (router.paths).compactMap {
-            router.controller(for: $0)
-        }
-        
-        controller.setViewControllers(children, animated: false)
-        
-        return controller
-    }
-    
-    public func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) {
-        
     }
     
 }
