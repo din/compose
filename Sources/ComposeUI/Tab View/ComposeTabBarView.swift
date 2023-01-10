@@ -25,6 +25,20 @@ public struct ComposeTabBarView : View {
     /// Automatically binds current tab router tab to specified items.
     /// Items must have their identifier set to the key path of the component they want to present.
     public init(router : TabRouter,
+                items : [ComposeTabItem]) {
+        self.items = items
+        self._selectedItemId = .init(get: {
+            return router.currentPath
+        }, set: { value in
+            if let value = value as? AnyKeyPath {
+                router.currentPath = value
+            }
+        })
+    }
+    
+    /// Automatically binds current tab router tab to specified items.
+    /// Items must have their identifier set to the key path of the component they want to present.
+    public init(router : TabRouter,
                 @ComposeTabViewBuilder items : () -> [ComposeTabItem]) {
         self.items = items()
         self._selectedItemId = .init(get: {
