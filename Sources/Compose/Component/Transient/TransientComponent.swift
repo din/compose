@@ -1,12 +1,12 @@
 import Foundation
 import SwiftUI
 
-public struct TransientComponent<Content : View> : Component {
+public struct TransientComponent : Component {
     
-    public let content : Content
+    public let content : AnyView
     
-    public init(content: Content) {
-        self.content = content
+    public init<Content : View>(content: Content) {
+        self.content = AnyView(content)
     }
     
     public var observers: Void {
@@ -14,7 +14,7 @@ public struct TransientComponent<Content : View> : Component {
     }
     
     public var view: AnyView {
-        AnyView(content)
+        content
     }
     
 }

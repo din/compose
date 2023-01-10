@@ -53,6 +53,9 @@ extension Component {
         if let dynamicChild = child as? AnyDynamicComponent, let controller = dynamicChild.storage.lastController {
             childController = controller
         }
+        else if child is TransientComponent {
+            childController = child.bind()
+        }
         else {
             childController = child.controller
         }
