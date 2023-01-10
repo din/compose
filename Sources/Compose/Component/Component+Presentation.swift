@@ -39,14 +39,20 @@ public enum ComponentPresentation : Equatable {
 }
 
 extension Component {
-
-    /// Presents component at the specified keypath modally with the specified presentation settings.
+    
+    /// Presents inline component as a view.
+    public func present<Content : View>(_ content : Content,
+                                        animated : Bool = true,
+                                        presentation : ComponentPresentation = .largeSheet) {
+        let controller = TransientComponent(content: content).bind()
+        
+        present(controller: controller, animated: animated, presentation: presentation)
+    }
+    
     public func present<V : Component>(_ keyPath : KeyPath<Self, V>,
                                        animated : Bool = true,
                                        presentation : ComponentPresentation = .largeSheet) {
         let child = self[keyPath: keyPath]
-        
-        let controller = self.controller
         
         var childController : ComponentController
         
@@ -59,6 +65,15 @@ extension Component {
         else {
             childController = child.controller
         }
+        
+        present(controller: childController, animated: animated, presentation: presentation)
+    }
+
+    /// Presents component at the specified keypath modally with the specified presentation settings.
+    func present(controller childController : ComponentController,
+                 animated : Bool = true,
+                 presentation : ComponentPresentation = .largeSheet) {
+        let controller = self.controller
         
         if presentation == .cover {
             childController.modalPresentationStyle = .fullScreen
@@ -145,3 +160,10 @@ extension Component where Self : View {
     
 }
 
+extension Service {
+    
+    public var appRootComponent : Component {
+        ComposeAppStorage.rootComponentController?.component ?? TransientComponent(content: EmptyView())
+    }
+    
+}

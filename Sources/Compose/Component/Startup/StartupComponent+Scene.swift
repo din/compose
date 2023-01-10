@@ -3,6 +3,8 @@ import SwiftUI
 
 class ComposeAppStorage {
     static var RootType : StartupComponent.Type? = nil
+    
+    static weak var rootComponentController : ComponentController? = nil
 }
 
 class ComposeAppDelegate : NSObject, UIApplicationDelegate {
@@ -32,6 +34,8 @@ class ComposeSceneDelegate: UIResponder, UIWindowSceneDelegate {
         window.makeKeyAndVisible()
         
         ComposeAppStorage.RootType?.didBindRootComponent()
+        
+        ComposeAppStorage.rootComponentController = window.rootViewController as? ComponentController
         
         self.window = window
     }
