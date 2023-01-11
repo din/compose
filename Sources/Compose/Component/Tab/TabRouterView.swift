@@ -34,6 +34,7 @@ public struct TabRouterContentView : UIViewControllerRepresentable {
         }
 
         controller.setViewControllers(children, animated: false)
+        controller.tabBar.isHidden = true
         
         context.coordinator.controller = controller
         
