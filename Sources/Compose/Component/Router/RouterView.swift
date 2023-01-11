@@ -18,6 +18,7 @@ class RouterNavigationController : UINavigationController, UIGestureRecognizerDe
     weak var router : Router? = nil
     weak var interactiveDelegate : RouterNavigationControllerInteractiveDelegate? = nil
     
+    @discardableResult
     override func popViewController(animated: Bool) -> UIViewController? {
         
         let controller = super.popViewController(animated: animated)
@@ -168,7 +169,15 @@ extension RouterContentView {
                     self?.navigationController?.setViewControllers([controller], animated: animated)
                 
                 case .clear:
-                    self?.navigationController?.setViewControllers([], animated: false)
+                    if Content.self == EmptyView.self {
+                        self?.navigationController?.setViewControllers([], animated: false)
+                    }
+                    else {
+                        let controllers = [self?.navigationController?.viewControllers.first]
+                            .compactMap { $0 }
+        
+                        self?.navigationController?.setViewControllers(controllers, animated: false)
+                    }
                     
                 }
                 
