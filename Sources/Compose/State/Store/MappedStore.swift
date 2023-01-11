@@ -39,10 +39,14 @@ import SwiftUI
         guard let component = controller.component as? Target else {
             return
         }
-
+        
+        ComponentControllerStorage.shared.pushEventScope(for: component.id)
+        
         component[keyPath: keyPath].willChange.withCurrent() += { state in
             self.container.state = state
         }
+        
+        ComponentControllerStorage.shared.popEventScope()
     }
     
 }
