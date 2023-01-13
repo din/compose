@@ -75,6 +75,11 @@ extension Component {
                  presentation : ComponentPresentation = .largeSheet) {
         let controller = self.controller
         
+        childController.rootView = AnyView(
+            childController.rootView
+                .environment(\.self, ComponentControllerStorage.shared.environmentValues(for: controller.id))
+        )
+        
         if presentation == .cover {
             childController.modalPresentationStyle = .fullScreen
         }
@@ -154,7 +159,7 @@ extension Component where Self : View {
     
     public var view: AnyView {
         AnyView(
-            self
+            self.background(EnvironmentReader(id: self.id))
         )
     }
     

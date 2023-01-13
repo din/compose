@@ -3,6 +3,12 @@ import SwiftUI
 import UIKit
 import Combine
 
+class TabBarController : UITabBarController {
+    
+    weak var router : TabRouter? = nil
+    
+}
+
 public struct TabRouterView : View {
     
     let router : TabRouter
@@ -27,7 +33,8 @@ public struct TabRouterContentView : UIViewControllerRepresentable {
     }
     
     public func makeUIViewController(context: Context) -> some UIViewController {
-        let controller = UITabBarController()
+        let controller = TabBarController()
+        controller.router = router
         
         let children : [UIViewController] = (router.paths).compactMap {
             router.controller(for: $0)

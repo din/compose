@@ -24,6 +24,12 @@ extension Emitter {
     public func observe(handler : @escaping (Value) -> Void) -> AnyCancellable {
         let currentScope = ComponentControllerStorage.shared.currentEventScope
         
+        #if DEBUG
+        if currentScope == nil && parentController != nil {
+            print("[EOB] Warning: observation for \(ComponentControllerStorage.shared.displayName(for: self.id)) without 'withComponentScope' inside asynchonous function will not work.")
+        }
+        #endif
+        
         let cancellable = publisher.sink { [weak currentScope] v in
             if let scope = currentScope {
                 ComponentControllerStorage.shared.pushEventScope(for: scope.id)

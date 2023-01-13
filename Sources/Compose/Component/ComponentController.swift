@@ -13,7 +13,13 @@ class ComponentControllerStorage {
     // All owned entries. Key is the entry ID, value is the ID of controller which owns the entity.
     var ownedEntities = [UUID : UUID]()
     
-    // All event scopes
+    // Entities display names.
+    var displayNamesOfEntities = [UUID : String]()
+    
+    // Environment values per component.
+    var environmentValues = [UUID : EnvironmentValues]()
+    
+    // All event scopes.
     var eventScopes = [UUID]()
     
     func owner(for entityId : UUID) -> ComponentController? {
@@ -22,6 +28,17 @@ class ComponentControllerStorage {
         }
         
         return controllers[componentId]
+    }
+    
+    func displayName(for entityId : UUID) -> String {
+        let componentName = type(of: owner(for: entityId)?.component ?? TransientComponent(content: EmptyView()))
+        let entityName = displayNamesOfEntities[entityId] ?? entityId.uuidString
+        
+        return "\(componentName).\(entityName)"
+    }
+    
+    func environmentValues(for id : UUID) -> EnvironmentValues {
+        environmentValues[id] ?? EnvironmentValues()
     }
     
     var currentEventScope : ComponentController? {
@@ -90,7 +107,7 @@ class ComponentController : UIHostingController<AnyView> {
         self.component = component
         
         super.init(rootView: component.view)
-        
+      
         ComponentControllerStorage.shared.controllers[self.id] = self
     }
     

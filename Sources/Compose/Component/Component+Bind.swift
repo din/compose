@@ -42,6 +42,7 @@ extension Component {
             // Registering component entries
             if let value = value as? ComponentEntry {
                 ComponentControllerStorage.shared.ownedEntities[value.id] = controller.id
+                ComponentControllerStorage.shared.displayNamesOfEntities[value.id] = name
                 value.didBind()
             }
             
@@ -64,6 +65,7 @@ extension Component {
                     // Registering nested component entries
                     if let wrappedValue = wrappedValue as? ComponentEntry {
                         ComponentControllerStorage.shared.ownedEntities[wrappedValue.id] = controller.id
+                        ComponentControllerStorage.shared.displayNamesOfEntities[wrappedValue.id] = name
                         wrappedValue.didBind()
                     }
                 }
@@ -83,6 +85,18 @@ extension Component {
         ComponentControllerStorage.shared.popEventScope()
    
         return controller
+    }
+    
+}
+
+extension Component {
+    
+    public func withComponentScope(action : () -> Void) {
+        ComponentControllerStorage.shared.pushEventScope(for: self.id)
+        
+        action()
+        
+        ComponentControllerStorage.shared.popEventScope()
     }
     
 }
