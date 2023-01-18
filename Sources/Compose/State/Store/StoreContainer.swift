@@ -2,7 +2,7 @@ import Foundation
 import Combine
 import SwiftUI
 
-public class StoreContainer<State : AnyState> : ObservableObject {
+public final class StoreContainer<State : AnyState> : ObservableObject {
 
     public let id = UUID()
     

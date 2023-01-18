@@ -71,11 +71,3 @@ extension ValueEmitter {
     }
     
 }
-
-extension ValueEmitter : DynamicComponentAddressable {
-    
-    public static var fallbackValue : ValueEmitter {
-        ValueEmitter<Value>()
-    }
-    
-}
