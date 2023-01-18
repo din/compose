@@ -53,7 +53,7 @@ extension EnclosingRouter {
             return tabController.router
         }
 
-        public func push<T : Component, V>(_ keyPath : KeyPath<T, V>, animated : Bool = true) {
+        public func push<T : Component, V : DynamicComponentAddressable>(_ keyPath : KeyPath<T, V>, animated : Bool = true) {
             let enclosingPaths = Array(router?.paths.reversed() ?? [])
             
 //             TODO: figure out how to push through tab bar controllers.

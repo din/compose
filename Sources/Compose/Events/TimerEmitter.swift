@@ -39,3 +39,11 @@ public struct TimerEmitter : Emitter, ComponentEntry {
     }
     
 }
+
+extension TimerEmitter : DynamicComponentAddressable {
+    
+    public static var fallbackValue : TimerEmitter {
+        TimerEmitter(every: .infinity)
+    }
+    
+}

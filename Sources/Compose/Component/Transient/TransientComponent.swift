@@ -18,3 +18,11 @@ public struct TransientComponent : Component {
     }
     
 }
+
+extension TransientComponent {
+    
+    public static var fallbackValue : TransientComponent {
+        TransientComponent(content: EmptyView())
+    }
+    
+}

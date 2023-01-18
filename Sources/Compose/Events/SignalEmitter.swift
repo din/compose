@@ -21,3 +21,11 @@ public struct SignalEmitter : Emitter {
     }
     
 }
+
+extension SignalEmitter : DynamicComponentAddressable {
+    
+    public static var fallbackValue : SignalEmitter {
+        SignalEmitter()
+    }
+    
+}

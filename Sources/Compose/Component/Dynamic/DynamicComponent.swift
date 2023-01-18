@@ -45,9 +45,10 @@ extension DynamicComponent {
         storage.create(allocator: allocator)
     }
     
-    public subscript<V>(dynamicMember keyPath : KeyPath<T, V>) -> V {
+    public subscript<V : DynamicComponentAddressable>(dynamicMember keyPath : KeyPath<T, V>) -> V {
         guard let controller = storage.lastController, let component = controller.component as? T else {
-            fatalError("[InstanceComponent] Attempting to get property of \(T.self) without creating it first.")
+            print("[CIC] Warning: attempting to get property of \(T.self) without creating it first.")
+            return V.fallbackValue
         }
         
         return component[keyPath: keyPath]
@@ -77,6 +78,14 @@ extension DynamicComponent {
         #else
         AnyView(EmptyView())
         #endif
+    }
+    
+}
+
+extension DynamicComponent : DynamicComponentAddressable {
+    
+    public static var fallbackValue : DynamicComponent {
+        DynamicComponent()
     }
     
 }
