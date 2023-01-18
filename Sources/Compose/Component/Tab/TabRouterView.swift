@@ -77,6 +77,14 @@ extension TabRouterContentView {
                 self?.controller?.selectedIndex = index
             }
             .store(in: &cancellables)
+            
+            router.didRefresh.sink { [weak self, weak router] action in
+                let children : [UIViewController] = (router?.paths ?? []).compactMap {
+                    router?.controller(for: $0)
+                }
+                
+                self?.controller?.setViewControllers(children, animated: false)
+            }.store(in: &cancellables)
         }
         
         deinit {

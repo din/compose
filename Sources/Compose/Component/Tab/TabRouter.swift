@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import UIKit
+import Combine
 
 public class TabRouter : ObservableObject, ComponentEntry {
     
@@ -8,6 +9,8 @@ public class TabRouter : ObservableObject, ComponentEntry {
     
     @Published var paths = [AnyKeyPath]()
     @Published public var currentPath : AnyKeyPath? = nil
+    
+    internal let didRefresh = PassthroughSubject<Void, Never>()
     
     public init(paths : [AnyKeyPath]) {
         self.paths = paths
@@ -21,6 +24,10 @@ extension TabRouter {
     public func update(paths : [AnyKeyPath]) {
         self.paths = paths
         self.currentPath = paths.first
+    }
+    
+    public func refresh() {
+        didRefresh.send()
     }
     
 }
