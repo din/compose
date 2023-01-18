@@ -14,14 +14,7 @@ extension StartupComponent {
     
     public static func main() {
         ComposeAppStorage.RootType = Self.self
-    
-        UIApplicationMain(
-            CommandLine.argc,
-            CommandLine.unsafeArgv,
-            nil,
-            NSStringFromClass(ComposeAppDelegate.self)
-        )
-    
+        ComposeApp.main()
     }
     
 }
