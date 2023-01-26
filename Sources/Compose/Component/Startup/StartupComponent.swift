@@ -8,6 +8,16 @@ public protocol StartupComponent : Component {
     static func willBindRootComponent()
     static func didBindRootComponent()
     
+    static var applicationDelegateType : AnyComposeAppDelegate.Type { get }
+    
+}
+
+extension StartupComponent {
+    
+    public static var applicationDelegateType : AnyComposeAppDelegate.Type {
+        EmptyAppDelegate.self
+    }
+    
 }
 
 extension StartupComponent {

@@ -9,10 +9,13 @@ class ComposeAppStorage {
 
 struct ComposeApp : App {
     
+    @UIApplicationDelegateAdaptor(ComposeAppDelegate.self) var appDelegate
+    
     var body: some Scene {
         WindowGroup {
             EmptyView()
                 .onAppear {
+
                     guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
                         return
                     }
