@@ -28,10 +28,15 @@ public final class Router : ObservableObject, ComponentEntry {
         paths.last
     }
     
-    @Published public var paths : [AnyKeyPath] = []
-    @Published public var isInteractiveTransitionEnabled : Bool = true
-
+    public var paths : [AnyKeyPath] {
+        routes.map { $0.keyPath }
+    }
+    
+    public var isInteractiveTransitionEnabled : Bool = true
+    
     public let id = UUID()
+    
+    internal var routes : [Route] = []
     
     internal let didPerformAction = PassthroughSubject<Action, Never>()
 
@@ -39,19 +44,19 @@ public final class Router : ObservableObject, ComponentEntry {
     
     public init() {
         self.start = nil
-        self.paths = []
+        self.routes = []
     }
     
     public init(start : AnyKeyPath) {
         self.start = start
-        self.paths = [start]
+        self.routes = [.init(ownerId: nil, keyPath: start)]
     }
 }
 
 extension Router {
     
     public func push(_ keyPath : AnyKeyPath, animated : Bool = true) {
-        paths.append(keyPath)
+        routes.append(.init(ownerId: self.parentController?.id, keyPath: keyPath))
         didPerformAction.send(.push(animated))
     }
     
@@ -60,7 +65,7 @@ extension Router {
             return
         }
         
-        paths.removeLast()
+        routes.removeLast()
         didPerformAction.send(.pop(animated))
     }
     
@@ -69,32 +74,41 @@ extension Router {
             return
         }
         
-        guard let path = paths.first, paths.count > 1 else {
+        guard let route = routes.first, routes.count > 1 else {
             return
         }
         
-        paths = [path]
+        routes = [route]
         didPerformAction.send(.popToRoot(animated))
     }
     
     public func replace(_ keyPath : AnyKeyPath, animated : Bool = false) {
-        paths = [keyPath]
+        routes = [.init(ownerId: self.parentController?.id, keyPath: keyPath)]
         didPerformAction.send(.replace(animated))
     }
     
     public func clear() {
-        self.paths = []
+        self.routes = []
         didPerformAction.send(.clear)
     }
     
-    func controller(for keyPath : AnyKeyPath) -> ComponentController? {
-        guard let target = parentController?.component else {
+    func controller(for route : Route) -> ComponentController? {
+        var target : Component? = nil
+        
+        if let ownerId = route.ownerId {
+            target = ComponentControllerStorage.shared.controllers[ownerId]?.component
+        }
+        else {
+            target = parentController?.component
+        }
+        
+        guard let target = target else {
             print("[CCR] Warning: router is unbound. No components could be looked up.")
             return nil
         }
 
-        guard let component = target[keyPath: keyPath] as? Component else {
-            print("[CCR] Warning: router is unable to find component under keypath: '\(keyPath)'.")
+        guard let component = target[keyPath: route.keyPath] as? Component else {
+            print("[CCR] Warning: router is unable to find component under keypath: '\(route.keyPath)'.")
             return nil
         }
         

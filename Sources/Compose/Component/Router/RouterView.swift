@@ -100,7 +100,7 @@ public struct RouterContentView<Content : View> : UIViewControllerRepresentable,
         let controller = RouterNavigationController(navigationBarClass: RouterNavigationBar.self, toolbarClass: nil)
         controller.router = router
         
-        var children : [UIViewController] = (router.paths).compactMap {
+        var children : [UIViewController] = (router.routes).compactMap {
             router.controller(for: $0)
         }
         
@@ -149,7 +149,7 @@ extension RouterContentView {
                 switch action {
                     
                 case .push(let animated):
-                    guard let path = router?.paths.last, let controller = router?.controller(for: path) else {
+                    guard let route = router?.routes.last, let controller = router?.controller(for: route) else {
                         return
                     }
         
@@ -162,7 +162,7 @@ extension RouterContentView {
                     self?.navigationController?.popToRootViewController(animated: animated)
                     
                 case .replace(let animated):
-                    guard let path = router?.paths.first, let controller = router?.controller(for: path) else {
+                    guard let route = router?.routes.first, let controller = router?.controller(for: route) else {
                         return
                     }
                     
@@ -209,7 +209,7 @@ extension RouterContentView {
                 return
             }
             
-            self.navigationController?.router?.paths.removeLast()
+            self.navigationController?.router?.routes.removeLast()
         }
         
     }
