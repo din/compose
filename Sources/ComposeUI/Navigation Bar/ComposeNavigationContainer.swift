@@ -17,7 +17,7 @@ struct ComposeNavigationContainer<Content : View, LeftView : View, RightView : V
                 .edgesIgnoringSafeArea(.all)
             
             content
-                .padding(.top, barStyle.topPadding + (barStyle.isOverlayingContent == true ? 0 : barStyle.height))
+                .padding(.top, barStyle.isOverlayingContent == true ? 0 : barStyle.height)
             
             ComposeNavigationBar(title: title, leftView: leftView, rightView: rightView)
                 .padding(.top, barStyle.topPadding)
