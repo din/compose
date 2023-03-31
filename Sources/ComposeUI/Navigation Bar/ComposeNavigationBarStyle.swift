@@ -9,6 +9,7 @@ public struct ComposeNavigationBarStyle {
     
     public var height : CGFloat
     public var horizontalPadding : CGFloat
+    public var topPadding : CGFloat
     
     public var shouldShowDivider : Bool
     
@@ -27,6 +28,7 @@ public struct ComposeNavigationBarStyle {
         tintColor : Color = .blue,
         height : CGFloat = 44,
         horizontalPadding : CGFloat = 24,
+        topPadding : CGFloat = 0,
         shouldShowDivider : Bool = false,
         alwaysCenterTitle : Bool = false,
         isOverlayingContent : Bool = false,
@@ -39,6 +41,7 @@ public struct ComposeNavigationBarStyle {
         self.tintColor = tintColor
         self.height = height
         self.horizontalPadding = horizontalPadding
+        self.topPadding = topPadding
         self.shouldShowDivider = shouldShowDivider
         self.alwaysCenterTitle = alwaysCenterTitle
         self.isOverlayingContent = isOverlayingContent
