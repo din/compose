@@ -3,17 +3,17 @@
 import SwiftUI
 import UIKit
 
+public enum ComposeScrollViewEvent {
+    case startedDragging
+    case endedDragging
+    case endedDeccelerating
+    case reachedTop
+    case reachedBottom
+}
+
 extension ComposeScrollView {
     
-    public enum Event {
-        case startedDragging
-        case endedDragging
-        case endedDeccelerating
-        case reachedTop
-        case reachedBottom
-    }
-    
-    public typealias DragHandler = (Event) -> Void
+    public typealias DragHandler = (ComposeScrollViewEvent) -> Void
     public typealias CompletionHandler = () -> Void
     public typealias RefreshHandler = (@escaping CompletionHandler) -> Void
 
