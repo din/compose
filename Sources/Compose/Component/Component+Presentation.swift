@@ -68,7 +68,7 @@ extension Component {
         
         present(controller: childController, animated: animated, presentation: presentation)
     }
-
+    
     /// Presents component at the specified keypath modally with the specified presentation settings.
     func present(controller childController : ComponentController,
                  animated : Bool = true,
@@ -169,6 +169,12 @@ extension Service {
     
     public var appRootComponent : Component {
         ComposeAppStorage.rootComponentController?.component ?? TransientComponent(content: EmptyView())
+    }
+    
+    public func presentViewControllerWithAppRootComponent(_ controller : UIViewController,
+                                                        animated : Bool = true,
+                                                        completion : (() -> Void)? = nil) {
+        self.appRootComponent.controller.present(controller, animated: animated, completion: completion)
     }
     
 }
