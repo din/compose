@@ -7,31 +7,36 @@ class ComposeAppStorage {
     static weak var rootComponentController : ComponentController? = nil
 }
 
+struct ComposeRootView : UIViewControllerRepresentable {
+    
+    func makeUIViewController(context: Context) -> ComponentController {
+        ComposeAppStorage.RootType?.willBindRootComponent()
+        
+        guard let rootComponentController = ComposeAppStorage.RootType?.init().bind() else {
+            return ComponentController(component: TransientComponent(content: EmptyView()))
+        }
+        
+        ComposeAppStorage.RootType?.didBindRootComponent()
+        
+        ComposeAppStorage.rootComponentController = rootComponentController
+        
+        return rootComponentController
+    }
+    
+    func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) {
+        
+    }
+    
+}
+
 struct ComposeApp : App {
     
     @UIApplicationDelegateAdaptor(ComposeAppDelegate.self) var appDelegate
     
     var body: some Scene {
         WindowGroup {
-            EmptyView()
-                .onAppear {
-
-                    guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
-                        return
-                    }
-                    
-                    guard let window = windowScene.windows.first else {
-                        return
-                    }
-    
-                    ComposeAppStorage.RootType?.willBindRootComponent()
-                    
-                    window.rootViewController = ComposeAppStorage.RootType?.init().bind()
-                    
-                    ComposeAppStorage.RootType?.didBindRootComponent()
-                    
-                    ComposeAppStorage.rootComponentController = window.rootViewController as? ComponentController
-                }
+            ComposeRootView()
+                .edgesIgnoringSafeArea(.all)
         }
     }
     
